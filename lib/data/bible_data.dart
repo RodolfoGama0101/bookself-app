@@ -1,0 +1,85 @@
+class BibleBook {
+  final String name;
+  final int chapters;
+  final bool isNewTestament;
+
+  const BibleBook({
+    required this.name,
+    required this.chapters,
+    required this.isNewTestament,
+  });
+}
+
+class BibleData {
+  static const List<BibleBook> books = [
+    // Antigo Testamento
+    BibleBook(name: 'Gênesis', chapters: 50, isNewTestament: false),
+    BibleBook(name: 'Êxodo', chapters: 40, isNewTestament: false),
+    BibleBook(name: 'Levítico', chapters: 27, isNewTestament: false),
+    BibleBook(name: 'Números', chapters: 36, isNewTestament: false),
+    BibleBook(name: 'Deuteronômio', chapters: 34, isNewTestament: false),
+    BibleBook(name: 'Josué', chapters: 24, isNewTestament: false),
+    BibleBook(name: 'Juízes', chapters: 21, isNewTestament: false),
+    BibleBook(name: 'Rute', chapters: 4, isNewTestament: false),
+    BibleBook(name: '1 Samuel', chapters: 31, isNewTestament: false),
+    BibleBook(name: '2 Samuel', chapters: 24, isNewTestament: false),
+    BibleBook(name: '1 Reis', chapters: 22, isNewTestament: false),
+    BibleBook(name: '2 Reis', chapters: 25, isNewTestament: false),
+    BibleBook(name: '1 Crônicas', chapters: 29, isNewTestament: false),
+    BibleBook(name: '2 Crônicas', chapters: 36, isNewTestament: false),
+    BibleBook(name: 'Esdras', chapters: 10, isNewTestament: false),
+    BibleBook(name: 'Neemias', chapters: 13, isNewTestament: false),
+    BibleBook(name: 'Ester', chapters: 10, isNewTestament: false),
+    BibleBook(name: 'Jó', chapters: 42, isNewTestament: false),
+    BibleBook(name: 'Salmos', chapters: 150, isNewTestament: false),
+    BibleBook(name: 'Provérbios', chapters: 31, isNewTestament: false),
+    BibleBook(name: 'Eclesiastes', chapters: 12, isNewTestament: false),
+    BibleBook(name: 'Cantares', chapters: 8, isNewTestament: false),
+    BibleBook(name: 'Isaías', chapters: 66, isNewTestament: false),
+    BibleBook(name: 'Jeremias', chapters: 52, isNewTestament: false),
+    BibleBook(name: 'Lamentações', chapters: 5, isNewTestament: false),
+    BibleBook(name: 'Ezequiel', chapters: 48, isNewTestament: false),
+    BibleBook(name: 'Daniel', chapters: 12, isNewTestament: false),
+    BibleBook(name: 'Oseias', chapters: 14, isNewTestament: false),
+    BibleBook(name: 'Joel', chapters: 3, isNewTestament: false),
+    BibleBook(name: 'Amós', chapters: 9, isNewTestament: false),
+    BibleBook(name: 'Obadias', chapters: 1, isNewTestament: false),
+    BibleBook(name: 'Jonas', chapters: 4, isNewTestament: false),
+    BibleBook(name: 'Miqueias', chapters: 7, isNewTestament: false),
+    BibleBook(name: 'Naum', chapters: 3, isNewTestament: false),
+    BibleBook(name: 'Habacuque', chapters: 3, isNewTestament: false),
+    BibleBook(name: 'Sofonias', chapters: 3, isNewTestament: false),
+    BibleBook(name: 'Ageu', chapters: 2, isNewTestament: false),
+    BibleBook(name: 'Zacarias', chapters: 14, isNewTestament: false),
+    BibleBook(name: 'Malaquias', chapters: 4, isNewTestament: false),
+
+    // Novo Testamento
+    BibleBook(name: 'Mateus', chapters: 28, isNewTestament: true),
+    BibleBook(name: 'Marcos', chapters: 16, isNewTestament: true),
+    BibleBook(name: 'Lucas', chapters: 24, isNewTestament: true),
+    BibleBook(name: 'João', chapters: 21, isNewTestament: true),
+    BibleBook(name: 'Atos', chapters: 28, isNewTestament: true),
+    BibleBook(name: 'Romanos', chapters: 16, isNewTestament: true),
+    BibleBook(name: '1 Coríntios', chapters: 16, isNewTestament: true),
+    BibleBook(name: '2 Coríntios', chapters: 13, isNewTestament: true),
+    BibleBook(name: 'Gálatas', chapters: 6, isNewTestament: true),
+    BibleBook(name: 'Efésios', chapters: 6, isNewTestament: true),
+    BibleBook(name: 'Filipenses', chapters: 4, isNewTestament: true),
+    BibleBook(name: 'Colossenses', chapters: 4, isNewTestament: true),
+    BibleBook(name: '1 Tessalonicenses', chapters: 5, isNewTestament: true),
+    BibleBook(name: '2 Tessalonicenses', chapters: 3, isNewTestament: true),
+    BibleBook(name: '1 Timóteo', chapters: 6, isNewTestament: true),
+    BibleBook(name: '2 Timóteo', chapters: 4, isNewTestament: true),
+    BibleBook(name: 'Tito', chapters: 3, isNewTestament: true),
+    BibleBook(name: 'Filemom', chapters: 1, isNewTestament: true),
+    BibleBook(name: 'Hebreus', chapters: 13, isNewTestament: true),
+    BibleBook(name: 'Tiago', chapters: 5, isNewTestament: true),
+    BibleBook(name: '1 Pedro', chapters: 5, isNewTestament: true),
+    BibleBook(name: '2 Pedro', chapters: 3, isNewTestament: true),
+    BibleBook(name: '1 João', chapters: 5, isNewTestament: true),
+    BibleBook(name: '2 João', chapters: 1, isNewTestament: true),
+    BibleBook(name: '3 João', chapters: 1, isNewTestament: true),
+    BibleBook(name: 'Judas', chapters: 1, isNewTestament: true),
+    BibleBook(name: 'Apocalipse', chapters: 22, isNewTestament: true),
+  ];
+}

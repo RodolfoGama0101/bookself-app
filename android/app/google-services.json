@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "854606753142",
+    "project_id": "bookself-app-3e26b",
+    "storage_bucket": "bookself-app-3e26b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:854606753142:android:5e43f1a377ca8b34901e57",
+        "android_client_info": {
+          "package_name": "com.couple.bookself.bookself_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA01X62FMjbQyRSxLrhmN8EVakmrouiKfE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
