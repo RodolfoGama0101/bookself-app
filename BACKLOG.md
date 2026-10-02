@@ -1,0 +1,152 @@
+# Backlog do projeto
+
+Atualizado em **02/10/2026**. Nome atual: **Bookself App**. Proposta de novo nome: **Entrelace**, ainda não escolhida nem aplicada.
+
+Este arquivo centraliza as tarefas identificadas na análise do repositório e no planejamento solicitado de filmes, séries e músicas para casais. Novas descobertas devem entrar aqui. A lista não significa que todos os itens estejam aprovados para implementação imediata.
+
+## Como usar
+
+- `[ ]`: pendente; `[x]`: concluída com evidência. Para trabalho iniciado ou impedido, anotar **Em andamento** ou **Bloqueada: motivo** no item.
+- **P0:** corrigir antes de ampliar acesso/distribuição ou migrar dados; **P1:** próxima entrega/base necessária; **P2:** melhoria posterior; **P3:** ideia opcional, a priorizar.
+- **Correção:** problema observado; **Verificação:** suspeita ou configuração não comprovada; **Evolução:** mudança proposta; **Decisão:** escolha ainda pendente.
+- Cada item tem ID estável, dependências e critério de conclusão. Dependência `—` significa que pode começar sem outra tarefa desta lista.
+- Não marcar como concluída apenas porque há código: cumprir o critério, registrar validação e distinguir implantação/migração/publicação pendentes.
+- Prioridades e etapas são propostas. Ajustar conforme as próximas solicitações do usuário, sem perder os IDs.
+
+## Ordem sugerida
+
+1. Confiabilidade e autorização atuais: CORE, SEC, QA-01, QA-02.
+2. Vínculo consentido e compartilhamento: COUPLE-01 a COUPLE-04.
+3. Decisões de produto/marca e base de múltiplas mídias: PROD, NAME, DATA e API.
+4. Filmes, séries e músicas, nessa ordem de proposta; validar uma categoria completa antes da seguinte.
+5. Qualidade de distribuição e melhorias posteriores; ideias P3 somente após priorização.
+
+Decisões/ensaios e ajustes de documentação podem ocorrer enquanto correções são tratadas. Não iniciar migração ou ampliar acesso antes de validar autorização e preservação dos dados.
+
+## 1. Documentação e decisões de produto
+
+- [x] **DOC-01 · P1 · Organização:** criar este backlog, `AGENTS.md`, índice no README e documentos de arquitetura, produto e integrações. **Dep.:** —. **Concluído:** documentação criada, README corrigido quanto à Bíblia/Firebase, links locais e IDs verificados; apenas documentação alterada em 02/10/2026.
+- [ ] **DOC-02 · P2 · Evolução:** registrar decisões técnicas relevantes em `docs/decisions/` à medida que forem tomadas. **Dep.:** —. **Concluir quando:** decisões de dados, vínculo e provedores tiverem alternativas, escolha, motivos e efeitos; não criar decisões fictícias para preencher a pasta.
+- [ ] **DOC-03 · P1 · Evolução:** documentar configuração reproduzível de desenvolvimento e emuladores. **Dep.:** SEC-02. **Concluir quando:** outra pessoa conseguir configurar Firebase/Auth/Firestore e executar testes locais seguindo comandos e exemplos sem segredos.
+- [ ] **PROD-01 · P1 · Decisão:** fechar o MVP de cada categoria, especialmente música: faixas, álbuns, listas internas e registros de escuta. **Dep.:** —. **Concluir quando:** escopo, estados, campos obrigatórios, critérios de sucesso e o que fica para depois estiverem registrados em `docs/PRODUCT.md`.
+- [ ] **PROD-02 · P1 · Decisão:** definir navegação para Biblioteca por mídia, espaço do casal e acesso à Bíblia. **Dep.:** PROD-01. **Concluir quando:** mapa de telas e fluxos individual/em casal forem revisados, incluindo telas pequenas e ausência de parceiro.
+- [ ] **PROD-03 · P2 · Evolução:** validar fluxos e acessibilidade com protótipos e uso real. **Dep.:** PROD-02. **Concluir quando:** busca, inclusão, progresso, vínculo e escolha conjunta tiverem feedback registrado e problemas priorizados aqui.
+
+## 2. Confiabilidade do aplicativo atual
+
+- [ ] **CORE-01 · P0 · Correção:** criar estados de inicialização, carregamento e falha do Firebase. **Dep.:** —. **Concluir quando:** falha de configuração/rede tiver uma tela recuperável e os serviços não forem usados antes da inicialização válida; testar sucesso e falha.
+- [ ] **CORE-02 · P1 · Correção:** diferenciar sessão autenticada de perfil Firestore carregando, ausente ou com erro. **Dep.:** CORE-01. **Concluir quando:** restauração de sessão e falha parcial de cadastro não deixarem login/carregamento indefinido; caminho de recuperação testado sem sobrescrever perfil existente.
+- [ ] **CORE-03 · P1 · Correção:** permitir limpar campos opcionais em `copyWith`, sobretudo `finishedDate`. **Dep.:** —. **Concluir quando:** distinguir campo omitido de `null` explícito e limpar data ao sair de `Lido`; revisar também `UserModel.partnerUid/photoUrl` e testar preservação/limpeza.
+- [ ] **CORE-04 · P1 · Correção:** guardar/cancelar a assinatura de autenticação e encerrar assinaturas de usuário/parceiro em `AuthService.dispose`. **Dep.:** —. **Concluir quando:** troca de conta, logout e descarte não mantiverem ouvintes antigos nem estado do parceiro anterior.
+- [ ] **CORE-05 · P1 · Correção:** revisar `mounted`, contextos de diálogos e descarte de controladores após operações assíncronas. **Dep.:** —. **Concluir quando:** fechar busca, perfil e detalhes durante requisições não gerar `setState` após descarte nem uso de contexto inválido; feedback de exclusão chegar à tela ativa.
+- [ ] **CORE-06 · P1 · Correção:** aguardar e tratar escritas bíblicas, individuais e em lote. **Dep.:** —. **Concluir quando:** sucesso só aparecer após confirmação, falha ficar visível e ações repetidas não criarem comportamento incoerente; testar rejeição/rede e marcar/desmarcar.
+- [ ] **CORE-07 · P1 · Correção:** preservar o valor digitado de senha, removendo `trim()` da senha no envio do login/cadastro. **Dep.:** —. **Concluir quando:** espaços de senha não forem alterados silenciosamente e regras de validação forem coerentes entre cadastro e entrada.
+- [ ] **CORE-08 · P1 · Evolução:** unificar mensagens de autenticação/Firestore/rede e remover detalhes técnicos dos textos ao usuário. **Dep.:** —. **Concluir quando:** erros conhecidos tiverem mensagem apropriada em português, logs úteis sem dados sensíveis e fallback sem stack/erro bruto na interface.
+- [ ] **CORE-09 · P2 · Evolução:** persistir preferência de tema. **Dep.:** —. **Concluir quando:** preferência sobreviver ao reinício e a escolha inicial/sistema estiver definida e validada.
+- [ ] **CORE-10 · P2 · Correção:** dar comportamento coerente ao gesto de atualizar do Início, cujo callback atual é vazio. **Dep.:** —. **Concluir quando:** atualização disparar ação observável ou o gesto for removido em favor do stream, sem prometer atualização inexistente.
+- [ ] **CORE-11 · P2 · Correção:** revisar datas de conclusão, edição de registros lidos sem data e formatação/localização de seletores. **Dep.:** CORE-03. **Concluir quando:** política para datas futuras estiver definida, livros legados sem data continuarem visíveis e usuário puder corrigir a conclusão sem trocar status artificialmente.
+
+## 3. Autorização, dados pessoais e ambiente
+
+- [ ] **SEC-01 · P0 · Verificação/Evolução:** auditar regras remotas e versionar regras do Firestore; registrar índices necessários. **Dep.:** —. **Concluir quando:** leitura/escrita de dono, parceiro permitido e terceiro forem verificadas; proteger autoria, campos válidos e perfis; testes cobrirem negações e desvínculo, sem assumir que regras atuais são abertas.
+- [ ] **SEC-02 · P1 · Evolução:** configurar Firebase Emulator Suite para Auth/Firestore e dados de teste isolados. **Dep.:** —. **Concluir quando:** configuração versionada e comandos locais permitirem testar sem tocar produção; conexão dos clientes por plataforma documentada.
+- [ ] **SEC-03 · P1 · Verificação/Evolução:** inventariar chaves/credenciais e separar configuração por ambiente. **Dep.:** —. **Concluir quando:** chave Google Books sair do literal, restrições e quotas forem revisadas, segredos reais tiverem armazenamento adequado e exemplos não expuserem valores; avaliar rotação se exposição indevida for confirmada.
+- [ ] **SEC-04 · P1 · Evolução:** separar perfil consultável pelo parceiro de dados privados, como e-mail. **Dep.:** COUPLE-01, SEC-01. **Concluir quando:** esquema/regras não expuserem campos privados por leitura do documento inteiro e telas do casal continuarem funcionando.
+- [ ] **SEC-05 · P2 · Decisão/Evolução:** definir exportação, exclusão de conta e retenção de dados pessoais/compartilhados. **Dep.:** COUPLE-01. **Concluir quando:** fluxos, reautenticação necessária, efeito sobre vínculo e dados do parceiro forem documentados e implementados com validação; documentação de privacidade refletir o comportamento.
+
+## 4. Vínculo e experiência do casal
+
+- [ ] **COUPLE-01 · P1 · Decisão:** definir consentimento, visibilidade padrão/opcional, bloqueio/cancelamento, dados após desvínculo e autoria de experiências. **Dep.:** —. **Concluir quando:** regras de produto incluírem conta sem parceiro, relação encerrada, novo vínculo e conteúdo privado.
+- [ ] **COUPLE-02 · P0 · Correção:** tornar vínculo/desvínculo atuais consistentes sob concorrência, validando ambas as contas e reciprocidade. **Dep.:** SEC-01, SEC-02. **Concluir quando:** vínculos simultâneos, auto-vínculo, conta já vinculada e desfazimento com estado antigo não criarem relações divergentes nem afetarem novo parceiro; verificar autorização no servidor.
+- [ ] **COUPLE-03 · P1 · Evolução:** substituir vínculo direto por convites com aceite, recusa, expiração e cancelamento. **Dep.:** COUPLE-01, COUPLE-02, SEC-04. **Concluir quando:** relação só ficar ativa após aceite do destinatário, códigos não expuserem UID desnecessariamente e convites não puderem ser reutilizados indevidamente.
+- [ ] **COUPLE-04 · P1 · Evolução:** aplicar visibilidade e revogar acesso ao desvincular em todas as categorias. **Dep.:** COUPLE-03. **Concluir quando:** registros pessoais permanecerem, assinaturas/dados em cache forem tratados e ex-parceiro/novo parceiro não tiverem acesso indevido; testes incluírem conteúdo compartilhado.
+- [ ] **COUPLE-05 · P1 · Decisão/Evolução:** definir e implementar registro de experiência conjunta. **Dep.:** COUPLE-01, DATA-01. **Concluir quando:** participantes, data e confirmação forem explícitos; registrar filme/episódio/escuta juntos não sobrescrever estado/opinião individual sem consentimento definido.
+- [ ] **COUPLE-06 · P1 · Evolução:** criar listas internas do casal para próximas leituras, filmes, séries e músicas. **Dep.:** COUPLE-04, DATA-02. **Concluir quando:** ambos puderem adicionar/retirar itens conforme permissões, alterações concorrentes forem tratadas e origem/autoria do item permanecerem claras.
+- [ ] **COUPLE-07 · P2 · Evolução:** mostrar interesses em comum e ajudar a escolher o próximo item. **Dep.:** COUPLE-06. **Concluir quando:** comparação usar apenas itens permitidos, resultados explicarem a coincidência e conta sem parceiro/sem coincidências tiver estado adequado.
+- [ ] **COUPLE-08 · P2 · Evolução:** unificar feed e estatísticas por mídia para o casal. **Dep.:** DATA-06, MOVIE-02, SERIES-02, MUSIC-02. **Concluir quando:** filtros e métricas por categoria usarem eventos válidos, não contarem duas vezes uma experiência conjunta e respeitarem visibilidade/desvínculo.
+
+## 5. Base de múltiplas mídias e preservação de dados
+
+- [ ] **DATA-01 · P1 · Decisão:** consolidar modelo de catálogo, entrada pessoal, progresso específico, relação e evento. **Dep.:** PROD-01, COUPLE-01. **Concluir quando:** esquema versionado e exemplos de todas as mídias separarem metadados, autoria e experiência conjunta; estados internos não dependerem dos rótulos traduzidos.
+- [ ] **DATA-02 · P1 · Evolução:** implementar modelos/repositórios e identidade por fornecedor/tipo/ID externo, com itens manuais. **Dep.:** DATA-01. **Concluir quando:** pessoas distintas puderem salvar a mesma obra com progresso próprio, colisões entre fornecedores forem impossíveis e campos opcionais tiverem semântica consistente.
+- [ ] **DATA-03 · P0 · Evolução:** preparar migração de livros e vínculos com backup, versão, ensaio e recuperação. **Dep.:** DATA-02, SEC-01, COUPLE-03. **Concluir quando:** script/estratégia repetível preservar UID, livros, datas, vínculos e Bíblia; ensaio verificar contagens, clientes antigos e rollback; execução em produção ficar explicitamente separada.
+- [ ] **DATA-04 · P1 · Evolução:** definir índices, paginação e estatísticas que não dependam de carregar toda a biblioteca. **Dep.:** DATA-01. **Concluir quando:** consultas de biblioteca/feed tiverem limites e continuação coerentes, ordenação estável e métricas corretas além da primeira página; índices necessários versionados.
+- [ ] **DATA-05 · P1 · Evolução:** centralizar acesso a dados e estratégia de cache/sincronização, retirando escritas de perfil dos widgets. **Dep.:** DATA-02. **Concluir quando:** serviços puderem ser substituídos por fakes/testes e estados pendentes, falhas/offline e conflitos tiverem comportamento documentado por operação.
+- [ ] **DATA-06 · P1 · Evolução:** separar `createdAt`, atualização e eventos de atividade; preservar histórico. **Dep.:** DATA-02, DATA-03. **Concluir quando:** mudar status não alterar data original de inclusão, feed usar eventos com timestamp consistente e estatísticas não inventarem eventos históricos ausentes.
+
+## 6. APIs e infraestrutura de integração
+
+- [ ] **API-01 · P1 · Correção/Evolução:** robustecer busca Google Books e preservar referência externa. **Dep.:** SEC-03. **Concluir quando:** timeout, vazio, erro de rede, quota e resposta parcial forem distintos, paginação funcionar e buscas antigas não substituírem resultados novos; cadastro manual continuar disponível.
+- [ ] **API-02 · P1 · Decisão/Verificação:** ensaiar TMDB para filmes/séries e decidir fornecedor. **Dep.:** PROD-01. **Concluir quando:** busca pt-BR, detalhes, imagens e episódios forem validados; acesso, atribuição, quota, cache, condições comerciais e necessidade de backend documentados com fontes oficiais.
+- [ ] **API-03 · P1 · Decisão/Verificação:** comparar Spotify e MusicBrainz para o escopo musical escolhido. **Dep.:** PROD-01. **Concluir quando:** ensaio verificar cobertura, acesso/contas, autorização, quotas, imagens, web, condições de uso e custo; fornecedor escolhido e limitações registradas sem prometer streaming.
+- [ ] **API-04 · P1 · Evolução:** criar adaptadores de catálogo e configuração segura para provedores aprovados. **Dep.:** DATA-02; API-02 para audiovisual e API-03 para música. **Concluir quando:** modelos externos forem normalizados, capacidades específicas permanecerem claras, erros/timeout/cache forem testados e segredo não estiver no cliente. Entregar por fornecedor, registrando andamento parcial: filmes não precisam esperar a decisão musical; concluir o item completo após os provedores escolhidos.
+- [ ] **API-05 · P2 · Verificação/Evolução:** revisar imagens externas, proxy web e fontes sem rede. **Dep.:** —. **Concluir quando:** falha/ausência de capa tiver fallback, fontes não impedirem a tela e dependência do proxy estiver justificada ou substituída; validar Android/iOS/web afetados.
+
+## 7. Marca e reorganização da interface
+
+- [ ] **NAME-01 · P1 · Decisão:** escolher nome definitivo entre Entrelace, Nosso Repertório, A Dois, Sintonia ou outra proposta. **Dep.:** PROD-01. **Concluir quando:** escolha do usuário estiver registrada, justificativa e frase de apoio definidas; não tratar sugestão como aprovação.
+- [ ] **NAME-02 · P1 · Verificação:** verificar disponibilidade do candidato escolhido em marcas, lojas, domínios e perfis relevantes. **Dep.:** NAME-01. **Concluir quando:** fontes e resultados datados forem registrados e conflitos encaminhados para nova escolha, sem alegar disponibilidade por ausência numa busca simples.
+- [ ] **NAME-03 · P1 · Evolução:** aplicar nome exibido, textos, ícone e metadados nas plataformas. **Dep.:** NAME-02, PROD-02. **Concluir quando:** app, login, perfil, web/manifesto e nomes exibidos Android/iOS estiverem coerentes; package/bundle IDs e projeto Firebase forem preservados ou tiverem migração específica aprovada.
+- [ ] **UI-01 · P1 · Evolução:** implementar Biblioteca com filtros por mídia, busca/cadastro e espaço Nós. **Dep.:** PROD-02, DATA-02. **Concluir quando:** livros e Bíblia permanecerem acessíveis, novas categorias só aparecerem com fluxo funcional e navegação preservar contexto nas abas.
+- [ ] **UI-02 · P1 · Evolução:** padronizar estados de carregamento, vazio, erro, offline e ausência de parceiro. **Dep.:** UI-01, CORE-08. **Concluir quando:** todas as categorias tiverem ações úteis e feedback coerente sem texto de implementação na experiência do produto.
+- [ ] **UI-03 · P2 · Evolução:** revisar acessibilidade, contraste, escala de texto, foco e layout responsivo. **Dep.:** UI-01. **Concluir quando:** fluxos principais funcionarem com leitor de tela, teclado na web e texto ampliado, sem cortes em telas pequenas ou grandes.
+
+## 8. Livros e Bíblia
+
+- [ ] **BOOK-01 · P1 · Evolução:** preservar IDs do catálogo e prevenir duplicatas na mesma biblioteca conforme política definida. **Dep.:** DATA-02, API-01. **Concluir quando:** salvar repetidamente a mesma referência não gerar duplicata involuntária; edições diferentes e livros manuais tiverem tratamento explícito.
+- [ ] **BOOK-02 · P2 · Evolução:** permitir editar metadados manuais e melhorar busca/filtros da própria estante. **Dep.:** DATA-02, UI-01. **Concluir quando:** dono puder corrigir título/autor/capa e encontrar registros por texto/status/período sem editar a estante alheia.
+- [ ] **BIBLE-01 · P1 · Evolução:** preservar progresso bíblico na nova navegação e nas migrações. **Dep.:** DATA-03, UI-01. **Concluir quando:** todos os capítulos existentes continuarem disponíveis e percentuais/comparação funcionarem com e sem parceiro sob as novas regras.
+- [ ] **BIBLE-02 · P2 · Evolução:** ampliar verificação da estrutura bíblica e comportamento de progresso. **Dep.:** CORE-06. **Concluir quando:** totais dos testamentos/capítulos, limites válidos, idempotência e marcação em lote tiverem cobertura relevante sem depender do banco de produção.
+- [ ] **BIBLE-03 · P3 · Decisão:** avaliar um leitor de textos bíblicos como recurso separado. **Dep.:** PROD-01. **Concluir quando:** prioridade, tradução/fonte, disponibilidade offline e condições de uso forem decididas; se não priorizado, manter documentação como acompanhamento de progresso.
+
+## 9. Filmes
+
+- [ ] **MOVIE-01 · P1 · Evolução:** implementar busca, detalhes e cadastro manual de filmes. **Dep.:** DATA-02, API-02, API-04, UI-01. **Concluir quando:** título, ano, pôster e identificador forem tratados inclusive quando incompletos; usuário conseguir salvar sem API disponível. Aplicar API-04 apenas ao fornecedor audiovisual nesta etapa.
+- [ ] **MOVIE-02 · P1 · Evolução:** implementar biblioteca/status de filme e data da sessão. **Dep.:** MOVIE-01. **Concluir quando:** “Quero assistir”/“Assistido” e edição de datas funcionarem, migrações não afetarem livros e registros pessoais forem isolados.
+- [ ] **MOVIE-03 · P1 · Evolução:** conectar filmes às listas e sessões do casal. **Dep.:** MOVIE-02, COUPLE-05, COUPLE-06. **Concluir quando:** escolher filme e registrar sessão compartilhada preservar autoria, estados individuais e acesso após desvínculo.
+
+## 10. Séries
+
+- [ ] **SERIES-01 · P1 · Decisão:** definir estados, temporadas especiais, séries em andamento, reassistir e spoilers. **Dep.:** PROD-01, API-02. **Concluir quando:** regras diferenciarem em dia de concluída, episódios futuros de disponíveis e progresso pessoal de conjunto.
+- [ ] **SERIES-02 · P1 · Evolução:** implementar catálogo de séries e progresso por temporada/episódio. **Dep.:** SERIES-01, DATA-02, API-04, UI-01. **Concluir quando:** marcar/desmarcar persistir corretamente, ausência de metadados for tratada e novos episódios não apagarem progresso; aplicar API-04 ao fornecedor audiovisual.
+- [ ] **SERIES-03 · P1 · Evolução:** comparar progresso do casal e registrar episódios vistos juntos. **Dep.:** SERIES-02, COUPLE-04, COUPLE-05. **Concluir quando:** telas respeitarem a regra de spoilers, mostrarem diferenças úteis e ações não alterarem progresso do parceiro sem consentimento.
+
+## 11. Músicas
+
+- [ ] **MUSIC-01 · P1 · Evolução:** implementar busca/detalhes e cadastro manual de faixas/álbuns conforme decisão. **Dep.:** PROD-01, API-03, API-04, DATA-02, UI-01. **Concluir quando:** artista, faixa, álbum, versão e identificadores forem consistentes; ausência de capa/API tiver fallback; aplicar API-04 ao fornecedor musical.
+- [ ] **MUSIC-02 · P1 · Evolução:** implementar favoritos e registros de escuta próprios. **Dep.:** MUSIC-01. **Concluir quando:** biblioteca respeitar estados musicais escolhidos, repetições não forem duplicatas involuntárias e progresso/opinião do parceiro permanecerem independentes.
+- [ ] **MUSIC-03 · P1 · Evolução:** criar descobertas/listas musicais e momentos do casal. **Dep.:** MUSIC-02, COUPLE-05, COUPLE-06. **Concluir quando:** ambos puderem compartilhar seleções e registrar escutas/momentos conforme permissões, sem exigir reprodução interna ou conta externa além do necessário para o catálogo escolhido.
+
+## 12. Testes, manutenção e distribuição
+
+- [ ] **QA-01 · P1 · Evolução:** cobrir regressões de modelos, sessão e falhas de persistência. **Dep.:** CORE-02, CORE-03, CORE-04, CORE-06. **Concluir quando:** testes demonstrarem limpeza de datas, estado de sessão/perfil, isolamento após logout e ausência de sucesso em escrita rejeitada; usar fakes/emuladores adequados.
+- [ ] **QA-02 · P0 · Evolução:** testar autorização e concorrência de vínculo em emuladores. **Dep.:** SEC-01, SEC-02, COUPLE-02. **Concluir quando:** terceiro, ex-parceiro, escrita de autoria alheia e vínculos simultâneos forem rejeitados sem inconsistência; estender cobertura quando COUPLE-03/04 forem implementados.
+- [ ] **QA-03 · P1 · Evolução:** validar uma jornada completa por mídia individual e em casal. **Dep.:** MOVIE-03, SERIES-03, MUSIC-03. **Concluir quando:** duas contas puderem buscar, salvar, compartilhar, atualizar e desvincular sem vazamento/perda; executar por categoria a cada entrega, sem esperar todas ficarem prontas.
+- [ ] **QA-04 · P2 · Manutenção:** resolver os 47 infos da análise estática, substituindo APIs obsoletas e logs inadequados. **Dep.:** —. **Concluir quando:** análise ficar limpa sem supressões globais e alterações visuais mantiverem aparência/comportamento.
+- [ ] **QA-05 · P1 · Evolução:** criar CI de análise e testes, incluindo regras quando disponíveis. **Dep.:** SEC-02, QA-04. **Concluir quando:** falhas bloquearem integração e jobs não usarem dados/segredos de produção; baseline documentado enquanto a limpeza estiver pendente.
+- [ ] **REL-01 · P1 · Verificação:** reproduzir a falha Android registrada em `build.log` com dependências atuais. **Dep.:** —. **Concluir quando:** causa e solução forem comprovadas por build atual, distinguindo artefatos antigos e configuração real; não inferir a causa apenas pelo log parcial.
+- [ ] **REL-02 · P0 · Evolução:** configurar assinatura Android de distribuição e remover uso de debug na release. **Dep.:** REL-01. **Concluir quando:** build de distribuição assinado corretamente e keystore/senhas fora do Git; instruções de ambiente e recuperação documentadas.
+- [ ] **REL-03 · P1 · Verificação/Evolução:** revisar permissões e configuração iOS de câmera/galeria e validar build. **Dep.:** —. **Concluir quando:** descrições de uso exigidas existirem, negar permissão/cancelar funcionarem e resultado da validação em ambiente Apple for registrado.
+- [ ] **REL-04 · P1 · Verificação/Evolução:** validar Android/iOS/web, conexão, imagem e autenticação antes de release. **Dep.:** CORE-01, REL-01, REL-03, API-05. **Concluir quando:** matriz de plataformas registrar resultados reais, restrições de rede/cleartext estiverem justificadas e plataformas não verificadas não forem anunciadas como prontas.
+- [ ] **REL-05 · P2 · Manutenção:** definir SDK reproduzível e revisar dependências/configurações/arquivos gerados. **Dep.:** —. **Concluir quando:** versão de Flutter/Dart estiver registrada, instalação for reproduzível, atualizações tiverem motivo e arquivos gerados/artefatos locais não forem adicionados indevidamente.
+- [ ] **REL-06 · P1 · Evolução:** preparar checklist e notas da primeira distribuição com nova marca/categorias. **Dep.:** NAME-03, QA-03, QA-05, REL-02, REL-04, SEC-05. **Concluir quando:** versão, ambientes, migração, privacidade, recuperação e limitações estiverem documentados; publicação em lojas/produção for uma ação separada e explícita.
+
+## 13. Ideias opcionais para priorização posterior
+
+Estes itens são sugestões de produto, não compromissos do MVP solicitado.
+
+- [ ] **IDEA-01 · P3 · Decisão/Evolução:** avaliações, comentários e comparações de gosto por mídia. **Dep.:** PROD-01, DATA-02, COUPLE-04. **Concluir quando:** escala, spoilers e visibilidade forem definidos e avaliações permanecerem individuais.
+- [ ] **IDEA-02 · P3 · Decisão/Evolução:** metas, lembretes e retrospectivas do casal. **Dep.:** COUPLE-08. **Concluir quando:** usuário optar por notificações e métricas corretas gerarem retrospectivas sem misturar unidades nem pressionar participação.
+- [ ] **IDEA-03 · P3 · Verificação/Evolução:** conectar contas de música e sincronizar playlists/histórico externo. **Dep.:** API-03, MUSIC-03. **Concluir quando:** fornecedor permitir o escopo, consentimento/revogação funcionarem e importação for repetível sem apagar listas externas ou duplicar registros.
+- [ ] **IDEA-04 · P3 · Decisão/Evolução:** memória compartilhada com datas e contexto dos momentos. **Dep.:** COUPLE-05, SEC-05. **Concluir quando:** autoria, privacidade, edição e retenção após desvínculo forem definidas e implementadas.
+- [ ] **IDEA-05 · P3 · Verificação:** avaliar links de onde assistir/ouvir e reprodução/sessões sincronizadas. **Dep.:** API-02, API-03. **Concluir quando:** viabilidade, regiões, permissões, disponibilidade e valor forem documentados; separar links externos de reprodução interna antes de planejar implementação.
+
+## Evidências e limites da análise inicial
+
+- Código/documentação examinados em 02/10/2026; nenhuma mudança funcional feita nesta organização.
+- `flutter test --no-pub`: quatro testes passaram, apenas sobre dados bíblicos.
+- `flutter analyze --no-pub`: 47 infos, nenhum erro ou warning; saída 1 por apontamentos.
+- Não foram validados app em dispositivo, acesso ao Firebase remoto, regras existentes nem distribuição.
+- A ausência de regras no repositório não prova ausência de regras no banco remoto.
+- APIs novas são candidatas, com referências em [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md); disponibilidade e termos precisam ser revalidados na implementação.
+- O nome proposto não teve disponibilidade verificada e não foi aplicado ao código.

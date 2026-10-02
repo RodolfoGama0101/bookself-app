@@ -1,80 +1,90 @@
 # Bookself App
 
-O **Bookself App** é um aplicativo mobile desenvolvido em Flutter para ajudar usuários a gerenciarem suas leituras, catalogarem seus livros favoritos e também explorarem a leitura da Bíblia Sagrada. Integrado com o Firebase, o aplicativo oferece sincronização em tempo real e autenticação segura de usuários.
+Aplicativo de organização de leituras para uso individual e em casal, desenvolvido em Flutter com Firebase. Cada pessoa mantém sua estante, acompanha capítulos bíblicos lidos e pode consultar a estante e o progresso do parceiro vinculado.
 
----
+O produto está em fase de MVP. A evolução planejada inclui filmes, séries e músicas. **Entrelace** é a proposta inicial de novo nome; a escolha e a aplicação da marca ainda estão pendentes. O aplicativo continua se chamando Bookself App no código.
 
-## 🚀 Funcionalidades Principais
+## Documentação
 
-*   **Autenticação de Usuários:** Cadastro, Login e Recuperação de Senha utilizando o Firebase Authentication.
-*   **Gerenciamento de Estante (Bookshelf):** Adicionar, visualizar, editar e remover livros da sua estante virtual, com controle de status de leitura (Lido, Lendo, Quero Ler).
-*   **Integração com Firebase:** Armazenamento em nuvem em tempo real com o Cloud Firestore, garantindo que seus dados estejam sempre sincronizados entre dispositivos.
-*   **Leitor de Bíblia Integrado:** Acesso a textos bíblicos diretamente no aplicativo para acompanhar suas leituras diárias.
-*   **Busca Avançada:** Procure por novos livros utilizando a barra de pesquisa integrada.
-*   **Perfil Personalizável:** Edição de foto de perfil (utilizando `image_picker`) e informações do usuário.
-*   **Tema Claro e Escuro (Dark Mode):** Suporte completo a temas visuais dinâmicos para melhor conforto visual.
+| Arquivo | Conteúdo |
+| --- | --- |
+| [BACKLOG.md](BACKLOG.md) | Fonte central de tarefas, prioridades, dependências e critérios de conclusão. |
+| [AGENTS.md](AGENTS.md) | Orientações para trabalhar neste repositório. |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
+| [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
+| [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integrações atuais e candidatas, com fontes oficiais. |
 
----
+## Funcionalidades implementadas
 
-## 🛠️ Tecnologias Utilizadas
+- Cadastro, login, recuperação de senha e saída com Firebase Authentication.
+- Busca de livros no Google Books e cadastro manual.
+- Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
+- Vínculo de duas contas por código, consulta da estante do parceiro e feed de atividades recentes de livros.
+- Acompanhamento de capítulos lidos nos 66 livros da Bíblia, com comparação do progresso do casal.
+- Edição de nome e foto de perfil, além de tema claro e escuro.
 
-Este projeto foi construído utilizando as seguintes tecnologias e pacotes:
+A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes, séries e músicas ainda não estão implementados. O vínculo atual é direto por código, sem etapa de aceite. A preferência de tema ainda não persiste ao reiniciar.
 
-*   **[Flutter](https://flutter.dev/):** SDK do Google para desenvolvimento multiplataforma.
-*   **[Provider](https://pub.dev/packages/provider):** Gerenciamento de estado pragmático e injeção de dependências.
-*   **[Firebase Core & Auth](https://pub.dev/packages/firebase_auth):** Configuração básica e autenticação do Firebase.
-*   **[Cloud Firestore](https://pub.dev/packages/cloud_firestore):** Banco de dados NoSQL em tempo real.
-*   **[Google Fonts](https://pub.dev/packages/google_fonts):** Tipografia dinâmica e elegante.
-*   **[Image Picker](https://pub.dev/packages/image_picker):** Seleção de imagens da galeria ou câmera para o perfil.
-*   **[HTTP](https://pub.dev/packages/http):** Requisições de rede para APIs externas.
+## Tecnologias e plataformas
 
----
+Flutter/Dart, Provider, Firebase Core, Firebase Authentication, Cloud Firestore, HTTP, Google Fonts, Image Picker e Intl. O requisito declarado de Dart é `^3.12.0` em `pubspec.yaml`.
 
-## 📦 Como Instalar e Executar o Projeto
+Há projetos para Android, iOS e web, com opções Firebase para essas plataformas. Isso não significa que todas tenham sido validadas em execução. Windows, macOS e Linux não possuem configuração Firebase nesta versão.
 
-### Pré-requisitos
-Antes de começar, você precisará ter o **Flutter SDK** configurado em sua máquina. Para instruções detalhadas, consulte o [guia de instalação oficial do Flutter](https://docs.flutter.dev/get-started/install).
+## Configuração e execução
 
-### Passos para Configuração:
+1. Instale um Flutter SDK compatível com o requisito de Dart do projeto.
+2. Na raiz do repositório, instale as dependências:
 
-1.  **Clonar o Repositório:**
-    ```bash
-    git clone <url-do-repositorio>
-    cd bookself-app
-    ```
+   ```sh
+   flutter pub get
+   ```
 
-2.  **Instalar Dependências:**
-    Obtenha todos os pacotes necessários especificados no `pubspec.yaml`:
-    ```bash
-    flutter pub get
-    ```
+3. Configure um ambiente Firebase de desenvolvimento com Authentication por e-mail/senha e Firestore. O repositório já possui configuração de um projeto Firebase; confirme o ambiente antes de usá-la. Para apontar para outro projeto, use o FlutterFire CLI:
 
-3.  **Configurar o Firebase (Opcional, mas Recomendado):**
-    O projeto está preparado para utilizar o Firebase. Caso deseje habilitar a sincronização na nuvem e autenticação:
-    *   Crie um projeto no [Console do Firebase](https://console.firebase.google.com/).
-    *   Ative o **Authentication** (método Email/Senha) e o **Firestore Database**.
-    *   Configure o FlutterFire CLI e execute o comando:
-        ```bash
-        flutterfire configure
-        ```
-    *   Isso gerará ou atualizará o arquivo `lib/firebase_options.dart`.
+   ```sh
+   flutterfire configure
+   ```
 
-4.  **Executar o Aplicativo:**
-    Certifique-se de que possui um emulador ativo ou um dispositivo físico conectado e execute:
-    ```bash
-    flutter run
-    ```
+   O Firebase é necessário ao fluxo atual. O tratamento de falha na inicialização não oferece um modo funcional sem Firebase. Regras do Firestore não estão versionadas; autorização e emuladores são tarefas do backlog.
 
----
+4. Para busca de livros, configure e restrinja a chave do Google Books conforme o ambiente. Atualmente ela está embutida em `lib/services/book_service.dart`; a configuração externa está pendente. O cadastro manual permite registrar livros quando a busca está indisponível.
+5. Com um emulador ou dispositivo disponível:
 
-## 📂 Estrutura de Diretórios
+   ```sh
+   flutter run
+   ```
 
-A organização do código-fonte dentro de `lib/` segue o padrão de separação de responsabilidades:
+   Para web:
 
-*   `data/`: Modelos de dados e dados locais (como dados bíblicos).
-*   `services/`: Classes de serviço que gerenciam interações externas (autenticação Firebase, chamadas do banco de dados Firestore, controle de tema).
-*   `ui/`: Telas e widgets reutilizáveis do aplicativo.
-    *   `screens/`: Telas completas (Home, Login, Estante, Bíblia, Perfil, Busca).
-    *   `theme.dart`: Configuração de temas claro e escuro.
-*   `utils/`: Funções utilitárias auxiliares.
-*   `main.dart`: Ponto de entrada do aplicativo que inicializa serviços e provedores globais.
+   ```sh
+   flutter run -d chrome
+   ```
+
+## Validação
+
+```sh
+flutter analyze --no-pub
+flutter test --no-pub
+```
+
+Na análise de **02/10/2026**, os quatro testes existentes passaram. Eles verificam apenas a lista de livros e alguns totais de capítulos bíblicos. A análise estática encontrou 47 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos.
+
+Não foram validados: login real, regras do banco remoto, telas em dispositivo e builds de distribuição. Há um `build.log` local com falha anterior de compilação Android, cuja causa precisa ser reproduzida com a configuração atual. A configuração Android de release ainda usa assinatura de debug.
+
+## Estrutura
+
+```text
+lib/
+  main.dart             Inicialização e escolha entre login e navegação
+  firebase_options.dart Configuração gerada pelo FlutterFire
+  data/                 Modelos e catálogo local de livros bíblicos
+  services/             Autenticação, livros, progresso bíblico e tema
+  ui/                   Telas, componentes e temas
+  utils/                Tratamento de erros
+test/                   Testes existentes
+docs/                   Documentação técnica e de produto
+android/ ios/ web/       Projetos e configuração por plataforma
+```
+
+Consulte o [backlog](BACKLOG.md) antes de iniciar uma melhoria. A expansão deve preservar contas, livros e progresso bíblico existentes.
