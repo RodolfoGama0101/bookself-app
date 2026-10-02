@@ -54,6 +54,14 @@ Inclusão pela busca e formulário manual força um ID vazio para criar document
 
 O feed consulta livros de uma ou duas pessoas, ordenados por `addedAt` no cliente. Alterações de status também atualizam esse campo: ele representa inclusão e última atividade. Não há histórico separado de eventos. Estatísticas mensais/anuais usam o estado atual `Lido` e `finishedDate`.
 
+### Cópia e limpeza de campos opcionais
+
+Em `BookModel.copyWith`, omitir `finishedDate` preserva a conclusão; passar `null` limpa o campo, e passar `DateTime` substitui a data. `UserModel.copyWith` usa a mesma semântica para `partnerUid` e `photoUrl`, com valores `String`. Os argumentos usam `Object?` com um marcador privado para distinguir omissão de `null`; casts rejeitam tipos incompatíveis em execução. Os demais campos mantêm a semântica anterior de cópia. `BibleProgressModel` não possui campos anuláveis e não exige esse marcador.
+
+Os detalhes do livro já enviam `finishedDate: null` ao mudar de `Lido` para `Lendo` ou `Quero Ler`; o atalho “Começar leitura” também limpa a data explicitamente. `copyWith` não deduz limpeza somente pelo status: outros chamadores que mudem o livro para um estado não concluído devem informar `finishedDate: null`. Cópias para alterar título/ID preservam a conclusão quando o argumento é omitido.
+
+`toMap` mantém as mesmas chaves e representa campos limpos como `null`, permitindo que a escrita existente de `BookService` remova o valor anterior. A limpeza de `partnerUid` no modelo não altera por si só o vínculo no banco nem substitui seu fluxo de autorização. Não há migração ou limpeza automática de registros antigos. Os testes `test/book_model_test.dart` e `test/user_model_test.dart` cobrem preservação, limpeza, substituição, serialização e compatibilidade com campos ausentes. Visibilidade de livros lidos legados sem data e regras de edição de conclusão continuam em CORE-11.
+
 ## Vínculo e autorização atuais
 
 O código de vínculo é o UID da outra conta. `linkPartner` consulta o perfil, verifica o vínculo do destinatário e atualiza ambos os perfis com batch. Não existe convite pendente, aceite ou validação transacional das duas contas para evitar vínculos concorrentes. Desvinculação também escreve nos dois perfis.
@@ -62,7 +70,6 @@ A estante do parceiro aparece sem controles de edição. Não é possível concl
 
 ## Limitações observadas
 
-- `BookModel.copyWith` usa `??`, impossibilitando limpar `finishedDate` com `null`.
 - Algumas operações assíncronas podem chamar `setState` depois do fechamento da tela.
 - Marcação bíblica não aguarda persistência antes de anunciar sucesso/finalizar a interação.
 - Falhas de busca recebem mensagem genérica de cota/indisponibilidade.

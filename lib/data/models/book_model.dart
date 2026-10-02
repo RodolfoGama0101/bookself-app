@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+enum _CopyWithValue { unchanged }
+
 class BookModel {
   final String id;
   final String userId;
@@ -21,7 +23,9 @@ class BookModel {
     required this.publishedDate,
     this.finishedDate,
     required this.addedAt,
-  }) : coverUrl = coverUrl.startsWith('http://') ? coverUrl.replaceFirst('http://', 'https://') : coverUrl;
+  }) : coverUrl = coverUrl.startsWith('http://')
+           ? coverUrl.replaceFirst('http://', 'https://')
+           : coverUrl;
 
   factory BookModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -46,11 +50,14 @@ class BookModel {
       'coverUrl': coverUrl,
       'status': status,
       'publishedDate': publishedDate,
-      'finishedDate': finishedDate != null ? Timestamp.fromDate(finishedDate!) : null,
+      'finishedDate': finishedDate != null
+          ? Timestamp.fromDate(finishedDate!)
+          : null,
       'addedAt': Timestamp.fromDate(addedAt),
     };
   }
 
+  /// [finishedDate] aceita DateTime ou null: omitido preserva, null limpa.
   BookModel copyWith({
     String? id,
     String? userId,
@@ -59,7 +66,7 @@ class BookModel {
     String? coverUrl,
     String? status,
     String? publishedDate,
-    DateTime? finishedDate,
+    Object? finishedDate = _CopyWithValue.unchanged,
     DateTime? addedAt,
   }) {
     return BookModel(
@@ -70,7 +77,9 @@ class BookModel {
       coverUrl: coverUrl ?? this.coverUrl,
       status: status ?? this.status,
       publishedDate: publishedDate ?? this.publishedDate,
-      finishedDate: finishedDate ?? this.finishedDate,
+      finishedDate: identical(finishedDate, _CopyWithValue.unchanged)
+          ? this.finishedDate
+          : finishedDate as DateTime?,
       addedAt: addedAt ?? this.addedAt,
     );
   }

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+enum _CopyWithValue { unchanged }
+
 class UserModel {
   final String uid;
   final String name;
@@ -40,20 +42,25 @@ class UserModel {
     };
   }
 
+  /// [partnerUid]/[photoUrl] aceitam String ou null: omitido preserva, null limpa.
   UserModel copyWith({
     String? uid,
     String? name,
     String? email,
-    String? partnerUid,
-    String? photoUrl,
+    Object? partnerUid = _CopyWithValue.unchanged,
+    Object? photoUrl = _CopyWithValue.unchanged,
     DateTime? createdAt,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
       email: email ?? this.email,
-      partnerUid: partnerUid ?? this.partnerUid,
-      photoUrl: photoUrl ?? this.photoUrl,
+      partnerUid: identical(partnerUid, _CopyWithValue.unchanged)
+          ? this.partnerUid
+          : partnerUid as String?,
+      photoUrl: identical(photoUrl, _CopyWithValue.unchanged)
+          ? this.photoUrl
+          : photoUrl as String?,
       createdAt: createdAt ?? this.createdAt,
     );
   }

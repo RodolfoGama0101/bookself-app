@@ -20,6 +20,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 - Restauração de sessão com estados de carregamento/erro e conclusão de perfil após cadastro parcial, preservando perfis existentes.
 - Busca de livros no Google Books e cadastro manual.
 - Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
+- Limpeza da data de conclusão ao mudar um livro de “Lido” para “Lendo” ou “Quero Ler”.
 - Vínculo de duas contas por código, consulta da estante do parceiro e feed de atividades recentes de livros.
 - Acompanhamento de capítulos lidos nos 66 livros da Bíblia, com comparação do progresso do casal.
 - Edição de nome e foto de perfil, além de tema claro e escuro.
@@ -69,7 +70,7 @@ flutter analyze --no-pub
 flutter test --no-pub
 ```
 
-Na validação de **02/10/2026**, 32 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil e cinco sobre as telas de sessão/recuperação. Usam inicializadores controlados e fakes, sem acessar o Firebase remoto. Cobrem carregamento, erros, limites de espera, recuperação de cadastro parcial, preservação de perfil existente, descarte/logout/troca de conta e layout em tela pequena com texto ampliado e teclado. A repetição de transação por conflito é simulada; autorização e concorrência real precisam de emuladores. A análise estática encontrou 44 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos. O baseline inicial era de 47 infos; os três logs brutos removidos nas correções de inicialização/sessão eliminaram três apontamentos.
+Na validação de **02/10/2026**, 46 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação e 14 sobre modelos de livro/usuário. Usam inicializadores controlados e fakes, sem acessar o Firebase remoto. Cobrem carregamento, erros, limites de espera, recuperação de cadastro parcial, preservação de perfil existente, descarte/logout/troca de conta, limpeza de campos opcionais e layout em tela pequena com texto ampliado e teclado. A repetição de transação por conflito é simulada; autorização e concorrência real precisam de emuladores. A análise estática encontrou 44 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos. O baseline inicial era de 47 infos; os três logs brutos removidos nas correções de inicialização/sessão eliminaram três apontamentos.
 
 Não foram validados: login real, regras do banco remoto, telas em dispositivo e builds de distribuição. Há um `build.log` local com falha anterior de compilação Android, cuja causa precisa ser reproduzida com a configuração atual. A configuração Android de release ainda usa assinatura de debug.
 

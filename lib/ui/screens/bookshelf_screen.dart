@@ -16,7 +16,8 @@ class BookshelfScreen extends StatefulWidget {
   State<BookshelfScreen> createState() => _BookshelfScreenState();
 }
 
-class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderStateMixin {
+class _BookshelfScreenState extends State<BookshelfScreen>
+    with TickerProviderStateMixin {
   late TabController _userTabController;
   late TabController _myInnerTabController;
   late TabController _partnerInnerTabController;
@@ -42,8 +43,18 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
   // Mapeamento dos nomes dos meses em Português
   String _getMonthName(int month) {
     const months = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
     ];
     return months[month - 1];
   }
@@ -53,7 +64,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
     final Map<int, Map<int, List<BookModel>>> grouped = {};
 
     // Filtra apenas os concluídos e que possuem data de conclusão
-    final readBooks = books.where((b) => b.status == 'Lido' && b.finishedDate != null).toList();
+    final readBooks = books
+        .where((b) => b.status == 'Lido' && b.finishedDate != null)
+        .toList();
 
     // Ordena de forma decrescente pela data de conclusão
     readBooks.sort((a, b) => b.finishedDate!.compareTo(a.finishedDate!));
@@ -83,9 +96,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: Theme.of(context).primaryColor,
-                ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: Theme.of(context).primaryColor),
           ),
           child: child!,
         );
@@ -112,7 +125,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Não foi possível marcar como lido. ${ErrorHandler.getFriendlyErrorMessage(e)}'),
+              content: Text(
+                'Não foi possível marcar como lido. ${ErrorHandler.getFriendlyErrorMessage(e)}',
+              ),
               backgroundColor: Colors.redAccent,
             ),
           );
@@ -161,7 +176,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e)}'),
+                        content: Text(
+                          'Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                        ),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
@@ -170,7 +187,10 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
               },
               child: const Text(
                 'Remover',
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -203,11 +223,15 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
               onPressed: () async {
                 Navigator.pop(context);
                 try {
-                  await _bookService.saveBook(book.copyWith(status: 'Lendo'));
+                  await _bookService.saveBook(
+                    book.copyWith(status: 'Lendo', finishedDate: null),
+                  );
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Você começou a ler "${book.title}"! Boa leitura!'),
+                        content: Text(
+                          'Você começou a ler "${book.title}"! Boa leitura!',
+                        ),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -216,7 +240,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Não foi possível iniciar a leitura. ${ErrorHandler.getFriendlyErrorMessage(e)}'),
+                        content: Text(
+                          'Não foi possível iniciar a leitura. ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                        ),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
@@ -225,7 +251,10 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
               },
               child: Text(
                 'Começar',
-                style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: theme.primaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -242,9 +271,7 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
     final theme = Theme.of(context);
 
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -257,7 +284,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
           controller: _userTabController,
           tabs: [
             const Tab(text: 'Minha Estante'),
-            Tab(text: partner != null ? 'Estante de ${partner.name}' : 'Parceiro'),
+            Tab(
+              text: partner != null ? 'Estante de ${partner.name}' : 'Parceiro',
+            ),
           ],
         ),
       ),
@@ -276,12 +305,18 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.favorite_border_rounded, size: 48, color: Colors.grey[600]),
+                        Icon(
+                          Icons.favorite_border_rounded,
+                          size: 48,
+                          color: Colors.grey[600],
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'Aguardando conexão com o seu amor.\nVincule a conta na aba de perfil!',
                           textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[500],
+                          ),
                         ),
                       ],
                     ),
@@ -303,7 +338,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
   }
 
   Widget _buildShelfView(String userId, {required bool isEditable}) {
-    final controller = isEditable ? _myInnerTabController : _partnerInnerTabController;
+    final controller = isEditable
+        ? _myInnerTabController
+        : _partnerInnerTabController;
     return StreamBuilder<List<BookModel>>(
       stream: _bookService.streamUserBooks(userId),
       builder: (context, snapshot) {
@@ -325,10 +362,12 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
         }
 
         final books = snapshot.data ?? [];
-        
+
         final readingBooks = books.where((b) => b.status == 'Lendo').toList();
-        final wishlistBooks = books.where((b) => b.status == 'Quero Ler').toList();
-        
+        final wishlistBooks = books
+            .where((b) => b.status == 'Quero Ler')
+            .toList();
+
         // TabController de 3 sub-abas: "Lendo", "Lidos", "Quero Ler"
         return Column(
           children: [
@@ -348,13 +387,21 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
                 controller: controller,
                 children: [
                   // SUB-ABA: LENDO
-                  _buildBookList(readingBooks, isEditable, emptyMessage: 'Nenhum livro sendo lido no momento.'),
+                  _buildBookList(
+                    readingBooks,
+                    isEditable,
+                    emptyMessage: 'Nenhum livro sendo lido no momento.',
+                  ),
 
                   // SUB-ABA: LIDOS (Com agrupamento por mês/ano)
                   _buildGroupedReadList(books, isEditable),
 
                   // SUB-ABA: QUERO LER
-                  _buildBookList(wishlistBooks, isEditable, emptyMessage: 'Sua lista de desejos está vazia.'),
+                  _buildBookList(
+                    wishlistBooks,
+                    isEditable,
+                    emptyMessage: 'Sua lista de desejos está vazia.',
+                  ),
                 ],
               ),
             ),
@@ -365,7 +412,11 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
   }
 
   // Construtor de listagem simples para "Lendo" e "Quero Ler"
-  Widget _buildBookList(List<BookModel> books, bool isEditable, {required String emptyMessage}) {
+  Widget _buildBookList(
+    List<BookModel> books,
+    bool isEditable, {
+    required String emptyMessage,
+  }) {
     final theme = Theme.of(context);
     if (books.isEmpty) {
       return Center(
@@ -374,7 +425,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
           child: Text(
             emptyMessage,
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[500],
+            ),
           ),
         ),
       );
@@ -390,29 +443,40 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
           child: BookCard(
             book: book,
             onTap: () => showBookDetailsSheet(context, book, isEditable),
-            onDelete: isEditable ? () => _confirmAndDeleteBook(context, book) : null,
+            onDelete: isEditable
+                ? () => _confirmAndDeleteBook(context, book)
+                : null,
             trailing: isEditable && book.status == 'Lendo'
                 ? IconButton(
-                    icon: Icon(Icons.check_circle_outline_rounded, color: theme.primaryColor),
+                    icon: Icon(
+                      Icons.check_circle_outline_rounded,
+                      color: theme.primaryColor,
+                    ),
                     tooltip: 'Marcar como Lido',
                     onPressed: () => _markAsRead(context, book),
                   )
                 : isEditable && book.status == 'Quero Ler'
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.chrome_reader_mode_outlined, color: theme.primaryColor),
-                            tooltip: 'Começar a ler',
-                            onPressed: () => _confirmAndStartReading(context, book),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                            onPressed: () => _confirmAndDeleteBook(context, book),
-                          ),
-                        ],
-                      )
-                    : null,
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.chrome_reader_mode_outlined,
+                          color: theme.primaryColor,
+                        ),
+                        tooltip: 'Começar a ler',
+                        onPressed: () => _confirmAndStartReading(context, book),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.redAccent,
+                        ),
+                        onPressed: () => _confirmAndDeleteBook(context, book),
+                      ),
+                    ],
+                  )
+                : null,
           ),
         );
       },
@@ -430,7 +494,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
           padding: const EdgeInsets.all(24.0),
           child: Text(
             'Nenhuma leitura concluída ainda.',
-            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[500],
+            ),
           ),
         ),
       );
@@ -439,11 +505,13 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
     final List<Widget> listItems = [];
 
     // Navega pelos Anos e Meses ordenados
-    final sortedYears = groupedData.keys.toList()..sort((a, b) => b.compareTo(a));
+    final sortedYears = groupedData.keys.toList()
+      ..sort((a, b) => b.compareTo(a));
 
     for (var year in sortedYears) {
       final monthsData = groupedData[year]!;
-      final sortedMonths = monthsData.keys.toList()..sort((a, b) => b.compareTo(a));
+      final sortedMonths = monthsData.keys.toList()
+        ..sort((a, b) => b.compareTo(a));
 
       for (var month in sortedMonths) {
         final monthBooks = monthsData[month]!;
@@ -451,7 +519,12 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
         // Cabeçalho da Seção de Data (ex: "Maio / 2026")
         listItems.add(
           Padding(
-            padding: const EdgeInsets.only(left: 20.0, top: 16.0, bottom: 8.0, right: 20.0),
+            padding: const EdgeInsets.only(
+              left: 20.0,
+              top: 16.0,
+              bottom: 8.0,
+              right: 20.0,
+            ),
             child: Row(
               children: [
                 Text(
@@ -472,7 +545,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
                 const SizedBox(width: 8),
                 Text(
                   '${monthBooks.length} ${monthBooks.length == 1 ? 'lido' : 'lidos'}',
-                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[500],
+                  ),
                 ),
               ],
             ),
@@ -487,7 +562,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> with TickerProviderSt
               child: BookCard(
                 book: book,
                 onTap: () => showBookDetailsSheet(context, book, isEditable),
-                onDelete: isEditable ? () => _confirmAndDeleteBook(context, book) : null,
+                onDelete: isEditable
+                    ? () => _confirmAndDeleteBook(context, book)
+                    : null,
               ),
             ),
           );
