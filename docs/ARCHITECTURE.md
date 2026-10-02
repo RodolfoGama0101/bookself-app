@@ -4,11 +4,13 @@ Revisão: 02/10/2026. As seções iniciais descrevem o código atual; a evoluç�
 
 ## Inicialização e interface atuais
 
-`lib/main.dart` inicializa Firebase e registra `AuthService` e `ThemeService` em `MultiProvider`. `BookselfApp` observa esses serviços e mostra login ou `MainNavigation` conforme a existência de `currentUserModel`.
+`lib/main.dart` inicia a interface imediatamente com `AppStartup` (`lib/ui/screens/app_startup.dart`). Essa fronteira mantém os estados de carregamento, falha e sucesso da inicialização Firebase. Apenas após sucesso, seu `readyBuilder` registra `AuthService` e `ThemeService` em `MultiProvider` e cria `BookselfApp`, que mostra login ou `MainNavigation` conforme a existência de `currentUserModel`.
 
 `MainNavigation` usa `IndexedStack` com Início, Estante, Bíblia e Perfil. Busca é acessada pela estante. Serviços de livros e Bíblia são instanciados nas telas; não há backend próprio versionado.
 
-Erros de inicialização Firebase são capturados, mas o app continua criando serviços dependentes de Firebase. Não há estado explícito de inicialização/falha ou modo local completo. A sessão autenticada depende também da chegada do documento de usuário no Firestore.
+Falhas assíncronas e erros síncronos de configuração mantêm o app em uma tela recuperável com “Tentar novamente”, sem criar os serviços dependentes de Firebase. Há somente uma tentativa ativa; o resultado de uma operação após descarte não usa estado/contexto antigo. As telas iniciais usam fontes locais e não exibem o erro técnico. Não há modo local completo: inicializar o SDK não comprova acesso aos serviços remotos. A sessão autenticada ainda depende da chegada do documento de usuário no Firestore (CORE-02).
+
+Os testes de `test/app_startup_test.dart` simulam sucesso, falha de rede, erro síncrono de configuração, recuperação, toques repetidos, descarte e tela de 320 × 480 com escala de texto 2. Não acessam Firebase de produção e não substituem validação em dispositivo nem testes de sessão/perfil.
 
 ## Responsabilidades
 

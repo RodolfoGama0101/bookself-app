@@ -6,30 +6,29 @@ import 'services/theme_service.dart';
 import 'ui/theme.dart';
 import 'ui/screens/login_screen.dart';
 import 'ui/screens/main_navigation.dart';
+import 'ui/screens/app_startup.dart';
 
 import 'firebase_options.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  try {
-    // Inicialização do Firebase passando as opções geradas pelo FlutterFire CLI
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    print('Aviso: Firebase não pôde ser inicializado. Certifique-se de configurar o Firebase no projeto. Erro: $e');
-  }
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
-        ChangeNotifierProvider(create: (_) => ThemeService()),
-      ],
-      child: const BookselfApp(),
+    AppStartup(
+      initialize: _initializeFirebase,
+      readyBuilder: (_) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthService()),
+          ChangeNotifierProvider(create: (_) => ThemeService()),
+        ],
+        child: const BookselfApp(),
+      ),
     ),
   );
+}
+
+Future<void> _initializeFirebase() async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 }
 
 class BookselfApp extends StatelessWidget {
@@ -47,11 +46,9 @@ class BookselfApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeService.themeMode,
-          
+
           // Fluxo de Rotas Inteligente (Apenas verifica se o usuário está logado)
-          home: user != null
-              ? const MainNavigation()
-              : const LoginScreen(),
+          home: user != null ? const MainNavigation() : const LoginScreen(),
         );
       },
     );

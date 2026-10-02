@@ -46,7 +46,7 @@ Há projetos para Android, iOS e web, com opções Firebase para essas plataform
    flutterfire configure
    ```
 
-   O Firebase é necessário ao fluxo atual. O tratamento de falha na inicialização não oferece um modo funcional sem Firebase. Regras do Firestore não estão versionadas; autorização e emuladores são tarefas do backlog.
+   O Firebase é necessário ao fluxo atual. Durante a inicialização, o app mostra carregamento; se ela falhar, mostra uma tela com “Tentar novamente”. Os serviços de autenticação e dados só ficam disponíveis após a inicialização válida. Isso não oferece um modo funcional sem Firebase nem comprova conectividade/autorização dos serviços remotos. Regras do Firestore não estão versionadas; autorização e emuladores são tarefas do backlog.
 
 4. Para busca de livros, configure e restrinja a chave do Google Books conforme o ambiente. Atualmente ela está embutida em `lib/services/book_service.dart`; a configuração externa está pendente. O cadastro manual permite registrar livros quando a busca está indisponível.
 5. Com um emulador ou dispositivo disponível:
@@ -68,7 +68,7 @@ flutter analyze --no-pub
 flutter test --no-pub
 ```
 
-Na análise de **02/10/2026**, os quatro testes existentes passaram. Eles verificam apenas a lista de livros e alguns totais de capítulos bíblicos. A análise estática encontrou 47 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos.
+Na validação de **02/10/2026**, nove testes passaram: quatro sobre dados bíblicos e cinco de widgets sobre inicialização. Os novos testes usam inicializadores controlados, sem acessar o Firebase remoto, e verificam bloqueio do aplicativo antes do sucesso, falha de rede, nova tentativa sem concorrência, falha síncrona de configuração, descarte e layout em tela pequena com texto ampliado. A análise estática encontrou 46 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos. O baseline anterior era de 47 infos; a remoção do log bruto de inicialização eliminou um apontamento.
 
 Não foram validados: login real, regras do banco remoto, telas em dispositivo e builds de distribuição. Há um `build.log` local com falha anterior de compilação Android, cuja causa precisa ser reproduzida com a configuração atual. A configuração Android de release ainda usa assinatura de debug.
 
