@@ -17,6 +17,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 ## Funcionalidades implementadas
 
 - Cadastro, login, recuperação de senha e saída com Firebase Authentication.
+- Restauração de sessão com estados de carregamento/erro e conclusão de perfil após cadastro parcial, preservando perfis existentes.
 - Busca de livros no Google Books e cadastro manual.
 - Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
 - Vínculo de duas contas por código, consulta da estante do parceiro e feed de atividades recentes de livros.
@@ -68,7 +69,7 @@ flutter analyze --no-pub
 flutter test --no-pub
 ```
 
-Na validação de **02/10/2026**, nove testes passaram: quatro sobre dados bíblicos e cinco de widgets sobre inicialização. Os novos testes usam inicializadores controlados, sem acessar o Firebase remoto, e verificam bloqueio do aplicativo antes do sucesso, falha de rede, nova tentativa sem concorrência, falha síncrona de configuração, descarte e layout em tela pequena com texto ampliado. A análise estática encontrou 46 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos. O baseline anterior era de 47 infos; a remoção do log bruto de inicialização eliminou um apontamento.
+Na validação de **02/10/2026**, 32 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil e cinco sobre as telas de sessão/recuperação. Usam inicializadores controlados e fakes, sem acessar o Firebase remoto. Cobrem carregamento, erros, limites de espera, recuperação de cadastro parcial, preservação de perfil existente, descarte/logout/troca de conta e layout em tela pequena com texto ampliado e teclado. A repetição de transação por conflito é simulada; autorização e concorrência real precisam de emuladores. A análise estática encontrou 44 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos. O baseline inicial era de 47 infos; os três logs brutos removidos nas correções de inicialização/sessão eliminaram três apontamentos.
 
 Não foram validados: login real, regras do banco remoto, telas em dispositivo e builds de distribuição. Há um `build.log` local com falha anterior de compilação Android, cuja causa precisa ser reproduzida com a configuração atual. A configuração Android de release ainda usa assinatura de debug.
 

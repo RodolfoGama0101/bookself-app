@@ -7,6 +7,7 @@ import 'ui/theme.dart';
 import 'ui/screens/login_screen.dart';
 import 'ui/screens/main_navigation.dart';
 import 'ui/screens/app_startup.dart';
+import 'ui/screens/session_gate.dart';
 
 import 'firebase_options.dart';
 
@@ -36,10 +37,8 @@ class BookselfApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<AuthService, ThemeService>(
-      builder: (context, authService, themeService, _) {
-        final user = authService.currentUserModel;
-
+    return Consumer<ThemeService>(
+      builder: (context, themeService, _) {
         return MaterialApp(
           title: 'Bookself App',
           debugShowCheckedModeBanner: false,
@@ -47,8 +46,10 @@ class BookselfApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme,
           themeMode: themeService.themeMode,
 
-          // Fluxo de Rotas Inteligente (Apenas verifica se o usuário está logado)
-          home: user != null ? const MainNavigation() : const LoginScreen(),
+          home: SessionGate(
+            signedOutBuilder: (_) => const LoginScreen(),
+            readyBuilder: (_) => const MainNavigation(),
+          ),
         );
       },
     );
