@@ -14,6 +14,8 @@ Os testes de `test/app_startup_test.dart` simulam sucesso, falha de rede, erro s
 
 ## Sessão e recuperação de perfil
 
+`LoginScreen` envia a senha integralmente a `AuthService`, que a repassa ao Firebase Authentication sem normalização. A mesma validação local de pelo menos seis caracteres é usada no login e no cadastro; espaços contam como caracteres e não são removidos. Isso preserva a regra existente do formulário; a aceitação das credenciais e a política remota continuam sob responsabilidade do Firebase. Nome/e-mail mantêm o tratamento anterior. `test/login_password_test.dart` verifica os dois fluxos até o SDK substituto, limites de tamanho, correção após erro de validação e alternância de visibilidade, sem usar contas reais.
+
 `AuthService.sessionState` distingue `restoring`, `signedOut`, `loadingProfile`, `ready`, `missingProfile`, `profileError` e `authError`. Sessão autenticada e perfil disponível são informações separadas: o login só aparece em `signedOut`, e a biblioteca só abre em `ready`. A restauração e a primeira leitura de perfil têm limite de espera de 15 segundos; erro/timeout permite nova tentativa, e uma resposta válida posterior ainda pode recuperar o estado.
 
 `UserProfileService` centraliza leitura, edição de nome/foto e criação dos perfis após cadastro ou recuperação. A ausência de documento apenas no cache não confirma um perfil ausente; escritas locais pendentes não liberam a biblioteca como se estivessem confirmadas. Um perfil existente em cache, sem escrita pendente, pode ser usado. Erros de leitura/serialização mostram recuperação, sem iniciar criação automática.

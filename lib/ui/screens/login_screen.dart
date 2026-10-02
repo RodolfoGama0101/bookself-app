@@ -37,12 +37,12 @@ class _LoginScreenState extends State<LoginScreen> {
       error = await authService.signUpWithEmail(
         _nameController.text.trim(),
         _emailController.text.trim(),
-        _passwordController.text.trim(),
+        _passwordController.text,
       );
     } else {
       error = await authService.signInWithEmail(
         _emailController.text.trim(),
-        _passwordController.text.trim(),
+        _passwordController.text,
       );
     }
 

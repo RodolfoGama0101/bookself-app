@@ -17,6 +17,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 ## Funcionalidades implementadas
 
 - Cadastro, login, recuperação de senha e saída com Firebase Authentication.
+- Login e cadastro preservam a senha digitada, inclusive espaços; a validação local exige pelo menos seis caracteres nos dois formulários.
 - Restauração de sessão com estados de carregamento/erro e conclusão de perfil após cadastro parcial, preservando perfis existentes.
 - Busca de livros no Google Books e cadastro manual.
 - Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
@@ -71,7 +72,9 @@ flutter analyze --no-pub
 flutter test --no-pub
 ```
 
-Na validação de **02/10/2026**, 106 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação, 14 sobre modelos de livro/usuário, 28 sobre operações assíncronas da interface e 32 sobre persistência/interface do progresso bíblico.
+Na validação de **02/10/2026**, 122 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação, 14 sobre modelos de livro/usuário, 28 sobre operações assíncronas da interface, 32 sobre persistência/interface do progresso bíblico e 16 sobre senhas no login/cadastro.
+
+As regressões de senha verificam o valor recebido pelo SDK substituto, incluindo espaços iniciais, finais, internos e o limite de seis caracteres; também cobrem validação, correção do formulário e mostrar/ocultar senha. Credenciais são fictícias; isso não valida a política remota de senhas nem autenticação real.
 
 Usam inicializadores controlados e fakes, sem acessar o Firebase remoto. As novas regressões verificam fechamento de busca/perfil/detalhes durante sucesso ou falha, descarte de diálogos por cancelar/barreira/voltar, retorno de seletores de data após fechamento, ausência de sucesso antes da escrita e feedback de exclusão após retirar o cartão do stream. A cobertura bíblica verifica marcar/desmarcar, bloqueio de operações repetidas, rejeição/indisponibilidade, confirmação atrasada, conflito simulado, falha longe do topo em Salmos e tratamento de falha em 320 × 480 com texto 2×. As fontes nesses testes são substituídas por uma fonte já empacotada pelo Flutter, sem rede; não validam tipografia. Cobrem carregamento, erros, limites de espera, recuperação de cadastro parcial, preservação de perfil existente, descarte/logout/troca de conta, limpeza de campos opcionais e layout em tela pequena com texto ampliado e teclado. A repetição de transação por conflito é simulada; autorização e concorrência real precisam de emuladores.
 
