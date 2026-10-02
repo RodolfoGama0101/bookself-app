@@ -10,7 +10,9 @@ import '../../utils/error_handler.dart';
 import '../widgets/book_details_sheet.dart';
 
 class BookshelfScreen extends StatefulWidget {
-  const BookshelfScreen({super.key});
+  const BookshelfScreen({super.key, this.bookService});
+
+  final BookService? bookService;
 
   @override
   State<BookshelfScreen> createState() => _BookshelfScreenState();
@@ -21,7 +23,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
   late TabController _userTabController;
   late TabController _myInnerTabController;
   late TabController _partnerInnerTabController;
-  final BookService _bookService = BookService();
+  late final BookService _bookService = widget.bookService ?? BookService();
 
   @override
   void initState() {
@@ -105,7 +107,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
       },
     );
 
-    if (pickedDate != null) {
+    if (pickedDate != null && context.mounted) {
       final updatedBook = book.copyWith(
         status: 'Lido',
         finishedDate: pickedDate,
@@ -141,7 +143,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
     final theme = Theme.of(context);
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(
             'Excluir Livro',
@@ -156,12 +158,13 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancelar'),
             ),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
+                if (!context.mounted) return;
+                Navigator.pop(dialogContext);
                 try {
                   await _bookService.deleteBook(book.id);
                   if (context.mounted) {
@@ -204,7 +207,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
     final theme = Theme.of(context);
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(
             'Começar Leitura',
@@ -216,12 +219,13 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancelar'),
             ),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
+                if (!context.mounted) return;
+                Navigator.pop(dialogContext);
                 try {
                   await _bookService.saveBook(
                     book.copyWith(status: 'Lendo', finishedDate: null),
@@ -442,9 +446,14 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           padding: const EdgeInsets.symmetric(horizontal: 4.0),
           child: BookCard(
             book: book,
-            onTap: () => showBookDetailsSheet(context, book, isEditable),
+            onTap: () => showBookDetailsSheet(
+              this.context,
+              book,
+              isEditable,
+              bookService: _bookService,
+            ),
             onDelete: isEditable
-                ? () => _confirmAndDeleteBook(context, book)
+                ? () => _confirmAndDeleteBook(this.context, book)
                 : null,
             trailing: isEditable && book.status == 'Lendo'
                 ? IconButton(
@@ -453,7 +462,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                       color: theme.primaryColor,
                     ),
                     tooltip: 'Marcar como Lido',
-                    onPressed: () => _markAsRead(context, book),
+                    onPressed: () => _markAsRead(this.context, book),
                   )
                 : isEditable && book.status == 'Quero Ler'
                 ? Row(
@@ -465,14 +474,16 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                           color: theme.primaryColor,
                         ),
                         tooltip: 'Começar a ler',
-                        onPressed: () => _confirmAndStartReading(context, book),
+                        onPressed: () =>
+                            _confirmAndStartReading(this.context, book),
                       ),
                       IconButton(
                         icon: const Icon(
                           Icons.delete_outline,
                           color: Colors.redAccent,
                         ),
-                        onPressed: () => _confirmAndDeleteBook(context, book),
+                        onPressed: () =>
+                            _confirmAndDeleteBook(this.context, book),
                       ),
                     ],
                   )
@@ -561,7 +572,12 @@ class _BookshelfScreenState extends State<BookshelfScreen>
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: BookCard(
                 book: book,
-                onTap: () => showBookDetailsSheet(context, book, isEditable),
+                onTap: () => showBookDetailsSheet(
+                  context,
+                  book,
+                  isEditable,
+                  bookService: _bookService,
+                ),
                 onDelete: isEditable
                     ? () => _confirmAndDeleteBook(context, book)
                     : null,

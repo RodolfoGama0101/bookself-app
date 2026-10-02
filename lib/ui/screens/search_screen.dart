@@ -9,9 +9,12 @@ import '../widgets/book_card.dart';
 import '../widgets/custom_text_field.dart';
 import '../../utils/error_handler.dart';
 import '../widgets/book_details_sheet.dart';
+import '../widgets/dialog_with_controllers.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  const SearchScreen({super.key, this.bookService});
+
+  final BookService? bookService;
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -19,8 +22,8 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final _searchController = TextEditingController();
-  final _bookService = BookService();
-  
+  late final _bookService = widget.bookService ?? BookService();
+
   List<BookModel> _searchResults = [];
   bool _isLoading = false;
   bool _hasSearched = false;
@@ -43,11 +46,13 @@ class _SearchScreenState extends State<SearchScreen> {
 
     try {
       final results = await _bookService.searchGoogleBooks(query);
+      if (!mounted) return;
       setState(() {
         _searchResults = results;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _searchResults = [];
         _isLoading = false;
@@ -67,7 +72,7 @@ class _SearchScreenState extends State<SearchScreen> {
               label: 'Manual',
               textColor: Colors.white,
               onPressed: () {
-                if (uid.isNotEmpty) {
+                if (mounted && uid.isNotEmpty) {
                   _showManualAddDialog(context, uid);
                 }
               },
@@ -83,6 +88,8 @@ class _SearchScreenState extends State<SearchScreen> {
     String selectedStatus = 'Quero Ler';
     DateTime selectedDate = DateTime.now();
     final theme = Theme.of(context);
+    final screenContext = this.context;
+    bool isSaving = false;
 
     showDialog(
       context: context,
@@ -105,16 +112,20 @@ class _SearchScreenState extends State<SearchScreen> {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Dropdown de seleção de Status
                   DropdownButtonFormField<String>(
                     value: selectedStatus,
-                    decoration: const InputDecoration(labelText: 'Status de Leitura'),
+                    decoration: const InputDecoration(
+                      labelText: 'Status de Leitura',
+                    ),
                     items: ['Quero Ler', 'Lendo', 'Lido']
-                        .map((status) => DropdownMenuItem(
-                              value: status,
-                              child: Text(status),
-                            ))
+                        .map(
+                          (status) => DropdownMenuItem(
+                            value: status,
+                            child: Text(status),
+                          ),
+                        )
                         .toList(),
                     onChanged: (val) {
                       if (val != null) {
@@ -124,7 +135,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       }
                     },
                   ),
-                  
+
                   // Seletor de Data de Término se o status for "Lido"
                   if (selectedStatus == 'Lido') ...[
                     const SizedBox(height: 16),
@@ -134,17 +145,22 @@ class _SearchScreenState extends State<SearchScreen> {
                           context: context,
                           initialDate: selectedDate,
                           firstDate: DateTime(2000),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 365),
+                          ),
                           helpText: 'Data de Conclusão',
                         );
-                        if (picked != null) {
+                        if (picked != null && context.mounted) {
                           setDialogState(() {
                             selectedDate = picked;
                           });
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 14,
+                        ),
                         decoration: BoxDecoration(
                           color: theme.inputDecorationTheme.fillColor,
                           borderRadius: BorderRadius.circular(12),
@@ -159,7 +175,10 @@ class _SearchScreenState extends State<SearchScreen> {
                               'Concluído em: ${DateFormat('dd/MM/yyyy').format(selectedDate)}',
                               style: theme.textTheme.bodyMedium,
                             ),
-                            Icon(Icons.calendar_today, color: theme.primaryColor),
+                            Icon(
+                              Icons.calendar_today,
+                              color: theme.primaryColor,
+                            ),
                           ],
                         ),
                       ),
@@ -173,41 +192,60 @@ class _SearchScreenState extends State<SearchScreen> {
                   child: const Text('Cancelar'),
                 ),
                 TextButton(
-                  onPressed: () async {
-                    // Prepara o livro com o ID do usuário e status selecionados
-                    final bookToSave = book.copyWith(
-                      id: '', // Força gerar um novo ID no Firestore
-                      userId: userId,
-                      status: selectedStatus,
-                      finishedDate: selectedStatus == 'Lido' ? selectedDate : null,
-                      addedAt: DateTime.now(),
-                    );
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (!screenContext.mounted) return;
+                          setDialogState(() => isSaving = true);
+                          // Prepara o livro com o ID do usuário e status selecionados
+                          final bookToSave = book.copyWith(
+                            id: '', // Força gerar um novo ID no Firestore
+                            userId: userId,
+                            status: selectedStatus,
+                            finishedDate: selectedStatus == 'Lido'
+                                ? selectedDate
+                                : null,
+                            addedAt: DateTime.now(),
+                          );
 
-                    try {
-                      await _bookService.saveBook(bookToSave);
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('"${book.title}" adicionado com sucesso!'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Não foi possível salvar o livro. ${ErrorHandler.getFriendlyErrorMessage(e)}'),
-                            backgroundColor: Colors.redAccent,
-                          ),
-                        );
-                      }
-                    }
-                  },
+                          try {
+                            await _bookService.saveBook(bookToSave);
+                            if (context.mounted &&
+                                ModalRoute.of(context)?.isCurrent == true) {
+                              Navigator.pop(context);
+                            }
+                            if (screenContext.mounted) {
+                              ScaffoldMessenger.of(screenContext).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '"${book.title}" adicionado com sucesso!',
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              setDialogState(() => isSaving = false);
+                            }
+                            if (screenContext.mounted) {
+                              ScaffoldMessenger.of(screenContext).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Não foi possível salvar o livro. ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                                  ),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          }
+                        },
                   child: Text(
                     'Salvar',
-                    style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: theme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -227,8 +265,11 @@ class _SearchScreenState extends State<SearchScreen> {
     DateTime selectedDate = DateTime.now();
     final theme = Theme.of(context);
     final formKey = GlobalKey<FormState>();
+    final screenContext = this.context;
+    bool isSaving = false;
 
-    showDialog(
+    showDialogWithControllers(
+      controllers: [titleController, authorController, coverController],
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -249,14 +290,18 @@ class _SearchScreenState extends State<SearchScreen> {
                         controller: titleController,
                         label: 'Título do Livro',
                         hint: 'Ex: Dom Casmurro',
-                        validator: (val) => val == null || val.isEmpty ? 'Insira o título' : null,
+                        validator: (val) => val == null || val.isEmpty
+                            ? 'Insira o título'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       CustomTextField(
                         controller: authorController,
                         label: 'Autor(es)',
                         hint: 'Ex: Machado de Assis',
-                        validator: (val) => val == null || val.isEmpty ? 'Insira o autor' : null,
+                        validator: (val) => val == null || val.isEmpty
+                            ? 'Insira o autor'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       CustomTextField(
@@ -267,7 +312,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         validator: (val) {
                           if (val != null && val.trim().isNotEmpty) {
                             final uri = Uri.tryParse(val.trim());
-                            if (uri == null || !uri.hasAbsolutePath || !uri.scheme.startsWith('http')) {
+                            if (uri == null ||
+                                !uri.hasAbsolutePath ||
+                                !uri.scheme.startsWith('http')) {
                               return 'Insira uma URL válida (http/https) ou deixe vazio';
                             }
                           }
@@ -275,15 +322,19 @@ class _SearchScreenState extends State<SearchScreen> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      
+
                       DropdownButtonFormField<String>(
                         value: selectedStatus,
-                        decoration: const InputDecoration(labelText: 'Status de Leitura'),
+                        decoration: const InputDecoration(
+                          labelText: 'Status de Leitura',
+                        ),
                         items: ['Quero Ler', 'Lendo', 'Lido']
-                            .map((status) => DropdownMenuItem(
-                                  value: status,
-                                  child: Text(status),
-                                ))
+                            .map(
+                              (status) => DropdownMenuItem(
+                                value: status,
+                                child: Text(status),
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) {
                           if (val != null) {
@@ -301,17 +352,22 @@ class _SearchScreenState extends State<SearchScreen> {
                               context: context,
                               initialDate: selectedDate,
                               firstDate: DateTime(2000),
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
+                              ),
                               helpText: 'Data de Conclusão',
                             );
-                            if (picked != null) {
+                            if (picked != null && context.mounted) {
                               setDialogState(() {
                                 selectedDate = picked;
                               });
                             }
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
                             decoration: BoxDecoration(
                               color: theme.inputDecorationTheme.fillColor,
                               borderRadius: BorderRadius.circular(12),
@@ -326,7 +382,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                   'Concluído: ${DateFormat('dd/MM/yyyy').format(selectedDate)}',
                                   style: theme.textTheme.bodyMedium,
                                 ),
-                                Icon(Icons.calendar_today, color: theme.primaryColor),
+                                Icon(
+                                  Icons.calendar_today,
+                                  color: theme.primaryColor,
+                                ),
                               ],
                             ),
                           ),
@@ -340,61 +399,70 @@ class _SearchScreenState extends State<SearchScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      titleController.dispose();
-                      authorController.dispose();
-                      coverController.dispose();
-                    });
                   },
                   child: const Text('Cancelar'),
                 ),
                 TextButton(
-                  onPressed: () async {
-                    if (!formKey.currentState!.validate()) return;
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (!screenContext.mounted) return;
+                          if (!formKey.currentState!.validate()) return;
+                          setDialogState(() => isSaving = true);
 
-                    final bookToSave = BookModel(
-                      id: '', // Novo ID
-                      userId: userId,
-                      title: titleController.text.trim(),
-                      authors: [authorController.text.trim()],
-                      coverUrl: coverController.text.trim(),
-                      status: selectedStatus,
-                      publishedDate: 'Manual',
-                      finishedDate: selectedStatus == 'Lido' ? selectedDate : null,
-                      addedAt: DateTime.now(),
-                    );
+                          final bookToSave = BookModel(
+                            id: '', // Novo ID
+                            userId: userId,
+                            title: titleController.text.trim(),
+                            authors: [authorController.text.trim()],
+                            coverUrl: coverController.text.trim(),
+                            status: selectedStatus,
+                            publishedDate: 'Manual',
+                            finishedDate: selectedStatus == 'Lido'
+                                ? selectedDate
+                                : null,
+                            addedAt: DateTime.now(),
+                          );
 
-                    try {
-                      await _bookService.saveBook(bookToSave);
-                      
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('"${bookToSave.title}" cadastrado com sucesso!'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      }
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        titleController.dispose();
-                        authorController.dispose();
-                        coverController.dispose();
-                      });
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Não foi possível cadastrar o livro. ${ErrorHandler.getFriendlyErrorMessage(e)}'),
-                            backgroundColor: Colors.redAccent,
-                          ),
-                        );
-                      }
-                    }
-                  },
+                          try {
+                            await _bookService.saveBook(bookToSave);
+
+                            if (context.mounted &&
+                                ModalRoute.of(context)?.isCurrent == true) {
+                              Navigator.pop(context);
+                            }
+                            if (screenContext.mounted) {
+                              ScaffoldMessenger.of(screenContext).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '"${bookToSave.title}" cadastrado com sucesso!',
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              setDialogState(() => isSaving = false);
+                            }
+                            if (screenContext.mounted) {
+                              ScaffoldMessenger.of(screenContext).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Não foi possível cadastrar o livro. ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                                  ),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          }
+                        },
                   child: Text(
                     'Cadastrar',
-                    style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: theme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -461,50 +529,62 @@ class _SearchScreenState extends State<SearchScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _searchResults.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _hasSearched 
-                                    ? Icons.search_off_rounded 
-                                    : Icons.library_books_rounded,
-                                size: 48,
-                                color: Colors.grey[600],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                _hasSearched
-                                    ? 'Nenhum resultado encontrado.\nTente buscar por outros termos ou adicione manualmente.'
-                                    : 'Pesquise pelo título ou autor para encontrar novos livros na API do Google.',
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
-                              ),
-                            ],
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _hasSearched
+                                ? Icons.search_off_rounded
+                                : Icons.library_books_rounded,
+                            size: 48,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _hasSearched
+                                ? 'Nenhum resultado encontrado.\nTente buscar por outros termos ou adicione manualmente.'
+                                : 'Pesquise pelo título ou autor para encontrar novos livros na API do Google.',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    itemCount: _searchResults.length,
+                    itemBuilder: (context, index) {
+                      final book = _searchResults[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: BookCard(
+                          book: book,
+                          onTap: () => showBookDetailsSheet(
+                            this.context,
+                            book,
+                            false,
+                            bookService: _bookService,
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(
+                              Icons.add_box_rounded,
+                              color: theme.primaryColor,
+                              size: 28,
+                            ),
+                            tooltip: 'Adicionar à estante',
+                            onPressed: () =>
+                                _showAddBookDialog(context, book, user.uid),
                           ),
                         ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        itemCount: _searchResults.length,
-                        itemBuilder: (context, index) {
-                          final book = _searchResults[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                            child: BookCard(
-                              book: book,
-                              onTap: () => showBookDetailsSheet(context, book, false),
-                              trailing: IconButton(
-                                icon: Icon(Icons.add_box_rounded, color: theme.primaryColor, size: 28),
-                                tooltip: 'Adicionar à estante',
-                                onPressed: () => _showAddBookDialog(context, book, user.uid),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

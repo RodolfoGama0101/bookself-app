@@ -16,7 +16,7 @@ Os testes de `test/app_startup_test.dart` simulam sucesso, falha de rede, erro s
 
 `AuthService.sessionState` distingue `restoring`, `signedOut`, `loadingProfile`, `ready`, `missingProfile`, `profileError` e `authError`. Sessão autenticada e perfil disponível são informações separadas: o login só aparece em `signedOut`, e a biblioteca só abre em `ready`. A restauração e a primeira leitura de perfil têm limite de espera de 15 segundos; erro/timeout permite nova tentativa, e uma resposta válida posterior ainda pode recuperar o estado.
 
-`UserProfileService` centraliza a leitura dos perfis e sua criação após cadastro ou recuperação. A ausência de documento apenas no cache não confirma um perfil ausente; escritas locais pendentes não liberam a biblioteca como se estivessem confirmadas. Um perfil existente em cache, sem escrita pendente, pode ser usado. Erros de leitura/serialização mostram recuperação, sem iniciar criação automática.
+`UserProfileService` centraliza leitura, edição de nome/foto e criação dos perfis após cadastro ou recuperação. A ausência de documento apenas no cache não confirma um perfil ausente; escritas locais pendentes não liberam a biblioteca como se estivessem confirmadas. Um perfil existente em cache, sem escrita pendente, pode ser usado. Erros de leitura/serialização mostram recuperação, sem iniciar criação automática.
 
 Quando o servidor confirma ausência, a pessoa pode informar o nome, verificar novamente ou sair. `createIfMissing` lê `users/{uid}` em transação: cria o documento somente quando ausente e retorna o perfil existente sem atualizar qualquer campo, inclusive campos legados desconhecidos. O UID e e-mail vêm da sessão autenticada; não se cria outra conta para recuperar o perfil. O cadastro usa o mesmo caminho e mantém a sessão caso a etapa Firestore falhe.
 
@@ -33,14 +33,24 @@ A assinatura de autenticação é guardada. Troca de conta, logout, perfil indis
 | Modelos | `lib/data/models/` | Serialização de usuário, livro e progresso bíblico. |
 | Dados bíblicos | `lib/data/bible_data.dart` | Nomes, capítulos e testamento dos 66 livros, sem versículos. |
 | Autenticação | `lib/services/auth_service.dart` | Conta, streams de perfil/parceiro, vínculo e desvínculo. |
-| Perfil | `lib/services/user_profile_service.dart` | Leitura de perfis e criação transacional sem sobrescrever documentos existentes. |
+| Perfil | `lib/services/user_profile_service.dart` | Leitura de perfis, atualização de nome/foto e criação transacional sem sobrescrever documentos existentes. |
 | Livros | `lib/services/book_service.dart` | Google Books, persistência e streams de estante/feed. |
 | Bíblia | `lib/services/bible_service.dart` | Progresso e marcação de capítulos com transação. |
 | Tema | `lib/services/theme_service.dart` | Alternância em memória, com modo escuro inicial. |
 | Interface | `lib/ui/` | Formulários, navegação, estatísticas e exibição. |
 | Erros | `lib/utils/error_handler.dart` | Conversão parcial de erros para português. |
 
-`ProfileScreen` escreve nome/foto diretamente no Firestore. Fotos são reduzidas e armazenadas como data URI Base64 no perfil; o código atual não usa Firebase Storage.
+`ProfileScreen` aguarda `UserProfileService.updateName/updatePhoto` antes de anunciar sucesso. As atualizações mantêm os mesmos campos e usam `update`, sem recriar perfis ausentes ou sobrescrever outros campos. Fotos são reduzidas e armazenadas como data URI Base64 no perfil; o código atual não usa Firebase Storage.
+
+## Operações assíncronas e diálogos
+
+Busca, perfil e detalhes verificam `mounted` depois de operações externas, antes de atualizar estado ou acessar contexto. Seleção e leitura da imagem interrompem o fluxo caso a tela seja descartada antes da escrita; uma escrita já iniciada continua no serviço e seu retorno não acessa a tela descartada. Cancelar o seletor de imagem restaura o estado de carregamento. Estas proteções não cancelam requisições HTTP ou operações do Firebase e não definem uma política nova de sincronização/offline.
+
+Diálogos com controladores locais usam `showDialogWithControllers`: o resultado da navegação pode chegar antes do fim da animação, então o descarte aguarda `DialogRoute.completed`. Cancelar, tocar a barreira e voltar passam pelo mesmo descarte. O cadastro bloqueia submissões repetidas enquanto aguarda escrita; somente a rota de diálogo ainda atual pode ser fechada por seu resultado. Seletores de data verificam o contexto do diálogo/folha após retornar.
+
+Exclusão pelos detalhes captura o livro, serviço e callback antes de fechar a folha. A estante recebe sucesso ou erro somente após a escrita; o callback usa o contexto da tela, que permanece válido mesmo se o stream retirar o cartão. Os atalhos da estante e a recuperação de senha também usam o contexto da tela para feedback. Se a tela de origem for descartada, seu retorno não mostra mensagens nela. Edição de nome fecha o formulário, confirma a atualização no serviço e informa sucesso/falha no perfil.
+
+`BookService` resolve a instância Firestore ao acessar persistência. Busca/estante/detalhes aceitam um serviço substituto; perfil aceita `UserProfileService` e `ImagePicker` substitutos. `test/async_ui_test.dart` usa fakes, futures controladas, streams locais e uma fonte já empacotada pelo Flutter para verificar 28 regressões sem rede, Firebase remoto ou seletor nativo. Seleção real de câmera/galeria, tipografia e funcionamento em dispositivo continuam pendentes em QA/REL. A estratégia mais ampla de cache/sincronização segue em DATA-05.
 
 ## Dados no Firestore
 
@@ -70,7 +80,6 @@ A estante do parceiro aparece sem controles de edição. Não é possível concl
 
 ## Limitações observadas
 
-- Algumas operações assíncronas podem chamar `setState` depois do fechamento da tela.
 - Marcação bíblica não aguarda persistência antes de anunciar sucesso/finalizar a interação.
 - Falhas de busca recebem mensagem genérica de cota/indisponibilidade.
 - Estante/feed não têm paginação; ordenação e estatísticas ocorrem em memória.

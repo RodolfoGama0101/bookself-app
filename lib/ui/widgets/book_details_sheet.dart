@@ -9,11 +9,15 @@ import '../../utils/error_handler.dart';
 class BookDetailsSheet extends StatefulWidget {
   final BookModel book;
   final bool isEditable;
+  final BookService? bookService;
+  final ValueChanged<SnackBar> onDeletionFeedback;
 
   const BookDetailsSheet({
     super.key,
     required this.book,
     required this.isEditable,
+    required this.onDeletionFeedback,
+    this.bookService,
   });
 
   @override
@@ -21,9 +25,10 @@ class BookDetailsSheet extends StatefulWidget {
 }
 
 class _BookDetailsSheetState extends State<BookDetailsSheet> {
-  final BookService _bookService = BookService();
+  late final BookService _bookService = widget.bookService ?? BookService();
   late BookModel _currentBook;
   bool _isLoading = false;
+  bool _isConfirmingDelete = false;
 
   @override
   void initState() {
@@ -32,7 +37,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
   }
 
   void _updateStatus(String newStatus) async {
-    if (newStatus == _currentBook.status) return;
+    if (_isLoading || newStatus == _currentBook.status) return;
 
     DateTime? finishedDate;
     if (newStatus == 'Lido') {
@@ -44,7 +49,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
         lastDate: DateTime.now().add(const Duration(days: 365)),
         helpText: 'Quando você terminou a leitura?',
       );
-      if (pickedDate == null) return; // cancelou
+      if (!mounted || pickedDate == null) return; // cancelou
       finishedDate = pickedDate;
     }
 
@@ -58,6 +63,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
 
     try {
       await _bookService.saveBook(updated);
+      if (!mounted) return;
       setState(() {
         _currentBook = updated;
         _isLoading = false;
@@ -71,11 +77,14 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Não foi possível atualizar o status: ${ErrorHandler.getFriendlyErrorMessage(e)}'),
+            content: Text(
+              'Não foi possível atualizar o status: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+            ),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -83,73 +92,85 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     }
   }
 
-  void _confirmDelete() {
-    showDialog(
+  void _confirmDelete() async {
+    if (_isLoading || _isConfirmingDelete) return;
+    setState(() => _isConfirmingDelete = true);
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Excluir Livro',
-            style: GoogleFonts.playfairDisplay(
-              fontWeight: FontWeight.bold,
-              color: Colors.redAccent,
-            ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'Excluir Livro',
+          style: GoogleFonts.playfairDisplay(
+            fontWeight: FontWeight.bold,
+            color: Colors.redAccent,
           ),
-          content: Text(
-            'Tem certeza de que deseja remover "${_currentBook.title}" da sua estante?',
+        ),
+        content: Text(
+          'Tem certeza de que deseja remover "${_currentBook.title}" da sua estante?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context); // fecha dialog
-                Navigator.pop(this.context); // fecha bottom sheet
-                try {
-                  await _bookService.deleteBook(_currentBook.id);
-                  if (mounted) {
-                    ScaffoldMessenger.of(this.context).showSnackBar(
-                      SnackBar(
-                        content: Text('"${_currentBook.title}" removido com sucesso.'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(this.context).showSnackBar(
-                      SnackBar(
-                        content: Text('Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e)}'),
-                        backgroundColor: Colors.redAccent,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text(
-                'Remover',
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text(
+              'Remover',
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
     );
+    if (!mounted) return;
+    setState(() => _isConfirmingDelete = false);
+    if (confirmed != true) {
+      return;
+    }
+    // Captura tudo antes de fechar: o resultado pertence à tela que abriu a folha.
+    final service = _bookService;
+    final book = _currentBook;
+    final feedback = widget.onDeletionFeedback;
+    Navigator.pop(context);
+    try {
+      await service.deleteBook(book.id);
+      feedback(
+        SnackBar(
+          content: Text('"${book.title}" removido com sucesso.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      feedback(
+        SnackBar(
+          content: Text(
+            'Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+          ),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasCover = _currentBook.coverUrl.isNotEmpty &&
-        (_currentBook.coverUrl.startsWith('http://') || _currentBook.coverUrl.startsWith('https://')) &&
+    final hasCover =
+        _currentBook.coverUrl.isNotEmpty &&
+        (_currentBook.coverUrl.startsWith('http://') ||
+            _currentBook.coverUrl.startsWith('https://')) &&
         Uri.tryParse(_currentBook.coverUrl)?.hasAbsolutePath == true;
 
     String dateStr = DateFormat('dd/MM/yyyy').format(_currentBook.addedAt);
     String? finishedDateStr;
     if (_currentBook.status == 'Lido' && _currentBook.finishedDate != null) {
-      finishedDateStr = DateFormat('dd/MM/yyyy').format(_currentBook.finishedDate!);
+      finishedDateStr = DateFormat(
+        'dd/MM/yyyy',
+      ).format(_currentBook.finishedDate!);
     }
 
     return Container(
@@ -161,7 +182,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
             color: Colors.black.withOpacity(0.3),
             blurRadius: 15,
             spreadRadius: 2,
-          )
+          ),
         ],
       ),
       padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 24),
@@ -193,7 +214,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                       color: Colors.black.withOpacity(0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
-                    )
+                    ),
                   ],
                 ),
                 child: ClipRRect(
@@ -203,10 +224,14 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                     height: 195,
                     child: hasCover
                         ? Image.network(
-                            kIsWeb ? 'https://wsrv.nl/?url=${Uri.encodeComponent(_currentBook.coverUrl)}' : _currentBook.coverUrl,
+                            kIsWeb
+                                ? 'https://wsrv.nl/?url=${Uri.encodeComponent(_currentBook.coverUrl)}'
+                                : _currentBook.coverUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              print('Error loading details image ${_currentBook.coverUrl}: $error');
+                              print(
+                                'Error loading details image ${_currentBook.coverUrl}: $error',
+                              );
                               return _buildCoverPlaceholder(theme);
                             },
                           )
@@ -263,7 +288,10 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                         _getStatusIcon(_currentBook.status),
                         'Status',
                         _currentBook.status,
-                        textColor: _getStatusColor(context, _currentBook.status),
+                        textColor: _getStatusColor(
+                          context,
+                          _currentBook.status,
+                        ),
                       ),
                       if (finishedDateStr != null)
                         _buildInfoColumn(
@@ -335,8 +363,13 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   ),
                 ),
                 icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                label: const Text('Excluir da Estante', style: TextStyle(fontWeight: FontWeight.bold)),
-                onPressed: _confirmDelete,
+                label: const Text(
+                  'Excluir da Estante',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onPressed: _isLoading || _isConfirmingDelete
+                    ? null
+                    : _confirmDelete,
               ),
             ],
             const SizedBox(height: 12),
@@ -364,13 +397,22 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     );
   }
 
-  Widget _buildInfoColumn(BuildContext context, IconData icon, String label, String value, {Color? textColor}) {
+  Widget _buildInfoColumn(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value, {
+    Color? textColor,
+  }) {
     final theme = Theme.of(context);
     return Column(
       children: [
         Icon(icon, size: 20, color: textColor ?? theme.primaryColor),
         const SizedBox(height: 6),
-        Text(label, style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500])),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+        ),
         const SizedBox(height: 2),
         Text(
           value,
@@ -383,7 +425,11 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     );
   }
 
-  Widget _buildStatusActionButton(BuildContext context, String status, bool isActive) {
+  Widget _buildStatusActionButton(
+    BuildContext context,
+    String status,
+    bool isActive,
+  ) {
     if (isActive) {
       return ElevatedButton(
         style: ElevatedButton.styleFrom(
@@ -392,10 +438,15 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
           elevation: 0,
           side: BorderSide(color: _getStatusColor(context, status), width: 1.5),
           padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
         onPressed: null, // Desabilita se já for o status atual
-        child: Text(status, style: const TextStyle(fontWeight: FontWeight.bold)),
+        child: Text(
+          status,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       );
     } else {
       return OutlinedButton(
@@ -403,7 +454,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
           foregroundColor: Colors.grey[400],
           side: BorderSide(color: Colors.grey[700] ?? Colors.grey),
           padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
         onPressed: () => _updateStatus(status),
         child: Text(status),
@@ -435,11 +488,25 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
   }
 }
 
-void showBookDetailsSheet(BuildContext context, BookModel book, bool isEditable) {
+void showBookDetailsSheet(
+  BuildContext context,
+  BookModel book,
+  bool isEditable, {
+  BookService? bookService,
+}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => BookDetailsSheet(book: book, isEditable: isEditable),
+    builder: (sheetContext) => BookDetailsSheet(
+      book: book,
+      isEditable: isEditable,
+      bookService: bookService,
+      onDeletionFeedback: (snackBar) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        }
+      },
+    ),
   );
 }

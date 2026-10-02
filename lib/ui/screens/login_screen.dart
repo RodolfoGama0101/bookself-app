@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
+import '../widgets/dialog_with_controllers.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -47,21 +48,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-          backgroundColor: Colors.redAccent,
-        ),
+        SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
       );
     }
   }
 
   // Diálogo para solicitar e-mail de recuperação de senha
-  void _showForgotPasswordDialog(BuildContext context, AuthService authService) {
+  void _showForgotPasswordDialog(
+    BuildContext context,
+    AuthService authService,
+  ) {
     final emailController = TextEditingController(text: _emailController.text);
     final theme = Theme.of(context);
     final formKey = GlobalKey<FormState>();
+    final screenContext = context;
 
-    showDialog(
+    showDialogWithControllers(
+      controllers: [emailController],
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -85,7 +88,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: (val) {
                     if (val == null || val.isEmpty) return 'Insira seu e-mail';
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(val)) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(val)) {
                       return 'E-mail inválido';
                     }
                     return null;
@@ -98,46 +103,47 @@ class _LoginScreenState extends State<LoginScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  emailController.dispose();
-                });
               },
               child: const Text('Cancelar'),
             ),
             TextButton(
               onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                
+                if (!screenContext.mounted ||
+                    !formKey.currentState!.validate()) {
+                  return;
+                }
+
                 final email = emailController.text.trim();
                 Navigator.pop(context);
-                
+
                 final error = await authService.sendPasswordReset(email);
-                
-                if (context.mounted) {
+
+                if (screenContext.mounted) {
                   if (error != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(screenContext).showSnackBar(
                       SnackBar(
                         content: Text('Erro: $error'),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(screenContext).showSnackBar(
                       const SnackBar(
-                        content: Text('E-mail de recuperação enviado com sucesso!'),
+                        content: Text(
+                          'E-mail de recuperação enviado com sucesso!',
+                        ),
                         backgroundColor: Colors.green,
                       ),
                     );
                   }
                 }
-                
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  emailController.dispose();
-                });
               },
               child: Text(
                 'Enviar',
-                style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: theme.primaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -180,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: theme.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 36),
-                
+
                 // Campos de Formulário
                 if (_isSignUp) ...[
                   CustomTextField(
@@ -188,7 +194,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     label: 'Seu Nome',
                     hint: 'Como quer ser chamado(a)',
                     prefixIcon: Icons.person_outline,
-                    validator: (val) => val == null || val.isEmpty ? 'Insira seu nome' : null,
+                    validator: (val) =>
+                        val == null || val.isEmpty ? 'Insira seu nome' : null,
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -200,7 +207,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: (val) {
                     if (val == null || val.isEmpty) return 'Insira seu e-mail';
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(val)) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(val)) {
                       return 'E-mail inválido';
                     }
                     return null;
@@ -213,27 +222,31 @@ class _LoginScreenState extends State<LoginScreen> {
                   hint: 'Sua senha secreta',
                   prefixIcon: Icons.lock_outline_rounded,
                   obscureText: !_showPassword,
-                  suffixIcon: _showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  suffixIcon: _showPassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
                   onSuffixPressed: () {
                     setState(() {
                       _showPassword = !_showPassword;
                     });
                   },
-                  validator: (val) =>
-                      val == null || val.length < 6 ? 'A senha deve ter pelo menos 6 caracteres' : null,
+                  validator: (val) => val == null || val.length < 6
+                      ? 'A senha deve ter pelo menos 6 caracteres'
+                      : null,
                 ),
                 if (!_isSignUp) ...[
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () => _showForgotPasswordDialog(context, authService),
+                      onPressed: () =>
+                          _showForgotPasswordDialog(context, authService),
                       child: const Text('Esqueceu a senha?'),
                     ),
                   ),
                 ] else ...[
                   const SizedBox(height: 24),
                 ],
-                
+
                 // Botão de Envio
                 CustomButton(
                   text: _isSignUp ? 'Criar Conta' : 'Entrar',
@@ -241,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () => _submitAuth(authService),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Toggle Login / Cadastro
                 TextButton(
                   onPressed: () {
@@ -251,7 +264,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     });
                   },
                   child: Text(
-                    _isSignUp ? 'Já tem uma conta? Entre aqui' : 'Não tem conta? Cadastre-se',
+                    _isSignUp
+                        ? 'Já tem uma conta? Entre aqui'
+                        : 'Não tem conta? Cadastre-se',
                     style: TextStyle(color: theme.primaryColor),
                   ),
                 ),

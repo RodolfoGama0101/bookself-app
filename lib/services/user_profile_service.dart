@@ -8,6 +8,16 @@ class UserProfileService {
   final FirebaseFirestore? firestore;
   FirebaseFirestore get _database => firestore ?? FirebaseFirestore.instance;
 
+  Future<void> updateName(String uid, String name) {
+    return _database.collection('users').doc(uid).update({'name': name});
+  }
+
+  Future<void> updatePhoto(String uid, String? photoUrl) {
+    return _database.collection('users').doc(uid).update({
+      'photoUrl': photoUrl,
+    });
+  }
+
   Stream<UserModel?> watchProfile(String uid) {
     return _database
         .collection('users')
