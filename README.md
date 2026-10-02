@@ -22,7 +22,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 - Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
 - Limpeza da data de conclusão ao mudar um livro de “Lido” para “Lendo” ou “Quero Ler”.
 - Vínculo de duas contas por código, consulta da estante do parceiro e feed de atividades recentes de livros.
-- Acompanhamento de capítulos lidos nos 66 livros da Bíblia, com comparação do progresso do casal.
+- Acompanhamento de capítulos lidos nos 66 livros da Bíblia, com comparação do progresso do casal. Marcação individual/em lote aguarda confirmação, bloqueia ações repetidas e permite nova tentativa após falha.
 - Edição de nome e foto de perfil, além de tema claro e escuro.
 - Fechamento seguro de busca, perfil, detalhes e diálogos durante requisições, com resultado de exclusão na estante.
 
@@ -71,7 +71,11 @@ flutter analyze --no-pub
 flutter test --no-pub
 ```
 
-Na validação de **02/10/2026**, 74 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação, 14 sobre modelos de livro/usuário e 28 sobre operações assíncronas da interface. Usam inicializadores controlados e fakes, sem acessar o Firebase remoto. As novas regressões verificam fechamento de busca/perfil/detalhes durante sucesso ou falha, descarte de diálogos por cancelar/barreira/voltar, retorno de seletores de data após fechamento, ausência de sucesso antes da escrita e feedback de exclusão após retirar o cartão do stream. As fontes nesses testes são substituídas por uma fonte já empacotada pelo Flutter, sem rede; não validam tipografia. Cobrem carregamento, erros, limites de espera, recuperação de cadastro parcial, preservação de perfil existente, descarte/logout/troca de conta, limpeza de campos opcionais e layout em tela pequena com texto ampliado e teclado. A repetição de transação por conflito é simulada; autorização e concorrência real precisam de emuladores. A análise estática encontrou 44 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos. O baseline inicial era de 47 infos; os três logs brutos removidos nas correções de inicialização/sessão eliminaram três apontamentos.
+Na validação de **02/10/2026**, 106 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação, 14 sobre modelos de livro/usuário, 28 sobre operações assíncronas da interface e 32 sobre persistência/interface do progresso bíblico.
+
+Usam inicializadores controlados e fakes, sem acessar o Firebase remoto. As novas regressões verificam fechamento de busca/perfil/detalhes durante sucesso ou falha, descarte de diálogos por cancelar/barreira/voltar, retorno de seletores de data após fechamento, ausência de sucesso antes da escrita e feedback de exclusão após retirar o cartão do stream. A cobertura bíblica verifica marcar/desmarcar, bloqueio de operações repetidas, rejeição/indisponibilidade, confirmação atrasada, conflito simulado, falha longe do topo em Salmos e tratamento de falha em 320 × 480 com texto 2×. As fontes nesses testes são substituídas por uma fonte já empacotada pelo Flutter, sem rede; não validam tipografia. Cobrem carregamento, erros, limites de espera, recuperação de cadastro parcial, preservação de perfil existente, descarte/logout/troca de conta, limpeza de campos opcionais e layout em tela pequena com texto ampliado e teclado. A repetição de transação por conflito é simulada; autorização e concorrência real precisam de emuladores.
+
+A análise estática encontrou 44 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos. O baseline inicial era de 47 infos; os três logs brutos removidos nas correções de inicialização/sessão eliminaram três apontamentos.
 
 Não foram validados: login real, regras do banco remoto, telas em dispositivo e builds de distribuição. Há um `build.log` local com falha anterior de compilação Android, cuja causa precisa ser reproduzida com a configuração atual. A configuração Android de release ainda usa assinatura de debug.
 

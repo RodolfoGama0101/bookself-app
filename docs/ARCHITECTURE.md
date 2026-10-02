@@ -35,7 +35,7 @@ A assinatura de autenticação é guardada. Troca de conta, logout, perfil indis
 | Autenticação | `lib/services/auth_service.dart` | Conta, streams de perfil/parceiro, vínculo e desvínculo. |
 | Perfil | `lib/services/user_profile_service.dart` | Leitura de perfis, atualização de nome/foto e criação transacional sem sobrescrever documentos existentes. |
 | Livros | `lib/services/book_service.dart` | Google Books, persistência e streams de estante/feed. |
-| Bíblia | `lib/services/bible_service.dart` | Progresso e marcação de capítulos com transação. |
+| Bíblia | `lib/services/bible_service.dart` | Progresso confirmado, transação individual e escrita do livro completo. |
 | Tema | `lib/services/theme_service.dart` | Alternância em memória, com modo escuro inicial. |
 | Interface | `lib/ui/` | Formulários, navegação, estatísticas e exibição. |
 | Erros | `lib/utils/error_handler.dart` | Conversão parcial de erros para português. |
@@ -51,6 +51,20 @@ Diálogos com controladores locais usam `showDialogWithControllers`: o resultado
 Exclusão pelos detalhes captura o livro, serviço e callback antes de fechar a folha. A estante recebe sucesso ou erro somente após a escrita; o callback usa o contexto da tela, que permanece válido mesmo se o stream retirar o cartão. Os atalhos da estante e a recuperação de senha também usam o contexto da tela para feedback. Se a tela de origem for descartada, seu retorno não mostra mensagens nela. Edição de nome fecha o formulário, confirma a atualização no serviço e informa sucesso/falha no perfil.
 
 `BookService` resolve a instância Firestore ao acessar persistência. Busca/estante/detalhes aceitam um serviço substituto; perfil aceita `UserProfileService` e `ImagePicker` substitutos. `test/async_ui_test.dart` usa fakes, futures controladas, streams locais e uma fonte já empacotada pelo Flutter para verificar 28 regressões sem rede, Firebase remoto ou seletor nativo. Seleção real de câmera/galeria, tipografia e funcionamento em dispositivo continuam pendentes em QA/REL. A estratégia mais ampla de cache/sincronização segue em DATA-05.
+
+## Persistência do progresso bíblico
+
+`BibleService.toggleChapter` preserva os demais capítulos ao marcar/desmarcar em transação. `markAllChapters` continua escrevendo a lista completa ou vazia em um único documento. Ambos retornam `Future<List<int>>` com os capítulos somente após confirmação da transação/escrita; a tela usa esse resultado mesmo se o stream ainda não tiver entregue o novo estado. Isso também preserva capítulos recebidos em uma repetição da transação após conflito. Coleção, composição dos IDs, campos e timestamp do servidor permanecem iguais; não houve migração.
+
+Streams de livro e resumo usam `includeMetadataChanges: true` e ignoram snapshots com `hasPendingWrites`. Assim, uma alteração apenas local não aparece como progresso confirmado, e a confirmação que muda somente metadata ainda é entregue. Dados de cache sem escritas pendentes podem ser apresentados; isso não comprova uma leitura recente do servidor nem muda a política de autorização.
+
+A tela de capítulos mantém uma assinatura do dono e, quando há vínculo, uma do parceiro. Enquanto aguarda uma escrita, mostra “Salvando progresso…” e bloqueia capítulos e lote, inclusive callbacks repetidos antes do próximo frame. O capítulo acionado também mostra carregamento no próprio botão. Sucesso aparece depois da confirmação. Rejeição/indisponibilidade mostra aviso com “Repetir” na área ativa mesmo longe do topo e deixa o erro visível e libera nova tentativa da mesma intenção; não há alteração otimista feita pela tela. Uma nova ação limpa o erro anterior. A grade e as mensagens compartilham uma rolagem para permitir acesso à recuperação em telas pequenas com texto ampliado.
+
+Falha na leitura do próprio progresso impede escritas até recuperação; falha na comparação do parceiro não impede progresso pessoal. Fechar a tela cancela os ouvintes e ignora retornos de escritas já iniciadas. Trocar os parâmetros de dono/livro/serviço renova assinaturas e descarta resultados da identidade anterior. Mudar somente o parâmetro de parceiro atualiza sua assinatura e mantém o bloqueio da escrita pessoal em curso.
+
+Escritas já iniciadas não são canceladas pelo fechamento. Não há timeout que trate uma escrita ainda pendente como rejeitada: o SDK pode manter o lote pendente sem conexão e confirmar após reconexão; a tela continua aguardando. A estratégia mais ampla de offline/cache e conflitos entre dispositivos continua em DATA-05. A mudança não valida regras remotas nem torna a comparação visual um controle de acesso.
+
+`test/bible_service_test.dart` tem 11 testes de contratos de persistência/streams; `test/bible_screen_test.dart` tem 21 testes de confirmação, falhas, repetição, marcação/desmarcação, descarte, capítulo 100 de Salmos e tela pequena. Usam futures controladas, fakes Firestore e fontes locais de teste compartilhadas com as regressões da CORE-05. As exceções de análise para APIs `sealed` ficam nas cinco declarações do dublê `test/support/bible_firestore_fake.dart`. A repetição da transação por conflito é simulada; concorrência real, regras e funcionamento em dispositivo precisam de emuladores/QA.
 
 ## Dados no Firestore
 
@@ -80,7 +94,6 @@ A estante do parceiro aparece sem controles de edição. Não é possível concl
 
 ## Limitações observadas
 
-- Marcação bíblica não aguarda persistência antes de anunciar sucesso/finalizar a interação.
 - Falhas de busca recebem mensagem genérica de cota/indisponibilidade.
 - Estante/feed não têm paginação; ordenação e estatísticas ocorrem em memória.
 - Tema não persiste. Imagens e serviços externos requerem avaliação de uso sem rede.
