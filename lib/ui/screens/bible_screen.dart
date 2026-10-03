@@ -71,7 +71,7 @@ class _BibleScreenState extends State<BibleScreen>
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: SelectableText(
-                  'Erro ao carregar progresso da Bíblia: ${userProgressSnapshot.error}',
+                  'Erro ao carregar progresso da Bíblia: ${ErrorHandler.getFriendlyErrorMessage(userProgressSnapshot.error, operation: ErrorOperation.loadBibleProgress)}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.redAccent),
                 ),
@@ -91,7 +91,7 @@ class _BibleScreenState extends State<BibleScreen>
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
                     child: SelectableText(
-                      'Erro ao carregar progresso da Bíblia do parceiro: ${partnerProgressSnapshot.error}',
+                      'Erro ao carregar progresso da Bíblia do parceiro: ${ErrorHandler.getFriendlyErrorMessage(partnerProgressSnapshot.error, operation: ErrorOperation.loadPartnerBibleProgress)}',
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.redAccent),
                     ),
@@ -359,7 +359,10 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
             if (!mounted || revision != _revision) return;
             setState(() {
               _isLoading = false;
-              _readError = ErrorHandler.getFriendlyErrorMessage(error);
+              _readError = ErrorHandler.getFriendlyErrorMessage(
+                error,
+                operation: ErrorOperation.loadBibleProgress,
+              );
             });
           },
         );
@@ -394,8 +397,10 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
                 return;
               }
               setState(
-                () =>
-                    _partnerError = ErrorHandler.getFriendlyErrorMessage(error),
+                () => _partnerError = ErrorHandler.getFriendlyErrorMessage(
+                  error,
+                  operation: ErrorOperation.loadPartnerBibleProgress,
+                ),
               );
             },
           );
@@ -446,7 +451,7 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
 
       setState(() {
         _writeError =
-            'Não foi possível salvar seu progresso. ${ErrorHandler.getFriendlyErrorMessage(error)}';
+            'Não foi possível salvar seu progresso. ${ErrorHandler.getFriendlyErrorMessage(error, operation: ErrorOperation.saveBibleProgress)}';
         _retryWrite = retry;
       });
       ScaffoldMessenger.of(context).showSnackBar(

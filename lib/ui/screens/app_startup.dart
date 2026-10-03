@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
+import '../../utils/error_handler.dart';
 
 /// Mantém serviços dependentes da inicialização fora da árvore até o sucesso.
 class AppStartup extends StatefulWidget {
@@ -32,7 +33,8 @@ class _AppStartupState extends State<AppStartup> {
     var status = _StartupStatus.ready;
     try {
       await widget.initialize();
-    } catch (_) {
+    } catch (error) {
+      ErrorHandler.report(error, operation: ErrorOperation.initialize);
       status = _StartupStatus.failed;
     }
     if (!mounted) return;

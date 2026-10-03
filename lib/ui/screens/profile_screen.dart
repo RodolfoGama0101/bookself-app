@@ -28,6 +28,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final _profiles = widget.profiles ?? UserProfileService();
   late final _imagePicker = widget.imagePicker ?? ImagePicker();
 
+  Future<void> _signOut(AuthService authService) async {
+    try {
+      await authService.signOut();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Não foi possível sair. ${ErrorHandler.getFriendlyErrorMessage(error, operation: ErrorOperation.signOut)}',
+          ),
+        ),
+      );
+    }
+  }
+
   ImageProvider? _getAvatarImage(String? photoUrl) {
     if (photoUrl == null || photoUrl.isEmpty) return null;
     if (photoUrl.startsWith('data:image/')) {
@@ -102,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Não foi possível atualizar o nome: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+            'Não foi possível atualizar o nome: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.updateName)}',
           ),
           backgroundColor: Colors.redAccent,
         ),
@@ -176,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Erro ao atualizar foto: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+            'Erro ao atualizar foto: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.updatePhoto)}',
           ),
           backgroundColor: Colors.redAccent,
         ),
@@ -203,7 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Erro ao remover foto: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+            'Erro ao remover foto: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.updatePhoto)}',
           ),
           backgroundColor: Colors.redAccent,
         ),
@@ -723,7 +738,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               foregroundColor: theme.brightness == Brightness.dark
                   ? Colors.white
                   : Colors.black87,
-              onPressed: () => authService.signOut(),
+              onPressed: () => _signOut(authService),
             ),
           ],
         ),

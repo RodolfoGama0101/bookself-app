@@ -128,7 +128,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Não foi possível marcar como lido. ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                'Não foi possível marcar como lido. ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.saveBook)}',
               ),
               backgroundColor: Colors.redAccent,
             ),
@@ -180,7 +180,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                          'Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.deleteBook)}',
                         ),
                         backgroundColor: Colors.redAccent,
                       ),
@@ -245,7 +245,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'Não foi possível iniciar a leitura. ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                          'Não foi possível iniciar a leitura. ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.saveBook)}',
                         ),
                         backgroundColor: Colors.redAccent,
                       ),
@@ -353,7 +353,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: SelectableText(
-                'Erro ao carregar estante: ${ErrorHandler.getFriendlyErrorMessage(snapshot.error)}',
+                'Erro ao carregar estante: ${ErrorHandler.getFriendlyErrorMessage(snapshot.error, operation: ErrorOperation.loadLibrary)}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.redAccent),
               ),

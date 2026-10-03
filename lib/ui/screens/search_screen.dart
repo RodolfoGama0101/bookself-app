@@ -62,9 +62,9 @@ class _SearchScreenState extends State<SearchScreen> {
         final uid = authService.currentUserModel?.uid ?? '';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(
-              'A API do Google Books excedeu a cota de uso ou está indisponível. '
-              'Você pode cadastrar o livro manualmente clicando no botão "+" no topo direito!',
+            content: Text(
+              '${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.searchBooks)} '
+              'Você também pode cadastrar o livro manualmente.',
             ),
             duration: const Duration(seconds: 7),
             backgroundColor: Colors.orange[800],
@@ -232,7 +232,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               ScaffoldMessenger.of(screenContext).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Não foi possível salvar o livro. ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                                    'Não foi possível salvar o livro. ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.saveBook)}',
                                   ),
                                   backgroundColor: Colors.redAccent,
                                 ),
@@ -449,7 +449,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               ScaffoldMessenger.of(screenContext).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Não foi possível cadastrar o livro. ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                                    'Não foi possível cadastrar o livro. ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.saveBook)}',
                                   ),
                                   backgroundColor: Colors.redAccent,
                                 ),

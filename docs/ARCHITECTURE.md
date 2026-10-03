@@ -1,6 +1,6 @@
 # Arquitetura
 
-Revisão: 02/10/2026. As seções iniciais descrevem o código atual; a evolução ao final é uma proposta.
+Revisão: 03/10/2026. As seções iniciais descrevem o código atual; a evolução ao final é uma proposta.
 
 ## Inicialização e interface atuais
 
@@ -40,9 +40,21 @@ A assinatura de autenticação é guardada. Troca de conta, logout, perfil indis
 | Bíblia | `lib/services/bible_service.dart` | Progresso confirmado, transação individual e escrita do livro completo. |
 | Tema | `lib/services/theme_service.dart` | Alternância em memória, com modo escuro inicial. |
 | Interface | `lib/ui/` | Formulários, navegação, estatísticas e exibição. |
-| Erros | `lib/utils/error_handler.dart` | Conversão parcial de erros para português. |
+| Erros | `lib/utils/error_handler.dart` | Tradução por tipo/código para português e diagnóstico com identificadores permitidos. |
 
 `ProfileScreen` aguarda `UserProfileService.updateName/updatePhoto` antes de anunciar sucesso. As atualizações mantêm os mesmos campos e usam `update`, sem recriar perfis ausentes ou sobrescrever outros campos. Fotos são reduzidas e armazenadas como data URI Base64 no perfil; o código atual não usa Firebase Storage.
+
+## Mensagens de erro e diagnósticos
+
+`ErrorHandler` reconhece códigos de Authentication/Firestore, exceções tipadas de conexão/timeout/dados e permissões de câmera/fotos. Os textos são definidos pelo app; mensagens, `details`, URLs, stack traces e `toString()` de erros externos não compõem o feedback. Códigos desconhecidos usam fallback em português. `failed-precondition` não revela índices ou configuração do banco. Credenciais inválidas têm orientação comum no login; recuperação de senha com conta ausente orienta conferir o endereço, sem pedir senha.
+
+`getFriendlyErrorMessage` também registra diagnóstico; `report` registra falhas sem criar texto de interface, como inicialização, leitura do parceiro e capas. Os logs usam `ErrorOperation` e categorias/códigos permitidos; um código externo desconhecido vira `unknown`, e status HTTP só aparece como número entre 400 e 599. Não se registram mensagens externas, dados da conta, títulos, consultas, chaves, URLs ou stack. Falhas retornadas pelo SDK podem conter esses dados, por isso a classificação não depende de buscas em sua descrição. Logs internos de SDKs/plataforma ficam fora desse contrato do código do app.
+
+Autenticação, recuperação de perfil, vínculo/desvínculo, saída, livros, feed, perfil e Bíblia usam essa fronteira. O cadastro parcial mantém o aviso de conta criada e acrescenta a orientação da falha de perfil. Sair da conta tem feedback tanto no perfil quanto na recuperação de sessão; retornos após descarte não acessam o contexto antigo.
+
+`BookService` lança `CatalogRequestException` com apenas o status HTTP nas respostas sem sucesso. Falhas de conexão/JSON preservam seu tipo até o tratamento da interface; os logs brutos de busca/persistência foram removidos. A busca apresenta a orientação correspondente e mantém o atalho de cadastro manual. O cliente HTTP pode ser injetado para simular respostas; quem o injeta é responsável por fechá-lo. O transporte padrão continua usando `http.get`, sem mudança de dependências ou credenciais.
+
+`test/error_handler_test.dart`, `test/auth_errors_test.dart`, `test/book_search_errors_test.dart` e `test/error_ui_test.dart` têm 52 regressões de tradução, diagnóstico, serviços e interface. Usam credenciais fictícias e HTTP/Firebase substitutos; verificam códigos desconhecidos, descrição externa que não pode ser impressa, ausência de dados pessoais no diagnóstico, permissões, timeout, cadastro parcial, vínculo/desvínculo e feedback em login, recuperação, busca, resumo bíblico pessoal/do parceiro e saída. A suíte completa tem 174 testes passando; análise com 39 infos preexistentes. Compilação web e verificação preliminar Wasm passaram; execução real em navegador/dispositivo e serviços remotos continuam em QA/REL/SEC.
 
 ## Operações assíncronas e diálogos
 
@@ -96,7 +108,6 @@ A estante do parceiro aparece sem controles de edição. Não é possível concl
 
 ## Limitações observadas
 
-- Falhas de busca recebem mensagem genérica de cota/indisponibilidade.
 - Estante/feed não têm paginação; ordenação e estatísticas ocorrem em memória.
 - Tema não persiste. Imagens e serviços externos requerem avaliação de uso sem rede.
 

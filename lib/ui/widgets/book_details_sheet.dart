@@ -83,7 +83,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Não foi possível atualizar o status: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+              'Não foi possível atualizar o status: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.saveBook)}',
             ),
             backgroundColor: Colors.redAccent,
           ),
@@ -148,7 +148,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
       feedback(
         SnackBar(
           content: Text(
-            'Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+            'Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.deleteBook)}',
           ),
           backgroundColor: Colors.redAccent,
         ),
@@ -229,8 +229,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                                 : _currentBook.coverUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              print(
-                                'Error loading details image ${_currentBook.coverUrl}: $error',
+                              ErrorHandler.report(
+                                error,
+                                operation: ErrorOperation.loadBookCover,
                               );
                               return _buildCoverPlaceholder(theme);
                             },

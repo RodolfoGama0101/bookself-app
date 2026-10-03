@@ -26,7 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (photoUrl == null || photoUrl.isEmpty) return null;
     if (photoUrl.startsWith('data:image/')) {
       if (isPartner) {
-        if (_cachedPartnerPhotoUrl == photoUrl && _cachedPartnerAvatarImage != null) {
+        if (_cachedPartnerPhotoUrl == photoUrl &&
+            _cachedPartnerAvatarImage != null) {
           return _cachedPartnerAvatarImage;
         }
         _cachedPartnerPhotoUrl = photoUrl;
@@ -52,11 +53,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = authService.currentUserModel;
     final partner = authService.partnerUserModel;
     final theme = Theme.of(context);
-    
+
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final bookService = BookService();
@@ -83,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: SelectableText(
-                  'Erro ao carregar feed: ${ErrorHandler.getFriendlyErrorMessage(snapshot.error)}',
+                  'Erro ao carregar feed: ${ErrorHandler.getFriendlyErrorMessage(snapshot.error, operation: ErrorOperation.loadFeed)}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.redAccent),
                 ),
@@ -96,48 +95,70 @@ class _HomeScreenState extends State<HomeScreen> {
           }
 
           final books = snapshot.data ?? [];
-          
+
           // Estatísticas do mês e ano atual
           final now = DateTime.now();
           final months = [
-            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            'Janeiro',
+            'Fevereiro',
+            'Março',
+            'Abril',
+            'Maio',
+            'Junho',
+            'Julho',
+            'Agosto',
+            'Setembro',
+            'Outubro',
+            'Novembro',
+            'Dezembro',
           ];
           final currentMonthName = months[now.month - 1];
 
           // Mês atual
-          final userReadThisMonth = books.where((b) => 
-            b.userId == user.uid && 
-            b.status == 'Lido' && 
-            b.finishedDate != null && 
-            b.finishedDate!.month == now.month && 
-            b.finishedDate!.year == now.year
-          ).length;
+          final userReadThisMonth = books
+              .where(
+                (b) =>
+                    b.userId == user.uid &&
+                    b.status == 'Lido' &&
+                    b.finishedDate != null &&
+                    b.finishedDate!.month == now.month &&
+                    b.finishedDate!.year == now.year,
+              )
+              .length;
 
-          final partnerReadThisMonth = books.where((b) => 
-            partner != null && 
-            b.userId == partner.uid && 
-            b.status == 'Lido' && 
-            b.finishedDate != null && 
-            b.finishedDate!.month == now.month && 
-            b.finishedDate!.year == now.year
-          ).length;
+          final partnerReadThisMonth = books
+              .where(
+                (b) =>
+                    partner != null &&
+                    b.userId == partner.uid &&
+                    b.status == 'Lido' &&
+                    b.finishedDate != null &&
+                    b.finishedDate!.month == now.month &&
+                    b.finishedDate!.year == now.year,
+              )
+              .length;
 
           // Ano atual
-          final userReadThisYear = books.where((b) => 
-            b.userId == user.uid && 
-            b.status == 'Lido' && 
-            b.finishedDate != null && 
-            b.finishedDate!.year == now.year
-          ).length;
+          final userReadThisYear = books
+              .where(
+                (b) =>
+                    b.userId == user.uid &&
+                    b.status == 'Lido' &&
+                    b.finishedDate != null &&
+                    b.finishedDate!.year == now.year,
+              )
+              .length;
 
-          final partnerReadThisYear = books.where((b) => 
-            partner != null && 
-            b.userId == partner.uid && 
-            b.status == 'Lido' && 
-            b.finishedDate != null && 
-            b.finishedDate!.year == now.year
-          ).length;
+          final partnerReadThisYear = books
+              .where(
+                (b) =>
+                    partner != null &&
+                    b.userId == partner.uid &&
+                    b.status == 'Lido' &&
+                    b.finishedDate != null &&
+                    b.finishedDate!.year == now.year,
+              )
+              .length;
 
           return RefreshIndicator(
             onRefresh: () async {},
@@ -147,7 +168,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Bloco de Estatísticas do Casal (Dashboard)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
                     child: Container(
                       padding: const EdgeInsets.all(20.0),
                       decoration: BoxDecoration(
@@ -170,7 +194,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             'Nossas Leituras em $currentMonthName',
                             style: theme.textTheme.titleMedium?.copyWith(
-                              fontFamily: GoogleFonts.playfairDisplay().fontFamily,
+                              fontFamily:
+                                  GoogleFonts.playfairDisplay().fontFamily,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -184,11 +209,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: [
                                   CircleAvatar(
                                     radius: 26,
-                                    backgroundColor: theme.primaryColor.withOpacity(0.2),
-                                    backgroundImage: _getAvatarImage(user.photoUrl, false),
-                                    child: user.photoUrl == null || user.photoUrl!.isEmpty
+                                    backgroundColor: theme.primaryColor
+                                        .withOpacity(0.2),
+                                    backgroundImage: _getAvatarImage(
+                                      user.photoUrl,
+                                      false,
+                                    ),
+                                    child:
+                                        user.photoUrl == null ||
+                                            user.photoUrl!.isEmpty
                                         ? Text(
-                                            user.name.isNotEmpty ? user.name.substring(0, 1).toUpperCase() : '?',
+                                            user.name.isNotEmpty
+                                                ? user.name
+                                                      .substring(0, 1)
+                                                      .toUpperCase()
+                                                : '?',
                                             style: TextStyle(
                                               color: theme.primaryColor,
                                               fontWeight: FontWeight.bold,
@@ -214,7 +249,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   Text(
                                     'no mês',
-                                    style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: Colors.grey[500],
+                                    ),
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
@@ -226,32 +263,47 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   Text(
                                     'no ano de ${now.year}',
-                                    style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: Colors.grey[500],
+                                    ),
                                   ),
                                 ],
                               ),
-                              
+
                               // Ícone de Divisória Romântica
                               Icon(
                                 Icons.favorite_rounded,
-                                color: theme.colorScheme.secondary.withOpacity(0.7),
+                                color: theme.colorScheme.secondary.withOpacity(
+                                  0.7,
+                                ),
                                 size: 28,
                               ),
-                              
+
                               // Estatísticas do Parceiro
                               Column(
                                 children: [
                                   CircleAvatar(
                                     radius: 26,
-                                    backgroundColor: theme.colorScheme.secondary.withOpacity(0.2),
-                                    backgroundImage: _getAvatarImage(partner?.photoUrl, true),
-                                    child: partner == null || partner.photoUrl == null || partner.photoUrl!.isEmpty
+                                    backgroundColor: theme.colorScheme.secondary
+                                        .withOpacity(0.2),
+                                    backgroundImage: _getAvatarImage(
+                                      partner?.photoUrl,
+                                      true,
+                                    ),
+                                    child:
+                                        partner == null ||
+                                            partner.photoUrl == null ||
+                                            partner.photoUrl!.isEmpty
                                         ? Text(
-                                            partner != null && partner.name.isNotEmpty 
-                                                ? partner.name.substring(0, 1).toUpperCase() 
+                                            partner != null &&
+                                                    partner.name.isNotEmpty
+                                                ? partner.name
+                                                      .substring(0, 1)
+                                                      .toUpperCase()
                                                 : '?',
                                             style: TextStyle(
-                                              color: theme.colorScheme.secondary,
+                                              color:
+                                                  theme.colorScheme.secondary,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 20,
                                             ),
@@ -266,39 +318,56 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  partner != null 
+                                  partner != null
                                       ? Column(
                                           children: [
                                             Text(
                                               '$partnerReadThisMonth ${partnerReadThisMonth == 1 ? 'livro lido' : 'livros lidos'}',
-                                              style: theme.textTheme.bodyMedium?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                                color: theme.colorScheme.secondary,
-                                              ),
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                    color: theme
+                                                        .colorScheme
+                                                        .secondary,
+                                                  ),
                                             ),
                                             Text(
                                               'no mês',
-                                              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: Colors.grey[500],
+                                                  ),
                                             ),
                                             const SizedBox(height: 10),
                                             Text(
                                               '$partnerReadThisYear ${partnerReadThisYear == 1 ? 'livro lido' : 'livros lidos'}',
-                                              style: theme.textTheme.bodyMedium?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                                color: theme.colorScheme.secondary,
-                                              ),
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                    color: theme
+                                                        .colorScheme
+                                                        .secondary,
+                                                  ),
                                             ),
                                             Text(
                                               'no ano de ${now.year}',
-                                              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: Colors.grey[500],
+                                                  ),
                                             ),
                                           ],
                                         )
                                       : Padding(
-                                          padding: const EdgeInsets.only(top: 8.0),
+                                          padding: const EdgeInsets.only(
+                                            top: 8.0,
+                                          ),
                                           child: Text(
                                             'Aguardando',
-                                            style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: Colors.grey[500],
+                                                ),
                                           ),
                                         ),
                                 ],
@@ -310,11 +379,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                
+
                 // Título da Seção do Feed
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 20.0, top: 16.0, bottom: 8.0),
+                    padding: const EdgeInsets.only(
+                      left: 20.0,
+                      top: 16.0,
+                      bottom: 8.0,
+                    ),
                     child: Text(
                       'Histórico do Casal',
                       style: theme.textTheme.titleMedium?.copyWith(
@@ -336,12 +409,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.library_books_outlined, size: 48, color: Colors.grey[600]),
+                            Icon(
+                              Icons.library_books_outlined,
+                              size: 48,
+                              color: Colors.grey[600],
+                            ),
                             const SizedBox(height: 12),
                             Text(
                               'Nenhuma leitura registrada ainda.\nAdicione livros na sua Estante para começar!',
                               textAlign: TextAlign.center,
-                              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey[500],
+                              ),
                             ),
                           ],
                         ),
@@ -350,74 +429,93 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 else
                   SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final book = books[index];
-                        final isMe = book.userId == user.uid;
-                        final authorName = isMe ? 'Você' : (partner?.name ?? 'Parceiro');
-                        
-                        // Determina o texto de ação com base no status do livro
-                        String actionText = '';
-                        IconData actionIcon;
-                        Color actionColor;
-                        
-                        switch (book.status) {
-                          case 'Lido':
-                            actionText = 'concluiu a leitura de';
-                            actionIcon = Icons.check_circle_rounded;
-                            actionColor = Colors.green;
-                            break;
-                          case 'Lendo':
-                            actionText = 'começou a ler';
-                            actionIcon = Icons.chrome_reader_mode_rounded;
-                            actionColor = theme.primaryColor;
-                            break;
-                          default:
-                            actionText = 'quer ler';
-                            actionIcon = Icons.bookmark_add_rounded;
-                            actionColor = Colors.grey;
-                        }
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final book = books[index];
+                      final isMe = book.userId == user.uid;
+                      final authorName = isMe
+                          ? 'Você'
+                          : (partner?.name ?? 'Parceiro');
 
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Linha do feed indicando a ação
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8.0, bottom: 4.0, top: 4.0),
-                                child: Row(
-                                  children: [
-                                    Icon(actionIcon, size: 16, color: actionColor),
-                                    const SizedBox(width: 6),
-                                    RichText(
-                                      text: TextSpan(
-                                        style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
-                                        children: [
-                                          TextSpan(
-                                            text: authorName,
-                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                      // Determina o texto de ação com base no status do livro
+                      String actionText = '';
+                      IconData actionIcon;
+                      Color actionColor;
+
+                      switch (book.status) {
+                        case 'Lido':
+                          actionText = 'concluiu a leitura de';
+                          actionIcon = Icons.check_circle_rounded;
+                          actionColor = Colors.green;
+                          break;
+                        case 'Lendo':
+                          actionText = 'começou a ler';
+                          actionIcon = Icons.chrome_reader_mode_rounded;
+                          actionColor = theme.primaryColor;
+                          break;
+                        default:
+                          actionText = 'quer ler';
+                          actionIcon = Icons.bookmark_add_rounded;
+                          actionColor = Colors.grey;
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 4.0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Linha do feed indicando a ação
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 8.0,
+                                bottom: 4.0,
+                                top: 4.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    actionIcon,
+                                    size: 16,
+                                    color: actionColor,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  RichText(
+                                    text: TextSpan(
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(fontSize: 13),
+                                      children: [
+                                        TextSpan(
+                                          text: authorName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                          TextSpan(text: ' $actionText '),
-                                        ],
-                                      ),
+                                        ),
+                                        TextSpan(text: ' $actionText '),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                              
-                              // Card do Livro do Feed
-                              BookCard(
-                                book: book,
-                                onTap: () => showBookDetailsSheet(context, book, isMe),
-                              ),
-                              const Divider(height: 16, thickness: 0.5, indent: 8, endIndent: 8),
-                            ],
-                          ),
-                        );
-                      },
-                      childCount: books.length,
-                    ),
+                            ),
+
+                            // Card do Livro do Feed
+                            BookCard(
+                              book: book,
+                              onTap: () =>
+                                  showBookDetailsSheet(context, book, isMe),
+                            ),
+                            const Divider(
+                              height: 16,
+                              thickness: 0.5,
+                              indent: 8,
+                              endIndent: 8,
+                            ),
+                          ],
+                        ),
+                      );
+                    }, childCount: books.length),
                   ),
               ],
             ),

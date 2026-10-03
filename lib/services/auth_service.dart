@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../data/models/user_model.dart';
 import 'user_profile_service.dart';
+import '../utils/error_handler.dart';
 
 enum AuthSessionState {
   restoring,
@@ -76,7 +77,7 @@ class AuthService extends ChangeNotifier {
       if (!_disposed &&
           revision == _authRevision &&
           _sessionState == AuthSessionState.restoring) {
-        _handleAuthError();
+        _handleAuthError(TimeoutException(''));
       }
     });
     try {
@@ -85,19 +86,21 @@ class AuthService extends ChangeNotifier {
           if (!_disposed && revision == _authRevision) _handleAuthUser(user);
         },
         onError: (Object error) {
-          if (!_disposed && revision == _authRevision) _handleAuthError();
+          if (!_disposed && revision == _authRevision) _handleAuthError(error);
         },
       );
-    } catch (_) {
-      _handleAuthError();
+    } catch (error) {
+      _handleAuthError(error);
     }
   }
 
-  void _handleAuthError() {
+  void _handleAuthError(Object error) {
     _cancelSubscriptions();
     _currentUserModel = null;
     _sessionState = AuthSessionState.authError;
-    _sessionError = 'Não foi possível restaurar sua sessão. Tente novamente.';
+    _sessionError =
+        'Não foi possível restaurar sua sessão. '
+        '${ErrorHandler.getFriendlyErrorMessage(error, operation: ErrorOperation.restoreSession)}';
     notifyListeners();
   }
 
@@ -143,7 +146,7 @@ class AuthService extends ChangeNotifier {
     _sessionTimer = Timer(sessionTimeout, () {
       if (_isCurrentProfile(uid, revision) &&
           _sessionState == AuthSessionState.loadingProfile) {
-        _handleProfileError();
+        _handleProfileError(TimeoutException(''));
       }
     });
     notifyListeners();
@@ -155,11 +158,11 @@ class AuthService extends ChangeNotifier {
               if (_isCurrentProfile(uid, revision)) _acceptProfile(profile);
             },
             onError: (Object error) {
-              if (_isCurrentProfile(uid, revision)) _handleProfileError();
+              if (_isCurrentProfile(uid, revision)) _handleProfileError(error);
             },
           );
-    } catch (_) {
-      _handleProfileError();
+    } catch (error) {
+      _handleProfileError(error);
     }
   }
 
@@ -169,20 +172,26 @@ class AuthService extends ChangeNotifier {
         revision == _profileRevision;
   }
 
-  void _handleProfileError() {
+  String _handleProfileError(
+    Object error, {
+    ErrorOperation operation = ErrorOperation.loadProfile,
+  }) {
     _sessionTimer?.cancel();
     _currentUserModel = null;
     _cancelPartner();
     _sessionState = AuthSessionState.profileError;
-    _sessionError =
-        'Não foi possível carregar seu perfil. '
-        'Verifique sua conexão e tente novamente.';
+    final message = ErrorHandler.getFriendlyErrorMessage(
+      error,
+      operation: operation,
+    );
+    _sessionError = 'Não foi possível carregar seu perfil. $message';
     notifyListeners();
+    return message;
   }
 
   void _acceptProfile(UserModel? profile) {
     if (profile != null && profile.uid != _sessionUser?.uid) {
-      _handleProfileError();
+      _handleProfileError(const FormatException());
       return;
     }
     _sessionTimer?.cancel();
@@ -228,11 +237,16 @@ class AuthService extends ChangeNotifier {
             },
             onError: (Object error) {
               if (_disposed || revision != _partnerRevision) return;
+              ErrorHandler.report(
+                error,
+                operation: ErrorOperation.loadPartnerProfile,
+              );
               _partnerUserModel = null;
               notifyListeners();
             },
           );
-    } catch (_) {
+    } catch (error) {
+      ErrorHandler.report(error, operation: ErrorOperation.loadPartnerProfile);
       _partnerUserModel = null;
     }
   }
@@ -260,13 +274,10 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      if (e is FirebaseAuthException) {
-        return e.message ?? 'Erro ao entrar';
-      }
-      if (e is TimeoutException) {
-        return 'A conexão demorou mais que o esperado. Tente novamente.';
-      }
-      return 'Erro inesperado: ${e.toString()}';
+      return ErrorHandler.getFriendlyErrorMessage(
+        e,
+        operation: ErrorOperation.signIn,
+      );
     }
   }
 
@@ -295,10 +306,10 @@ class AuthService extends ChangeNotifier {
       _profileNameSuggestion = name.trim();
       return await _createMissingProfile(user, name);
     } catch (e) {
-      if (e is FirebaseAuthException) {
-        return e.message ?? 'Erro ao cadastrar';
-      }
-      return 'Não foi possível criar sua conta. Tente novamente.';
+      return ErrorHandler.getFriendlyErrorMessage(
+        e,
+        operation: ErrorOperation.signUp,
+      );
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -347,16 +358,22 @@ class AuthService extends ChangeNotifier {
       }
       _acceptProfile(profile);
       return null;
-    } catch (_) {
+    } catch (error) {
+      final current = _isCurrentProfile(user.uid, revision);
+      if (current && _currentUserModel != null) return null;
+      final message = current
+          ? _handleProfileError(error, operation: ErrorOperation.saveProfile)
+          : ErrorHandler.getFriendlyErrorMessage(
+              error,
+              operation: ErrorOperation.saveProfile,
+            );
       if (_isCurrentProfile(user.uid, revision)) {
-        if (_currentUserModel != null) return null;
-        _handleProfileError();
         _sessionError =
             'Sua conta já está criada, mas não foi possível salvar '
-            'seu perfil. Tente novamente.';
+            'seu perfil. $message';
         notifyListeners();
       }
-      return 'Não foi possível concluir seu perfil. Tente novamente.';
+      return 'Não foi possível concluir seu perfil. $message';
     }
   }
 
@@ -419,7 +436,10 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      return 'Erro ao tentar vincular: ${e.toString()}';
+      return ErrorHandler.getFriendlyErrorMessage(
+        e,
+        operation: ErrorOperation.linkPartner,
+      );
     }
   }
 
@@ -454,7 +474,10 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      return 'Erro ao desvincular: ${e.toString()}';
+      return ErrorHandler.getFriendlyErrorMessage(
+        e,
+        operation: ErrorOperation.unlinkPartner,
+      );
     }
   }
 
@@ -471,10 +494,10 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      if (e is FirebaseAuthException) {
-        return e.message ?? 'Erro ao enviar e-mail de recuperação';
-      }
-      return 'Erro inesperado: ${e.toString()}';
+      return ErrorHandler.getFriendlyErrorMessage(
+        e,
+        operation: ErrorOperation.resetPassword,
+      );
     }
   }
 }

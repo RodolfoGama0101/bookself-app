@@ -18,6 +18,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 
 - Cadastro, login, recuperação de senha e saída com Firebase Authentication.
 - Login e cadastro preservam a senha digitada, inclusive espaços; a validação local exige pelo menos seis caracteres nos dois formulários.
+- Erros de autenticação, dados e rede têm mensagens em português; diagnósticos do app registram somente operação, categoria e códigos permitidos.
 - Restauração de sessão com estados de carregamento/erro e conclusão de perfil após cadastro parcial, preservando perfis existentes.
 - Busca de livros no Google Books e cadastro manual.
 - Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
@@ -72,15 +73,19 @@ flutter analyze --no-pub
 flutter test --no-pub
 ```
 
-Na validação de **02/10/2026**, 122 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação, 14 sobre modelos de livro/usuário, 28 sobre operações assíncronas da interface, 32 sobre persistência/interface do progresso bíblico e 16 sobre senhas no login/cadastro.
+Na validação de **03/10/2026**, 174 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação, 14 sobre modelos de livro/usuário, 28 sobre operações assíncronas da interface, 32 sobre persistência/interface do progresso bíblico, 16 sobre senhas no login/cadastro e 52 sobre tradução de erros, diagnósticos e fluxos afetados.
+
+As regressões de erros verificam códigos conhecidos/desconhecidos, ausência de mensagem/stack/dados pessoais nos textos e diagnósticos, autenticação, recuperação de perfil, vínculo/desvínculo, HTTP simulado e feedback na interface. A busca distingue limite de uso e indisponibilidade, mantendo cadastro manual; o resumo bíblico pessoal/do parceiro oculta erros brutos e a saída da conta trata falhas mesmo durante o descarte da tela.
 
 As regressões de senha verificam o valor recebido pelo SDK substituto, incluindo espaços iniciais, finais, internos e o limite de seis caracteres; também cobrem validação, correção do formulário e mostrar/ocultar senha. Credenciais são fictícias; isso não valida a política remota de senhas nem autenticação real.
 
 Usam inicializadores controlados e fakes, sem acessar o Firebase remoto. As novas regressões verificam fechamento de busca/perfil/detalhes durante sucesso ou falha, descarte de diálogos por cancelar/barreira/voltar, retorno de seletores de data após fechamento, ausência de sucesso antes da escrita e feedback de exclusão após retirar o cartão do stream. A cobertura bíblica verifica marcar/desmarcar, bloqueio de operações repetidas, rejeição/indisponibilidade, confirmação atrasada, conflito simulado, falha longe do topo em Salmos e tratamento de falha em 320 × 480 com texto 2×. As fontes nesses testes são substituídas por uma fonte já empacotada pelo Flutter, sem rede; não validam tipografia. Cobrem carregamento, erros, limites de espera, recuperação de cadastro parcial, preservação de perfil existente, descarte/logout/troca de conta, limpeza de campos opcionais e layout em tela pequena com texto ampliado e teclado. A repetição de transação por conflito é simulada; autorização e concorrência real precisam de emuladores.
 
-A análise estática encontrou 44 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos. O baseline inicial era de 47 infos; os três logs brutos removidos nas correções de inicialização/sessão eliminaram três apontamentos.
+A análise estática encontrou 39 apontamentos informativos preexistentes, sem erros, warnings ou novos apontamentos; o comando encerrou com código 1 por esses apontamentos. O baseline inicial era de 47 infos: três logs brutos foram removidos nas correções de inicialização/sessão e cinco nesta revisão de diagnósticos.
 
-Não foram validados: login real, regras do banco remoto, telas em dispositivo e builds de distribuição. Há um `build.log` local com falha anterior de compilação Android, cuja causa precisa ser reproduzida com a configuração atual. A configuração Android de release ainda usa assinatura de debug.
+`flutter build web --no-pub` compilou com sucesso, incluindo a verificação preliminar Wasm do Flutter. Esse resultado confirma compilação; navegação real no navegador, autenticação remota e publicação ainda precisam de validação.
+
+Não foram validados: login real, regras do banco remoto, telas em dispositivo e builds de distribuição Android/iOS. Há um `build.log` local com falha anterior de compilação Android, cuja causa precisa ser reproduzida com a configuração atual. A configuração Android de release ainda usa assinatura de debug.
 
 ## Estrutura
 

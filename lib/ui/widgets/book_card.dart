@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/book_model.dart';
+import '../../utils/error_handler.dart';
 
 class BookCard extends StatelessWidget {
   final BookModel book;
@@ -21,8 +22,10 @@ class BookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasCover = book.coverUrl.isNotEmpty &&
-        (book.coverUrl.startsWith('http://') || book.coverUrl.startsWith('https://')) &&
+    final hasCover =
+        book.coverUrl.isNotEmpty &&
+        (book.coverUrl.startsWith('http://') ||
+            book.coverUrl.startsWith('https://')) &&
         Uri.tryParse(book.coverUrl)?.hasAbsolutePath == true;
 
     // Formata a data de conclusão se o livro estiver "Lido"
@@ -48,10 +51,15 @@ class BookCard extends StatelessWidget {
                   height: 104,
                   child: hasCover
                       ? Image.network(
-                          kIsWeb ? 'https://wsrv.nl/?url=${Uri.encodeComponent(book.coverUrl)}' : book.coverUrl,
+                          kIsWeb
+                              ? 'https://wsrv.nl/?url=${Uri.encodeComponent(book.coverUrl)}'
+                              : book.coverUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            print('Error loading image ${book.coverUrl}: $error');
+                            ErrorHandler.report(
+                              error,
+                              operation: ErrorOperation.loadBookCover,
+                            );
                             return _buildCoverPlaceholder(theme);
                           },
                           loadingBuilder: (context, child, loadingProgress) {
@@ -59,9 +67,10 @@ class BookCard extends StatelessWidget {
                             return Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                value: loadingProgress.expectedTotalBytes != null
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
                                     ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
+                                          loadingProgress.expectedTotalBytes!
                                     : null,
                               ),
                             );
@@ -71,7 +80,7 @@ class BookCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              
+
               // Detalhes do Livro
               Expanded(
                 child: Column(
@@ -94,11 +103,13 @@ class BookCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                        color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                          0.7,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    
+
                     // Badges de Status
                     Row(
                       children: [
@@ -106,7 +117,10 @@ class BookCard extends StatelessWidget {
                         if (finishedDateStr != null) ...[
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: theme.primaryColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(6),
@@ -119,19 +133,22 @@ class BookCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                        ]
+                        ],
                       ],
                     ),
                   ],
                 ),
               ),
-              
+
               // Ações adicionais (como botão de excluir ou ícone customizado)
               if (trailing != null)
                 trailing!
               else if (onDelete != null)
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.redAccent,
+                  ),
                   onPressed: onDelete,
                 ),
             ],

@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (error != null) {
                     ScaffoldMessenger.of(screenContext).showSnackBar(
                       SnackBar(
-                        content: Text('Erro: $error'),
+                        content: Text(error),
                         backgroundColor: Colors.redAccent,
                       ),
                     );

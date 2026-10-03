@@ -2,11 +2,16 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../data/models/book_model.dart';
+import '../utils/error_handler.dart';
 
 class BookService {
-  BookService({FirebaseFirestore? firestore}) : _database = firestore;
+  BookService({FirebaseFirestore? firestore, this.httpClient})
+    : _database = firestore;
 
   final FirebaseFirestore? _database;
+
+  /// O chamador mantém a responsabilidade de fechar um cliente injetado.
+  final http.Client? httpClient;
   FirebaseFirestore get _firestore => _database ?? FirebaseFirestore.instance;
 
   static const String _googleBooksApiKey =
@@ -20,88 +25,74 @@ class BookService {
     final url =
         'https://www.googleapis.com/books/v1/volumes?q=$encodedQuery&maxResults=20&key=$_googleBooksApiKey';
 
-    try {
-      final response = await http.get(Uri.parse(url));
+    final uri = Uri.parse(url);
+    final response = await (httpClient?.get(uri) ?? http.get(uri));
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final items = data['items'] as List<dynamic>?;
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final items = data['items'] as List<dynamic>?;
 
-        if (items == null) return [];
+      if (items == null) return [];
 
-        List<BookModel> results = [];
-        for (var item in items) {
-          final volumeInfo = item['volumeInfo'];
-          if (volumeInfo == null) continue;
+      List<BookModel> results = [];
+      for (var item in items) {
+        final volumeInfo = item['volumeInfo'];
+        if (volumeInfo == null) continue;
 
-          // Extrai informações com fallbacks
-          final title = volumeInfo['title'] ?? 'Sem Título';
+        // Extrai informações com fallbacks
+        final title = volumeInfo['title'] ?? 'Sem Título';
 
-          List<String> authors = [];
-          if (volumeInfo['authors'] != null) {
-            authors = List<String>.from(volumeInfo['authors']);
-          } else {
-            authors = ['Autor Desconhecido'];
-          }
-
-          // Busca a imagem de capa em melhor resolução possível
-          String coverUrl = '';
-          if (volumeInfo['imageLinks'] != null) {
-            final imageLinks = volumeInfo['imageLinks'];
-            coverUrl =
-                imageLinks['thumbnail'] ?? imageLinks['smallThumbnail'] ?? '';
-            // Força HTTPS nas imagens da API do Google
-            if (coverUrl.startsWith('http://')) {
-              coverUrl = coverUrl.replaceFirst('http://', 'https://');
-            }
-          }
-
-          final publishedDate =
-              volumeInfo['publishedDate'] ?? 'Data Desconhecida';
-
-          results.add(
-            BookModel(
-              id:
-                  item['id'] ??
-                  DateTime.now().millisecondsSinceEpoch.toString(),
-              userId: '', // Será preenchido ao salvar na estante do usuário
-              title: title,
-              authors: authors,
-              coverUrl: coverUrl,
-              status: 'Quero Ler', // Padrão inicial
-              publishedDate: publishedDate,
-              addedAt: DateTime.now(),
-            ),
-          );
+        List<String> authors = [];
+        if (volumeInfo['authors'] != null) {
+          authors = List<String>.from(volumeInfo['authors']);
+        } else {
+          authors = ['Autor Desconhecido'];
         }
-        return results;
-      } else {
-        throw Exception(
-          'Erro ao buscar livros na API (Status: ${response.statusCode})',
+
+        // Busca a imagem de capa em melhor resolução possível
+        String coverUrl = '';
+        if (volumeInfo['imageLinks'] != null) {
+          final imageLinks = volumeInfo['imageLinks'];
+          coverUrl =
+              imageLinks['thumbnail'] ?? imageLinks['smallThumbnail'] ?? '';
+          // Força HTTPS nas imagens da API do Google
+          if (coverUrl.startsWith('http://')) {
+            coverUrl = coverUrl.replaceFirst('http://', 'https://');
+          }
+        }
+
+        final publishedDate =
+            volumeInfo['publishedDate'] ?? 'Data Desconhecida';
+
+        results.add(
+          BookModel(
+            id: item['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+            userId: '', // Será preenchido ao salvar na estante do usuário
+            title: title,
+            authors: authors,
+            coverUrl: coverUrl,
+            status: 'Quero Ler', // Padrão inicial
+            publishedDate: publishedDate,
+            addedAt: DateTime.now(),
+          ),
         );
       }
-    } catch (e) {
-      print('Erro ao buscar livros: $e');
-      rethrow;
+      return results;
+    } else {
+      throw CatalogRequestException(response.statusCode);
     }
   }
 
   // Salva ou atualiza um livro na estante do usuário no Firestore
   Future<void> saveBook(BookModel book) async {
-    try {
-      // Se o livro já tem ID e existe no banco, atualiza. Caso contrário, gera novo ID.
-      final docRef = book.id.isEmpty
-          ? _firestore.collection('books').doc()
-          : _firestore.collection('books').doc(book.id);
+    // Se o livro já tem ID e existe no banco, atualiza. Caso contrário, gera novo ID.
+    final docRef = book.id.isEmpty
+        ? _firestore.collection('books').doc()
+        : _firestore.collection('books').doc(book.id);
 
-      final finalBook = book.id.isEmpty ? book.copyWith(id: docRef.id) : book;
+    final finalBook = book.id.isEmpty ? book.copyWith(id: docRef.id) : book;
 
-      await docRef.set(finalBook.toMap());
-      print('Livro salvo com sucesso no Firestore: ${finalBook.title}');
-    } catch (e) {
-      print('Erro ao salvar livro no Firestore: $e');
-      rethrow;
-    }
+    await docRef.set(finalBook.toMap());
   }
 
   // Remove um livro da estante

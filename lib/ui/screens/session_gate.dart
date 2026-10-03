@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
+import '../../utils/error_handler.dart';
 
 class SessionGate extends StatelessWidget {
   const SessionGate({
@@ -93,10 +94,14 @@ class SessionGate extends StatelessWidget {
 Future<void> _signOut(BuildContext context, AuthService auth) async {
   try {
     await auth.signOut();
-  } catch (_) {
+  } catch (error) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Não foi possível sair. Tente novamente.')),
+      SnackBar(
+        content: Text(
+          'Não foi possível sair. ${ErrorHandler.getFriendlyErrorMessage(error, operation: ErrorOperation.signOut)}',
+        ),
+      ),
     );
   }
 }
