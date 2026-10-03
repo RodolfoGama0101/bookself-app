@@ -54,7 +54,7 @@ Autenticação, recuperação de perfil, vínculo/desvínculo, saída, livros, f
 
 `BookService` lança `CatalogRequestException` com apenas o status HTTP nas respostas sem sucesso. Falhas de conexão/JSON preservam seu tipo até o tratamento da interface; os logs brutos de busca/persistência foram removidos. A busca apresenta a orientação correspondente e mantém o atalho de cadastro manual. O cliente HTTP pode ser injetado para simular respostas; quem o injeta é responsável por fechá-lo. O transporte padrão continua usando `http.get`, sem mudança de dependências ou credenciais.
 
-`test/error_handler_test.dart`, `test/auth_errors_test.dart`, `test/book_search_errors_test.dart` e `test/error_ui_test.dart` têm 52 regressões de tradução, diagnóstico, serviços e interface. Usam credenciais fictícias e HTTP/Firebase substitutos; verificam códigos desconhecidos, descrição externa que não pode ser impressa, ausência de dados pessoais no diagnóstico, permissões, timeout, cadastro parcial, vínculo/desvínculo e feedback em login, recuperação, busca, resumo bíblico pessoal/do parceiro e saída. A suíte completa tem 205 testes passando; análise com 38 infos preexistentes. Compilação web e verificação preliminar Wasm passaram; execução real em navegador/dispositivo e serviços remotos continuam em QA/REL/SEC.
+`test/error_handler_test.dart`, `test/auth_errors_test.dart`, `test/book_search_errors_test.dart` e `test/error_ui_test.dart` têm 52 regressões de tradução, diagnóstico, serviços e interface. Usam credenciais fictícias e HTTP/Firebase substitutos; verificam códigos desconhecidos, descrição externa que não pode ser impressa, ausência de dados pessoais no diagnóstico, permissões, timeout, cadastro parcial, vínculo/desvínculo e feedback em login, recuperação, busca, resumo bíblico pessoal/do parceiro e saída. A suíte completa tem 207 testes passando; análise com 38 infos preexistentes. Compilação web e verificação preliminar Wasm passaram; execução real em navegador/dispositivo e serviços remotos continuam em QA/REL/SEC.
 
 ## Preferência de tema
 
@@ -101,6 +101,8 @@ Escritas já iniciadas não são canceladas pelo fechamento. Não há timeout qu
 Inclusão pela busca e formulário manual força um ID vazio para criar documento próprio. `BookService.saveBook` aceita IDs existentes para atualizar. O ID do Google Books não é mantido em campo próprio no documento, dificultando detecção de duplicatas e reconciliação de catálogo.
 
 O feed consulta livros de uma ou duas pessoas, ordenados por `addedAt` no cliente. Alterações de status também atualizam esse campo: ele representa inclusão e última atividade. Não há histórico separado de eventos. Estatísticas mensais/anuais usam o estado atual `Lido` e `finishedDate`.
+
+No Início, `StreamBuilder` recebe `BookService.streamCoupleFeed`, baseado em snapshots do Firestore, e recalcula cartões e contagens a cada emissão. O gesto de atualização manual com callback vazio foi removido; a rolagem usa o comportamento padrão da plataforma. Não há consulta forçada ao servidor nem confirmação de sincronização ao arrastar. `HomeScreen` aceita um serviço substituto para testar esse fluxo sem acesso remoto. `test/home_feed_test.dart` verifica inclusões/remoções, mudanças de status e estatísticas das duas pessoas, ausência de indicador de atualização no gesto e cancelamento da assinatura ao descartar a tela.
 
 ### Cópia e limpeza de campos opcionais
 

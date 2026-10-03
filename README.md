@@ -23,7 +23,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 - Busca de livros no Google Books e cadastro manual.
 - Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
 - Limpeza da data de conclusão ao mudar um livro de “Lido” para “Lendo” ou “Quero Ler”.
-- Vínculo de duas contas por código, consulta da estante do parceiro e feed de atividades recentes de livros.
+- Vínculo de duas contas por código, consulta da estante do parceiro e feed de atividades recentes de livros. O Início atualiza feed e estatísticas automaticamente pelo stream; não oferece gesto de atualização manual.
 - Acompanhamento de capítulos lidos nos 66 livros da Bíblia, com comparação do progresso do casal. Marcação individual/em lote aguarda confirmação, bloqueia ações repetidas e permite nova tentativa após falha.
 - Edição de nome e foto de perfil; escolha de tema Claro, Escuro ou Sistema, salva localmente e restaurada ao abrir o app.
 - Fechamento seguro de busca, perfil, detalhes e diálogos durante requisições, com resultado de exclusão na estante.
@@ -75,7 +75,9 @@ flutter analyze --no-pub
 flutter test --no-pub
 ```
 
-Na validação de **03/10/2026**, 205 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação, 14 sobre modelos de livro/usuário, 28 sobre operações assíncronas da interface, 32 sobre persistência/interface do progresso bíblico, 16 sobre senhas no login/cadastro, 52 sobre tradução de erros, diagnósticos e fluxos afetados e 31 sobre persistência/interface do tema.
+Na validação de **03/10/2026**, 207 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação, 14 sobre modelos de livro/usuário, 28 sobre operações assíncronas da interface, 32 sobre persistência/interface do progresso bíblico, 16 sobre senhas no login/cadastro, 52 sobre tradução de erros, diagnósticos e fluxos afetados, 31 sobre persistência/interface do tema e dois sobre atualização automática do Início.
+
+Os testes do Início usam um stream substituto e verificam inclusões, remoções, mudanças de status e contagens mensais/anuais pessoais e do parceiro. Arrastar o conteúdo vazio não mostra indicador de atualização nem cria nova consulta; descartar a tela cancela a assinatura. A entrega real de eventos pelo Firestore e o gesto em dispositivo permanecem pendentes de validação.
 
 Os testes de tema usam armazenamento substituto: verificam recriação do serviço/árvore, restauração antes do primeiro login, padrão escuro, Sistema reagindo ao brilho, logout, confirmação de escrita, falhas/nova tentativa, concorrência, timeout e descarte. O controle no perfil foi verificado em 320 × 480 com texto 2×. Persistência no armazenamento nativo e reabertura real do navegador/dispositivo permanecem pendentes de validação.
 
