@@ -30,6 +30,8 @@ enum ErrorOperation {
   updateName,
   updatePhoto,
   loadBookCover,
+  loadTheme,
+  saveTheme,
 }
 
 /// Transporta somente o status, sem URL, chave, consulta ou corpo da resposta.
@@ -110,6 +112,11 @@ class ErrorHandler {
   }) {
     final description = _describe(error);
     _log(description, operation);
+    if ((operation == ErrorOperation.loadTheme ||
+            operation == ErrorOperation.saveTheme) &&
+        error is TimeoutException) {
+      return 'A operação demorou mais que o esperado. Tente novamente.';
+    }
     if (operation == ErrorOperation.resetPassword &&
         error is FirebaseAuthException &&
         error.code == 'user-not-found') {

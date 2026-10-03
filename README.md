@@ -25,14 +25,16 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 - Limpeza da data de conclusão ao mudar um livro de “Lido” para “Lendo” ou “Quero Ler”.
 - Vínculo de duas contas por código, consulta da estante do parceiro e feed de atividades recentes de livros.
 - Acompanhamento de capítulos lidos nos 66 livros da Bíblia, com comparação do progresso do casal. Marcação individual/em lote aguarda confirmação, bloqueia ações repetidas e permite nova tentativa após falha.
-- Edição de nome e foto de perfil, além de tema claro e escuro.
+- Edição de nome e foto de perfil; escolha de tema Claro, Escuro ou Sistema, salva localmente e restaurada ao abrir o app.
 - Fechamento seguro de busca, perfil, detalhes e diálogos durante requisições, com resultado de exclusão na estante.
 
-A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes, séries e músicas ainda não estão implementados. O vínculo atual é direto por código, sem etapa de aceite. A preferência de tema ainda não persiste ao reiniciar.
+A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes, séries e músicas ainda não estão implementados. O vínculo atual é direto por código, sem etapa de aceite.
+
+Sem preferência salva, o tema inicial continua escuro. “Sistema” acompanha o brilho do dispositivo; Claro/Escuro explícitos permanecem fixos. A preferência é do app no dispositivo/navegador, vale também no login e permanece após logout; outros dispositivos têm escolhas independentes. Limpar os dados locais remove a preferência. A tela de carregamento da inicialização mantém a aparência escura; a interface principal abre após a leitura da escolha salva.
 
 ## Tecnologias e plataformas
 
-Flutter/Dart, Provider, Firebase Core, Firebase Authentication, Cloud Firestore, HTTP, Google Fonts, Image Picker e Intl. O requisito declarado de Dart é `^3.12.0` em `pubspec.yaml`.
+Flutter/Dart, Provider, Firebase Core, Firebase Authentication, Cloud Firestore, HTTP, Google Fonts, Image Picker, Intl e Shared Preferences. Os requisitos declarados em `pubspec.yaml` são Flutter `>=3.44.0` e Dart `^3.12.0`.
 
 Há projetos para Android, iOS e web, com opções Firebase para essas plataformas. Isso não significa que todas tenham sido validadas em execução. Windows, macOS e Linux não possuem configuração Firebase nesta versão.
 
@@ -73,7 +75,9 @@ flutter analyze --no-pub
 flutter test --no-pub
 ```
 
-Na validação de **03/10/2026**, 174 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação, 14 sobre modelos de livro/usuário, 28 sobre operações assíncronas da interface, 32 sobre persistência/interface do progresso bíblico, 16 sobre senhas no login/cadastro e 52 sobre tradução de erros, diagnósticos e fluxos afetados.
+Na validação de **03/10/2026**, 205 testes passaram: quatro sobre dados bíblicos, cinco sobre inicialização, 13 sobre sessão/ciclo de vida, cinco sobre persistência de perfil, cinco sobre as telas de sessão/recuperação, 14 sobre modelos de livro/usuário, 28 sobre operações assíncronas da interface, 32 sobre persistência/interface do progresso bíblico, 16 sobre senhas no login/cadastro, 52 sobre tradução de erros, diagnósticos e fluxos afetados e 31 sobre persistência/interface do tema.
+
+Os testes de tema usam armazenamento substituto: verificam recriação do serviço/árvore, restauração antes do primeiro login, padrão escuro, Sistema reagindo ao brilho, logout, confirmação de escrita, falhas/nova tentativa, concorrência, timeout e descarte. O controle no perfil foi verificado em 320 × 480 com texto 2×. Persistência no armazenamento nativo e reabertura real do navegador/dispositivo permanecem pendentes de validação.
 
 As regressões de erros verificam códigos conhecidos/desconhecidos, ausência de mensagem/stack/dados pessoais nos textos e diagnósticos, autenticação, recuperação de perfil, vínculo/desvínculo, HTTP simulado e feedback na interface. A busca distingue limite de uso e indisponibilidade, mantendo cadastro manual; o resumo bíblico pessoal/do parceiro oculta erros brutos e a saída da conta trata falhas mesmo durante o descarte da tela.
 
@@ -81,7 +85,7 @@ As regressões de senha verificam o valor recebido pelo SDK substituto, incluind
 
 Usam inicializadores controlados e fakes, sem acessar o Firebase remoto. As novas regressões verificam fechamento de busca/perfil/detalhes durante sucesso ou falha, descarte de diálogos por cancelar/barreira/voltar, retorno de seletores de data após fechamento, ausência de sucesso antes da escrita e feedback de exclusão após retirar o cartão do stream. A cobertura bíblica verifica marcar/desmarcar, bloqueio de operações repetidas, rejeição/indisponibilidade, confirmação atrasada, conflito simulado, falha longe do topo em Salmos e tratamento de falha em 320 × 480 com texto 2×. As fontes nesses testes são substituídas por uma fonte já empacotada pelo Flutter, sem rede; não validam tipografia. Cobrem carregamento, erros, limites de espera, recuperação de cadastro parcial, preservação de perfil existente, descarte/logout/troca de conta, limpeza de campos opcionais e layout em tela pequena com texto ampliado e teclado. A repetição de transação por conflito é simulada; autorização e concorrência real precisam de emuladores.
 
-A análise estática encontrou 39 apontamentos informativos preexistentes, sem erros, warnings ou novos apontamentos; o comando encerrou com código 1 por esses apontamentos. O baseline inicial era de 47 infos: três logs brutos foram removidos nas correções de inicialização/sessão e cinco nesta revisão de diagnósticos.
+A análise estática encontrou 38 apontamentos informativos preexistentes, sem erros, warnings ou novos apontamentos; o comando encerrou com código 1 por esses apontamentos. O baseline inicial era de 47 infos: três logs brutos foram removidos nas correções de inicialização/sessão, cinco na revisão de diagnósticos e um uso de `activeColor` obsoleto saiu ao substituir o controle de tema.
 
 `flutter build web --no-pub` compilou com sucesso, incluindo a verificação preliminar Wasm do Flutter. Esse resultado confirma compilação; navegação real no navegador, autenticação remota e publicação ainda precisam de validação.
 

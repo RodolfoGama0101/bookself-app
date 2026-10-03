@@ -28,6 +28,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final _profiles = widget.profiles ?? UserProfileService();
   late final _imagePicker = widget.imagePicker ?? ImagePicker();
 
+  Future<void> _changeTheme(ThemeService service, [ThemeMode? mode]) async {
+    final error = mode == null
+        ? await service.toggleTheme(Theme.of(context).brightness)
+        : await service.setThemeMode(mode);
+    if (!mounted || error == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+    );
+  }
+
   Future<void> _signOut(AuthService authService) async {
     try {
       await authService.signOut();
@@ -386,12 +396,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             icon: Icon(
-              themeService.isDarkMode
+              theme.brightness == Brightness.dark
                   ? Icons.light_mode_rounded
                   : Icons.dark_mode_rounded,
             ),
             tooltip: 'Alterar Tema',
-            onPressed: () => themeService.toggleTheme(),
+            onPressed: themeService.isSaving || themeService.isLoading
+                ? null
+                : () => _changeTheme(themeService),
           ),
         ],
       ),
@@ -682,22 +694,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 8),
             Card(
-              child: ListTile(
-                leading: Icon(
-                  themeService.isDarkMode
-                      ? Icons.dark_mode_rounded
-                      : Icons.light_mode_rounded,
-                  color: theme.primaryColor,
-                ),
-                title: const Text('Tema Escuro'),
-                subtitle: Text(
-                  themeService.isDarkMode ? 'Ativado' : 'Desativado',
-                  style: theme.textTheme.bodySmall,
-                ),
-                trailing: Switch(
-                  value: themeService.isDarkMode,
-                  activeColor: theme.primaryColor,
-                  onChanged: (value) => themeService.toggleTheme(),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text('Tema do aplicativo'),
+                    DropdownButton<ThemeMode>(
+                      key: const ValueKey('theme-mode-selector'),
+                      value: themeService.themeMode,
+                      isExpanded: true,
+                      items: const [
+                        DropdownMenuItem(
+                          value: ThemeMode.light,
+                          child: Text('Claro'),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.dark,
+                          child: Text('Escuro'),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.system,
+                          child: Text('Sistema'),
+                        ),
+                      ],
+                      onChanged: themeService.isSaving || themeService.isLoading
+                          ? null
+                          : (mode) {
+                              if (mode != null) {
+                                _changeTheme(themeService, mode);
+                              }
+                            },
+                    ),
+                    if (themeService.themeMode == ThemeMode.system)
+                      const Text('Acompanha o tema do dispositivo.'),
+                    if (themeService.isSaving || themeService.isLoading) ...[
+                      const SizedBox(height: 8),
+                      const LinearProgressIndicator(),
+                      const SizedBox(height: 8),
+                      Text(
+                        themeService.isSaving
+                            ? 'Salvando tema…'
+                            : 'Carregando tema…',
+                      ),
+                    ],
+                    if (themeService.loadError != null) ...[
+                      const SizedBox(height: 8),
+                      Text(themeService.loadError!),
+                      TextButton(
+                        onPressed:
+                            themeService.isSaving || themeService.isLoading
+                            ? null
+                            : themeService.retryLoading,
+                        child: const Text('Tentar carregar novamente'),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),

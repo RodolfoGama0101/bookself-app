@@ -4,7 +4,7 @@ Revisão: 03/10/2026. As seções iniciais descrevem o código atual; a evoluç�
 
 ## Inicialização e interface atuais
 
-`lib/main.dart` inicia a interface imediatamente com `AppStartup` (`lib/ui/screens/app_startup.dart`). Essa fronteira mantém os estados de carregamento, falha e sucesso da inicialização Firebase. Apenas após sucesso, seu `readyBuilder` registra `AuthService` e `ThemeService` em `MultiProvider` e cria `BookselfApp`. `SessionGate` decide entre login, carregamento, recuperação de perfil e `MainNavigation` conforme o estado explícito de sessão.
+`lib/main.dart` inicia a interface imediatamente com `BookselfBootstrap`. Ele cria e mantém `ThemeService` na raiz, iniciando a leitura da preferência antes de registrar os ouvintes do Provider. `AppStartup` (`lib/ui/screens/app_startup.dart`) mostra carregamento enquanto aguarda essa leitura e a inicialização Firebase. Apenas após sucesso do Firebase, seu `readyBuilder` registra `AuthService` e cria `BookselfApp`. `SessionGate` decide entre login, carregamento, recuperação de perfil e `MainNavigation` conforme o estado explícito de sessão.
 
 `MainNavigation` usa `IndexedStack` com Início, Estante, Bíblia e Perfil. Busca é acessada pela estante. Serviços de livros e Bíblia são instanciados nas telas; não há backend próprio versionado.
 
@@ -38,7 +38,7 @@ A assinatura de autenticação é guardada. Troca de conta, logout, perfil indis
 | Perfil | `lib/services/user_profile_service.dart` | Leitura de perfis, atualização de nome/foto e criação transacional sem sobrescrever documentos existentes. |
 | Livros | `lib/services/book_service.dart` | Google Books, persistência e streams de estante/feed. |
 | Bíblia | `lib/services/bible_service.dart` | Progresso confirmado, transação individual e escrita do livro completo. |
-| Tema | `lib/services/theme_service.dart` | Alternância em memória, com modo escuro inicial. |
+| Tema | `lib/services/theme_service.dart` | Restauração e persistência local de Claro/Escuro/Sistema, com modo escuro inicial. |
 | Interface | `lib/ui/` | Formulários, navegação, estatísticas e exibição. |
 | Erros | `lib/utils/error_handler.dart` | Tradução por tipo/código para português e diagnóstico com identificadores permitidos. |
 
@@ -54,7 +54,17 @@ Autenticação, recuperação de perfil, vínculo/desvínculo, saída, livros, f
 
 `BookService` lança `CatalogRequestException` com apenas o status HTTP nas respostas sem sucesso. Falhas de conexão/JSON preservam seu tipo até o tratamento da interface; os logs brutos de busca/persistência foram removidos. A busca apresenta a orientação correspondente e mantém o atalho de cadastro manual. O cliente HTTP pode ser injetado para simular respostas; quem o injeta é responsável por fechá-lo. O transporte padrão continua usando `http.get`, sem mudança de dependências ou credenciais.
 
-`test/error_handler_test.dart`, `test/auth_errors_test.dart`, `test/book_search_errors_test.dart` e `test/error_ui_test.dart` têm 52 regressões de tradução, diagnóstico, serviços e interface. Usam credenciais fictícias e HTTP/Firebase substitutos; verificam códigos desconhecidos, descrição externa que não pode ser impressa, ausência de dados pessoais no diagnóstico, permissões, timeout, cadastro parcial, vínculo/desvínculo e feedback em login, recuperação, busca, resumo bíblico pessoal/do parceiro e saída. A suíte completa tem 174 testes passando; análise com 39 infos preexistentes. Compilação web e verificação preliminar Wasm passaram; execução real em navegador/dispositivo e serviços remotos continuam em QA/REL/SEC.
+`test/error_handler_test.dart`, `test/auth_errors_test.dart`, `test/book_search_errors_test.dart` e `test/error_ui_test.dart` têm 52 regressões de tradução, diagnóstico, serviços e interface. Usam credenciais fictícias e HTTP/Firebase substitutos; verificam códigos desconhecidos, descrição externa que não pode ser impressa, ausência de dados pessoais no diagnóstico, permissões, timeout, cadastro parcial, vínculo/desvínculo e feedback em login, recuperação, busca, resumo bíblico pessoal/do parceiro e saída. A suíte completa tem 205 testes passando; análise com 38 infos preexistentes. Compilação web e verificação preliminar Wasm passaram; execução real em navegador/dispositivo e serviços remotos continuam em QA/REL/SEC.
+
+## Preferência de tema
+
+`ThemeService` usa `SharedPreferencesAsync` do [plugin oficial Shared Preferences](https://pub.dev/packages/shared_preferences). A chave local `theme_mode` guarda `light`, `dark` ou `system`, sem depender de UID ou escrever no Firebase. A instância fica acima dos fluxos de sessão e permanece no logout. Cada instalação/origem do navegador tem sua preferência; limpeza dos dados locais retorna ao padrão. O plugin é apropriado para preferências simples, sem garantia de durabilidade crítica em disco após o retorno de uma gravação.
+
+Sem valor salvo, o app mantém Escuro, preservando o comportamento anterior. “Sistema” passa `ThemeMode.system` ao `MaterialApp`, que acompanha o brilho da plataforma; Claro/Escuro explícitos ignoram essas mudanças. A restauração termina antes de abrir `BookselfApp`, inclusive o primeiro login. A tela de carregamento/erro de `AppStartup` continua escura. A leitura inicial tem limite de cinco segundos; falha/valor inválido usa o padrão sem apagar dados, registra diagnóstico seguro e deixa uma ação de releitura no perfil. Respostas posteriores a um timeout não substituem a escolha atual. Falha em uma releitura preserva o modo atual.
+
+O perfil oferece as três escolhas e mantém o atalho de alternância, que escolhe o oposto do brilho visível e sai de Sistema para um modo explícito. Escritas são aguardadas antes de mudar o tema; durante a gravação, o perfil mostra “Salvando tema…” e bloqueia seletor/atalho. Falha mantém o tema anterior e mostra mensagem em português, permitindo repetir a escolha. O serviço impede gravações concorrentes e aguarda uma restauração pendente antes de salvar. Releitura não concorre com gravação; descarte ignora retornos sem notificar estado/contexto antigo. Uma gravação iniciada pode terminar no armazenamento após descarte.
+
+`test/theme_service_test.dart` tem 15 regressões e `test/theme_ui_test.dart` tem 16, usando preferências substitutas, inicializador controlado e Firebase fictício. Cobrem recriação de serviço/árvore, primeiro uso/login, brilho, logout, leitura/escrita rejeitada, repetição, concorrência, timeout, confirmação, descarte e controle em 320 × 480 com texto 2×. `flutter pub get` resolveu `shared_preferences` 2.5.5 e seus adaptadores; o requisito Flutter `>=3.44.0` foi explicitado junto ao Dart `^3.12.0`. Android usa o mínimo do SDK (24 no Flutter validado) e iOS já declara 13.0; identificadores e configuração Firebase foram preservados. Compilação web passou, mas persistência nativa/reabertura real e builds Android/iOS continuam em QA/REL.
 
 ## Operações assíncronas e diálogos
 
@@ -109,7 +119,7 @@ A estante do parceiro aparece sem controles de edição. Não é possível concl
 ## Limitações observadas
 
 - Estante/feed não têm paginação; ordenação e estatísticas ocorrem em memória.
-- Tema não persiste. Imagens e serviços externos requerem avaliação de uso sem rede.
+- Imagens e serviços externos requerem avaliação de uso sem rede.
 
 As tarefas correspondentes estão em [BACKLOG.md](../BACKLOG.md).
 

@@ -15,17 +15,51 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   runApp(
-    AppStartup(
+    BookselfBootstrap(
       initialize: _initializeFirebase,
-      readyBuilder: (_) => MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => AuthService()),
-          ChangeNotifierProvider(create: (_) => ThemeService()),
-        ],
+      readyBuilder: (_) => ChangeNotifierProvider(
+        create: (_) => AuthService(),
         child: const BookselfApp(),
       ),
     ),
   );
+}
+
+/// Restaura o tema antes de abrir a interface e mantém a preferência no logout.
+class BookselfBootstrap extends StatelessWidget {
+  const BookselfBootstrap({
+    super.key,
+    required this.initialize,
+    required this.readyBuilder,
+    this.themeService,
+  });
+
+  final Future<void> Function() initialize;
+  final WidgetBuilder readyBuilder;
+  final ThemeService? themeService;
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<ThemeService>(
+      create: (_) {
+        final service = themeService ?? ThemeService();
+        service.initialize();
+        return service;
+      },
+      child: Builder(
+        builder: (context) {
+          final theme = context.read<ThemeService>();
+          return AppStartup(
+            initialize: () async {
+              await theme.initialize();
+              await initialize();
+            },
+            readyBuilder: readyBuilder,
+          );
+        },
+      ),
+    );
+  }
 }
 
 Future<void> _initializeFirebase() async {
