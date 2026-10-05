@@ -44,6 +44,10 @@ PROD-01 permanece em andamento: confirmar estados/campos e critérios das demais
 
 O vínculo deve usar convite e aceite. Cada pessoa controla autoria e visibilidade; e-mail não deve ser exposto desnecessariamente. Uma ação “assistimos juntos” não deve concluir progresso do parceiro sem uma regra explícita e consentida.
 
+Em 05/10/2026, o usuário escolheu **compartilhar biblioteca e progresso por padrão após aceite, permitindo ocultar itens**. O padrão privado com compartilhamento item a item foi a alternativa considerada. A decisão vale para a evolução consentida; o app atual continua usando vínculo direto por UID e não possui controles de ocultação. Ocultar um item deverá ser um controle de autorização no servidor, abrangendo consultas, detalhes, feed e estatísticas do parceiro.
+
+Os demais detalhes estão na [proposta de consentimento e visibilidade](COUPLE_POLICY.md). COUPLE-01 permanece em andamento até fechar convites, bloqueio, visibilidade bíblica e destino de conteúdo conjunto após desvínculo. Separar o e-mail em SEC-04 não pode depender apenas de esconder um campo na interface.
+
 Desvinculação preserva dados pessoais e encerra acesso entre participantes. Retenção/divisão de listas e momentos compartilhados, exclusão de conta e acesso após novo vínculo são decisões anteriores à implementação. Um novo relacionamento não deve herdar acesso ao anterior.
 
 ## Navegação proposta
@@ -85,7 +89,7 @@ Etapas indicam dependências, não prazos. Tarefas executáveis estão em [BACKL
 | --- | --- | --- |
 | Marca | Entrelace, a confirmar. | NAME-01 |
 | Música | Escopo de faixas/álbuns, favoritos, escutas e listas escolhido em 05/10/2026; detalhes do MVP em revisão. | PROD-01 |
-| Compartilhamento | Autoria pessoal, consentimento, visibilidade explícita. | COUPLE-01 |
+| Compartilhamento | Biblioteca/progresso compartilhados por padrão após aceite, com ocultação, escolhido em 05/10/2026; demais regras em revisão. | COUPLE-01 |
 | Experiência conjunta | Sem concluir automaticamente o progresso alheio. | COUPLE-05 |
 | Séries | Separar “em dia”/“concluída” e definir spoilers. | SERIES-01 |
 | Bíblia | Preservar progresso; leitor de texto como ideia opcional. | BIBLE-03 |
