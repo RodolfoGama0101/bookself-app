@@ -32,7 +32,7 @@ SHA-256 do conteúdo retornado para a regra ativa: `67e516d2c05f980cfb40f5eba63c
 
 As queries de estante/Bíblia devem filtrar `userId`. O feed pode consultar `in` com os dois participantes de vínculo recíproco. Queries globais e filtros para terceiros são negados. A autorização depende de ambos os perfis persistidos apontarem um para o outro, não apenas de um ponteiro local.
 
-Firestore autoriza documentos inteiros. O perfil atual contém e-mail/foto, então o parceiro recíproco ainda recebe esses campos. Separar perfil consultável e dados privados permanece em SEC-04, após decisões de COUPLE-01. Convites com aceite e visibilidade opcional continuam pendentes; não foram implementados nesta entrega.
+Firestore autoriza documentos inteiros. O perfil atual contém e-mail/foto, então o parceiro recíproco ainda recebe esses campos. Separar perfil consultável e dados privados permanece em SEC-04. **Atualização de 05/10/2026:** COUPLE-01 foi concluída como decisão com a [política v1 aprovada](COUPLE_POLICY.md), que permite nome/foto e mantém e-mail e demais dados privados restritos ao dono. Convites com aceite e visibilidade opcional continuam pendentes de implementação; código e regras atuais não foram alterados pela decisão.
 
 ## Consistência do vínculo
 

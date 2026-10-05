@@ -13,6 +13,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
 | [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
+| [docs/COUPLE_POLICY.md](docs/COUPLE_POLICY.md) | Política de consentimento aprovada para a evolução e critérios de implementação. |
 | [docs/DESIGN.md](docs/DESIGN.md) | Sistema visual, layouts responsivos e validação do redesign das telas atuais. |
 | [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integrações atuais e candidatas, com fontes oficiais. |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Configuração isolada de Auth/Firestore, comandos e clientes por plataforma. |
