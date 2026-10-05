@@ -1,6 +1,6 @@
 # Produto e expansão
 
-Revisão: 02/10/2026. Planejamento; não representa funcionalidades já disponíveis.
+Revisão: 05/10/2026. Planejamento; não representa funcionalidades já disponíveis.
 
 ## Direção solicitada
 
@@ -17,10 +17,28 @@ A proposta inicial é organizar catálogos e experiências. Reprodução de áud
 | Livros | Preservar estados de leitura e data de conclusão. | Consultar estante compartilhada e escolher leituras em comum. |
 | Filmes | Busca/cadastro, “Quero assistir”/“Assistido”, data e avaliação opcional. | Lista para assistir juntos e sessão compartilhada com avaliações individuais. |
 | Séries | Temporadas/episódios; distinguir em andamento, em dia, concluída e pausada. | Comparar progresso, evitar spoilers, registrar episódios juntos. |
-| Músicas | Proposta: faixas/álbuns salvos, favoritos e registros de escuta; escopo a decidir. | Descobertas e músicas associadas a momentos do casal. |
+| Músicas | Escopo escolhido: faixas e álbuns salvos, favoritos e registros de escuta. | Listas internas do casal; detalhes de momentos conjuntos ainda dependem de COUPLE-05. |
 | Bíblia | Preservar capítulos lidos e percentuais. | Preservar comparação de progresso e futura visibilidade configurável. |
 
 Estados são propostas. Séries em exibição não ficam definitivamente concluídas por estarem em dia. Música pode ser ouvida repetidas vezes e não precisa de um estado permanente “concluído”.
+
+## Escopo musical escolhido — PROD-01
+
+Em 05/10/2026, o usuário escolheu **faixas e álbuns salvos, favoritos e escutas, com listas do casal** para a primeira versão. A alternativa de começar apenas com faixas foi descartada para esse escopo. A escolha não define fornecedor nem autoriza reprodução interna, sincronização de playlists externas ou importação de histórico.
+
+A proposta executável abaixo detalha essa escolha para revisão antes dos modelos de DATA-01. Campos e estados ainda são propostas; somente o escopo acima foi escolhido.
+
+| Recurso | Proposta para o MVP | Critério de sucesso proposto |
+| --- | --- | --- |
+| Faixa | Título e artista obrigatórios; álbum, versão, duração e capa opcionais. Referência externa quando disponível; cadastro manual independente do catálogo. | Salvar e consultar uma faixa sem capa ou API; distinguir versões sem misturar registros pessoais. |
+| Álbum | Título e artista obrigatórios; ano, tipo de edição, capa e faixas opcionais. | Salvar um álbum mesmo com lista de faixas incompleta; não presumir que salvar/ouvir o álbum salva ou conclui cada faixa. |
+| Biblioteca e favoritos | Entrada pessoal por obra; favorito como preferência independente; sem estado permanente de conclusão. | Salvar novamente a mesma referência não criar uma segunda entrada involuntária; pessoas distintas manterem preferências próprias. Política de versões/manuais depende de DATA-01. |
+| Escuta | Registro pessoal separado da obra, com data informada; repetições permitidas. | Duas escutas intencionais permanecerem distintas; repetição de envio não duplicar a mesma operação. Não inferir escuta ao favoritar/salvar. |
+| Listas do casal | Seleções internas de faixas/álbuns com autoria, dependentes de vínculo e permissões. | Ambos adicionarem/retirarem itens com concorrência tratada; lista não depender de conta em serviço musical. |
+
+Ficam para depois: reprodução, letras, sincronização externa, playlists de fornecedor, recomendações automáticas e estatísticas avançadas. Registro de experiência conjunta depende de COUPLE-05; não altera escuta/favorito do parceiro automaticamente. API-03 deve comparar os fornecedores para faixas **e** álbuns, incluindo versões, imagens e acesso, antes de escolher um.
+
+PROD-01 permanece em andamento: confirmar estados/campos e critérios das demais categorias, além dos detalhes musicais propostos. Filmes, séries e música continuam ausentes do aplicativo atual.
 
 ## Compartilhamento
 
@@ -66,7 +84,7 @@ Etapas indicam dependências, não prazos. Tarefas executáveis estão em [BACKL
 | Tema | Proposta inicial | Tarefa |
 | --- | --- | --- |
 | Marca | Entrelace, a confirmar. | NAME-01 |
-| Música | Faixas/álbuns, listas internas antes de sincronização externa. | PROD-01 |
+| Música | Escopo de faixas/álbuns, favoritos, escutas e listas escolhido em 05/10/2026; detalhes do MVP em revisão. | PROD-01 |
 | Compartilhamento | Autoria pessoal, consentimento, visibilidade explícita. | COUPLE-01 |
 | Experiência conjunta | Sem concluir automaticamente o progresso alheio. | COUPLE-05 |
 | Séries | Separar “em dia”/“concluída” e definir spoilers. | SERIES-01 |

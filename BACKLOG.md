@@ -1,6 +1,6 @@
 # Backlog do projeto
 
-Atualizado em **03/10/2026**. Nome atual: **Bookself App**. Proposta de novo nome: **Entrelace**, ainda não escolhida nem aplicada.
+Atualizado em **05/10/2026**. Nome atual: **Bookself App**. Proposta de novo nome: **Entrelace**, ainda não escolhida nem aplicada.
 
 Este arquivo centraliza as tarefas identificadas na análise do repositório e no planejamento solicitado de filmes, séries e músicas para casais. Novas descobertas devem entrar aqui. A lista não significa que todos os itens estejam aprovados para implementação imediata.
 
@@ -28,7 +28,7 @@ Decisões/ensaios e ajustes de documentação podem ocorrer enquanto correções
 - [x] **DOC-01 · P1 · Organização:** criar este backlog, `AGENTS.md`, índice no README e documentos de arquitetura, produto e integrações. **Dep.:** —. **Concluído:** documentação criada, README corrigido quanto à Bíblia/Firebase, links locais e IDs verificados; apenas documentação alterada em 02/10/2026.
 - [ ] **DOC-02 · P2 · Evolução:** registrar decisões técnicas relevantes em `docs/decisions/` à medida que forem tomadas. **Dep.:** —. **Concluir quando:** decisões de dados, vínculo e provedores tiverem alternativas, escolha, motivos e efeitos; não criar decisões fictícias para preencher a pasta.
 - [ ] **DOC-03 · P1 · Evolução:** documentar configuração reproduzível de desenvolvimento e emuladores. **Dep.:** SEC-02. **Concluir quando:** outra pessoa conseguir configurar Firebase/Auth/Firestore e executar testes locais seguindo comandos e exemplos sem segredos.
-- [ ] **PROD-01 · P1 · Decisão:** fechar o MVP de cada categoria, especialmente música: faixas, álbuns, listas internas e registros de escuta. **Dep.:** —. **Concluir quando:** escopo, estados, campos obrigatórios, critérios de sucesso e o que fica para depois estiverem registrados em `docs/PRODUCT.md`.
+- [ ] **PROD-01 · P1 · Decisão:** fechar o MVP de cada categoria, especialmente música: faixas, álbuns, listas internas e registros de escuta. **Dep.:** —. **Em andamento em 05/10/2026:** usuário escolheu faixas e álbuns salvos, favoritos e escutas, com listas do casal. `docs/PRODUCT.md` registra a escolha, alternativa e proposta de campos/estados/critérios; detalhes musicais e MVP das demais categorias continuam em revisão. Nenhum fornecedor escolhido nem categoria implementada. **Concluir quando:** escopo, estados, campos obrigatórios, critérios de sucesso e o que fica para depois estiverem registrados em `docs/PRODUCT.md`.
 - [ ] **PROD-02 · P1 · Decisão:** definir navegação para Biblioteca por mídia, espaço do casal e acesso à Bíblia. **Dep.:** PROD-01. **Concluir quando:** mapa de telas e fluxos individual/em casal forem revisados, incluindo telas pequenas e ausência de parceiro.
 - [ ] **PROD-03 · P2 · Evolução:** validar fluxos e acessibilidade com protótipos e uso real. **Dep.:** PROD-02. **Concluir quando:** busca, inclusão, progresso, vínculo e escolha conjunta tiverem feedback registrado e problemas priorizados aqui.
 
