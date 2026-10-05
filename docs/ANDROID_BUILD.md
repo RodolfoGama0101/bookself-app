@@ -48,3 +48,27 @@ Logs são locais/ignorados e precisam de revisão antes de compartilhamento; nã
 - iOS depende de ambiente Apple; estes resultados não validam iOS.
 
 Consulte [BACKLOG.md](../BACKLOG.md) para dependências e [decisão de SDK/CI](decisions/004-sdk-e-ci.md) para a reprodução do ambiente.
+
+## APK 1.1.0+2 para testes — 05/10/2026
+
+A pedido do usuário, a versão foi atualizada no commit `7b4595c` e compilada com:
+
+```sh
+flutter build apk --release --no-pub
+```
+
+Build aprovado em aproximadamente 116 s, com Flutter/Dart fixados e o lockfile atual. Sem define Google Books ou emuladores: usa o Firebase padrão preservado e cadastro manual; não inclui a chave local de catálogo. Compilar não executou o app nem alterou dados/regras remotos. Nenhuma keystore ou senha foi criada ou copiada para o repositório.
+
+| Verificação | Resultado |
+| --- | --- |
+| Pacote / versão | `com.couple.bookself.bookself_app`, `versionName` 1.1.0, `versionCode` 2 |
+| Android / arquiteturas | Mínimo API 24; alvo API 36; `armeabi-v7a`, `arm64-v8a`, `x86_64` |
+| Assinatura | `apksigner verify --verbose --print-certs` aprovado, esquema v2; certificado Android Debug já existente |
+| Certificado SHA-256 | `700cd9b4af4e88360159c03b5177464c6dcc6fc271dc8851e8823b1074c4ea36` |
+| APK universal | `bookself-app-1.1.0.apk`, 58.276.508 bytes, aproximadamente 55,6 MiB |
+| APK SHA-256 | `b66a46820bd26468535b7075852aa0f1afa54ac64d3a5ee51bbbab4ba9f2fcd9` |
+| Análise / regressões | `flutter analyze --no-pub` limpo; 283 testes Flutter e seis testes Node do bootstrap web passaram |
+
+O arquivo gerado e sua cópia para upload estão em `build/`, ignorados; o `.sha256` acompanha o APK como asset da release GitHub. `.gitignore` também exclui o cache gerado `android/.kotlin/`. Logs locais permanecem ignorados. Notas em [releases/v1.1.0.md](releases/v1.1.0.md).
+
+Esta publicação é uma **pré-release para testes**, compilada em modo release com assinatura debug. REL-02 permanece aberta para assinatura de distribuição e recuperação da chave. Avisos de KGP, acesso nativo Java, formato XML do SDK e APIs Java obsoletas/unchecked persistem. O APK não foi instalado ou executado em dispositivo; REL-04 e a implantação adiada SEC-06 continuam pendentes. Não houve nova marca, categorias, migração, loja ou deploy Firebase.
