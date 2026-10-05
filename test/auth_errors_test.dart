@@ -29,6 +29,13 @@ class FailingFirestore extends Fake implements FirebaseFirestore {
       throw failure;
 
   @override
+  Future<T> runTransaction<T>(
+    TransactionHandler<T> transactionHandler, {
+    Duration timeout = const Duration(seconds: 30),
+    int maxAttempts = 5,
+  }) async => throw failure;
+
+  @override
   WriteBatch batch() => throw failure;
 }
 
@@ -131,7 +138,9 @@ void main() {
           );
           final message = unlink
               ? await service.unlinkPartner()
-              : await service.linkPartner('partner');
+              : await service.acceptInvitation(
+                  '11111111111111111111111111111111',
+                );
           expect(
             message,
             contains(switch (code) {

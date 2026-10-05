@@ -140,7 +140,7 @@ npm --prefix tool/firebase run test:web-bootstrap
 
 Seis testes verificam carregamento inerte, rejeição de projeto/URLs remotos e versões incompatíveis, conexão antes da restauração e nova tentativa sem trocar o destino. O runner usa módulos sintéticos do Node, com aviso de API experimental; a jornada Chrome real continua sendo uma verificação separada em [WEB_VALIDATION.md](WEB_VALIDATION.md).
 
-Cadastre duas contas fictícias pela interface; cada cadastro cria seu perfil. O código exibido no perfil ainda é o UID. O vínculo direto atual exige as duas contas livres; convites/aceite são uma evolução pendente. A busca Google Books e as capas continuam externas; o catálogo exige define explícito conforme [CONFIGURATION.md](CONFIGURATION.md). Cadastro manual permite testar as escritas sem catálogo externo. CI/build demo sem define não consultam o Google Books; usar chave junto do modo demo faz chamadas externas. Não use contas reais no emulador.
+Cadastre duas contas fictícias pela interface; cada cadastro cria seu perfil. No Perfil, abra Convites do casal: o remetente confirma consentimento e cria código aleatório; o destinatário consulta, confere nome/foto e aceita ou recusa. A consulta reserva o convite sem liberar registros pessoais. Ambas as contas precisam estar livres; vínculo direto por UID é negado nas regras locais. A busca Google Books e as capas continuam externas; o catálogo exige define explícito conforme [CONFIGURATION.md](CONFIGURATION.md). Cadastro manual permite testar as escritas sem catálogo externo. CI/build demo sem define não consultam o Google Books; usar chave junto do modo demo faz chamadas externas. Não use contas reais no emulador.
 
 | Cliente | Host e comando | Limite de validação |
 | --- | --- | --- |
@@ -167,3 +167,27 @@ Se o catálogo bíblico mudar, execute `node tool/firebase/generate-rule-catalog
 Consulte [SECURITY.md](SECURITY.md) para o resultado da auditoria, controles e condições de implantação, e [BACKLOG.md](../BACKLOG.md) para pendências.
 
 Fontes oficiais: [instalação/configuração](https://firebase.google.com/docs/emulator-suite/install_and_configure), [Auth](https://firebase.google.com/docs/emulator-suite/connect_auth), [Firestore](https://firebase.google.com/docs/emulator-suite/connect_firestore), [testes de regras](https://firebase.google.com/docs/rules/emulator-setup).
+
+## Convites consentidos — COUPLE-03 (05/10/2026)
+
+`dart format` nos arquivos afetados, análise sem apontamentos, **308 testes Flutter aprovados**, **43 testes Auth/Firestore aprovados** e build web demo com verificação preliminar Wasm aprovados. Sem novas dependências/lockfiles, supressões, configuração Firebase gerada ou IDs de aplicativo. Scripts/artefatos de teste e capturas ficaram em diretório ignorado.
+
+Reprodução dos testes de regras em portas alternativas no PowerShell:
+
+```powershell
+$env:BOOKSELF_TEST_AUTH_PORT='19099'
+$env:BOOKSELF_TEST_FIRESTORE_PORT='18080'
+npm --prefix tool/firebase test
+```
+
+Para o build da jornada local:
+
+```sh
+flutter build web --no-pub --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_AUTH_EMULATOR_PORT=19099 --dart-define=FIRESTORE_EMULATOR_PORT=18080
+```
+
+Iniciar emuladores com configuração temporária equivalente em Auth 19099/Firestore 18080, projeto **demo-bookself** e regras locais. Servir somente `build/web` no loopback; não alterar a configuração distribuída nem usar dados reais. Dois Chromes isolados validaram cadastro/criação/reserva/aceite/término; [detalhes](WEB_VALIDATION.md#convites-consentidos--couple-03). Instantes e autorizações são conferidos pelas regras; a tela não substitui esses controles.
+
+Regressões relevantes: `test/partner_invitation_test.dart` (11: código/expiração, SDK inválido, wrapper de erro web, confirmação, reserva, aceite/invalidação, decisões, legado e streams), `test/partner_invitation_ui_test.dart` (5: consentimento/falha, aceite/recusa, layout ampliado, descarte, clipboard) e oito testes de sessão em `test/partner_service_test.dart`. `test/auth_errors_test.dart` mantém tradução de erros de Firebase no aceite/desvínculo. A suíte de regras acrescentou onze casos de convites, mantendo autorização de registros e concorrência das entregas anteriores; fixtures aceleram somente timestamps locais de cooldown quando necessário para repetir vínculos no mesmo teste.
+
+Não houve build/execução Android/iOS, migração, deploy de regras ou distribuição. Clientes antigos perdem criação direta por UID após as regras novas; desvínculo legado recíproco permanece. Ocultação/bloqueio/feed sem retroatividade/cache e proteção operacional contra múltiplas contas permanecem pendentes. [Contrato e limites](COUPLE_INVITATIONS.md), [implantação separada](SECURITY.md#implantação-pendente).

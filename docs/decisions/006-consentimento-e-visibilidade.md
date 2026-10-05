@@ -30,3 +30,5 @@ Firestore entrega documentos inteiros; SEC-04/DATA-01 devem separar campos consu
 Esta entrega altera somente documentação. Convites, bloqueio, ocultação e histórico conjunto ainda não existem no app. Não escolhe coleções, IDs, fornecedor ou marca. DATA-03 deve preservar vínculos/dados legados sem presumir aceite da política nova. Retenção temporal, exportação e exclusão de conta ficam em SEC-05; campos e persistência de experiências/listas ficam em COUPLE-05/06 e DATA-01.
 
 Não houve alteração de código Dart, regras, Firebase remoto ou dados. Não foi autorizada migração, publicação nem implantação de SEC-06. A conclusão de COUPLE-01 libera sua dependência de decisão, mantendo os demais critérios das tarefas no [backlog](../../BACKLOG.md).
+
+Atualização de 05/10/2026: convites foram implementados localmente em [registro 008](008-convites-consentidos.md); ocultação, bloqueio, feed sem retroatividade e cache continuam pendentes. Esta decisão não comprova política completa nem implantação remota.

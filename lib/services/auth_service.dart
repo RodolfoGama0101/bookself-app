@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../data/models/user_model.dart';
 import '../data/models/partner_profile.dart';
+import '../data/models/partner_invitation.dart';
 import 'user_profile_service.dart';
 import 'partner_service.dart';
 import 'firebase_environment.dart';
@@ -402,58 +403,81 @@ class AuthService extends ChangeNotifier {
     await _auth.signOut();
   }
 
-  // O lote e as regras verificam ambas as contas sem ler o destinatário.
-  Future<String?> linkPartner(String partnerCode) async {
-    final code = partnerCode.trim();
-    if (code.isEmpty) return 'O código não pode ser vazio.';
-    if (code == _currentUserModel?.uid) {
-      return 'Você não pode colar o seu próprio código!';
-    }
+  Stream<PartnerInvitation?> watchOwnInvitation() =>
+      _partners.watchOwnInvitation(_currentUserModel!.uid);
+  Stream<PartnerInvitation?> watchInvitation(String code) =>
+      _partners.watchInvitation(code);
+  Future<InvitationResult<String>> createInvitation() =>
+      _operatePartner((uid) => _partners.create(uid));
+  Future<InvitationResult<PartnerInvitation>> claimInvitation(String code) =>
+      _operatePartner((uid) => _partners.claim(uid, code.trim()));
+  Future<String?> acceptInvitation(String code) async {
     if (_currentUserModel?.partnerUid != null) {
       return 'Desvincule a conta atual antes de criar outro vínculo.';
     }
-    return _changePartner(code, linking: true);
+    return (await _operatePartner(
+      (uid) => _partners.accept(uid, code.trim()),
+    )).error;
   }
 
+  Future<String?> finishInvitation(String code, {required bool cancel}) async =>
+      (await _operatePartner(
+        (uid) => _partners.finish(uid, code, cancel: cancel),
+      )).error;
   Future<String?> unlinkPartner() async {
-    final partnerUid = _currentUserModel?.partnerUid;
-    if (partnerUid == null) return 'Você não possui nenhum vínculo ativo.';
-    return _changePartner(partnerUid, linking: false);
+    final profile = _currentUserModel;
+    if (profile?.partnerUid == null) {
+      return 'Você não possui nenhum vínculo ativo.';
+    }
+    return (await _operatePartner(
+      (uid) => _partners.unlink(
+        uid,
+        profile!.partnerUid!,
+        relationshipId: profile.relationshipId,
+      ),
+      unlinking: true,
+    )).error;
   }
 
-  Future<String?> _changePartner(
-    String partnerUid, {
-    required bool linking,
+  Future<InvitationResult<T>> _operatePartner<T>(
+    Future<T> Function(String uid) operation, {
+    bool unlinking = false,
   }) async {
     final uid = _currentUserModel?.uid;
     if (_disposed ||
         uid == null ||
         _auth.currentUser?.uid != uid ||
         _sessionState != AuthSessionState.ready) {
-      return 'Entre novamente para continuar.';
+      return const InvitationResult(error: 'Entre novamente para continuar.');
     }
-    if (isLoading) return 'Aguarde a operação atual terminar.';
+    if (isLoading) {
+      return const InvitationResult(
+        error: 'Aguarde a operação atual terminar.',
+      );
+    }
     final revision = ++_partnerOperationRevision;
     _partnerOperationPending = true;
     notifyListeners();
     try {
-      if (linking) {
-        await _partners.link(uid, partnerUid);
-      } else {
-        await _partners.unlink(uid, partnerUid);
-      }
+      final value = await operation(uid);
       if (_disposed ||
           revision != _partnerOperationRevision ||
           _auth.currentUser?.uid != uid) {
-        return 'A sessão mudou. Entre novamente para continuar.';
+        return const InvitationResult(
+          error: 'A sessão mudou. Entre novamente para continuar.',
+        );
       }
-      return null;
+      return InvitationResult(value: value);
     } catch (error) {
-      return ErrorHandler.getFriendlyErrorMessage(
-        error,
-        operation: linking
-            ? ErrorOperation.linkPartner
-            : ErrorOperation.unlinkPartner,
+      return InvitationResult(
+        error: error is PartnerInvitationException
+            ? error.message
+            : ErrorHandler.getFriendlyErrorMessage(
+                error,
+                operation: unlinking
+                    ? ErrorOperation.unlinkPartner
+                    : ErrorOperation.linkPartner,
+              ),
       );
     } finally {
       if (!_disposed && revision == _partnerOperationRevision) {

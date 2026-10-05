@@ -13,6 +13,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
 | [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
+| [docs/COUPLE_INVITATIONS.md](docs/COUPLE_INVITATIONS.md) | Jornada, contrato local e limites de convites consentidos. |
 | [docs/COUPLE_POLICY.md](docs/COUPLE_POLICY.md) | Política de consentimento aprovada para a evolução e critérios de implementação. |
 | [docs/DESIGN.md](docs/DESIGN.md) | Sistema visual, layouts responsivos e validação do redesign das telas atuais. |
 | [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integrações atuais e candidatas, com fontes oficiais. |
@@ -34,14 +35,14 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 - Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
 - Limpeza da data de conclusão ao mudar um livro de “Lido” para “Lendo” ou “Quero Ler”.
 - Livros lidos sem data aparecem em uma seção própria da estante, inclusive na consulta do parceiro. O dono pode informar ou corrigir a conclusão nos detalhes sem trocar o status; novas datas vão até hoje, em português e formato dia/mês/ano.
-- Vínculo de duas contas por código, consulta da estante do parceiro e feed de atividades recentes de livros. O cliente aguarda o lote, bloqueia ações repetidas e não consulta o perfil do destinatário antes de vincular. Validação de concorrência/reciprocidade está pronta nas regras locais e precisa ser implantada no servidor. O Início atualiza feed e estatísticas automaticamente pelo stream; não oferece gesto de atualização manual.
+- Convites de sete dias com código aleatório, apresentação por nome/foto, reserva, aceite explícito, recusa e cancelamento. Consulta não cria vínculo; aceite confirma as duas contas em transação, sujeito às regras locais. Relações legadas permanecem. Consulta da estante e feed continuam disponíveis ao casal; visibilidade por item e feed sem retroatividade permanecem em COUPLE-04. O Início atualiza feed e estatísticas pelo stream.
 - Acompanhamento de capítulos lidos nos 66 livros da Bíblia, com comparação do progresso do casal. Marcação individual/em lote aguarda confirmação, bloqueia ações repetidas e permite nova tentativa após falha.
 - Edição de nome e foto de perfil; escolha de tema Claro, Escuro ou Sistema, salva localmente e restaurada ao abrir o app.
 - Perfil do parceiro usa apresentação separada com nome/foto, sem e-mail. Ausência/falha mantém consulta de leituras e desvínculo com apresentação neutra. As regras locais protegem o perfil privado; a proteção remota depende da implantação de SEC-06, conforme [SECURITY.md](docs/SECURITY.md).
 - Design Organic com paleta areia/sálvia/musgo, tipografia Outfit, cartões flexíveis e navegação lateral em telas grandes. Login, busca, capítulos e perfil têm limites de largura; a barra inferior mantém as quatro abas em telas pequenas.
 - Fechamento seguro de busca, perfil, detalhes e diálogos durante requisições, com resultado de exclusão na estante.
 
-A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes, séries e músicas ainda não estão implementados. O vínculo atual é direto por código, sem etapa de aceite.
+A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes, séries e músicas ainda não estão implementados. Convites consentidos estão prontos no código/regras locais; a implantação depende de SEC-06 e dos controles restantes de COUPLE-04.
 
 Sem preferência salva, o tema inicial continua escuro. “Sistema” acompanha o brilho do dispositivo; Claro/Escuro explícitos permanecem fixos. A preferência é do app no dispositivo/navegador, vale também no login e permanece após logout; outros dispositivos têm escolhas independentes. Limpar os dados locais remove a preferência. A tela de carregamento da inicialização mantém a aparência escura; a interface principal abre após a leitura da escolha salva.
 
@@ -141,3 +142,5 @@ android/ ios/ web/       Projetos e configuração por plataforma
 ```
 
 Consulte o [backlog](BACKLOG.md) antes de iniciar uma melhoria. A expansão deve preservar contas, livros e progresso bíblico existentes.
+
+Atualização de **05/10/2026 — COUPLE-03:** convites consentidos prontos localmente, com análise limpa, **308 testes Flutter**, **43 testes Auth/Firestore** e build web demo aprovados. Jornada em dois Chromes isolados confirmou criação/reserva/aceite e término; reuso foi rejeitado, com mensagem de domínio conferida no build final. Sem deploy/migração/publicação. Controles de visibilidade/bloqueio/cache e feed sem retroatividade permanecem em COUPLE-04/DATA-05. [Contrato e limites](docs/COUPLE_INVITATIONS.md).

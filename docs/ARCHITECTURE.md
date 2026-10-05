@@ -102,7 +102,10 @@ Escritas já iniciadas não são canceladas pelo fechamento. Não há timeout qu
 
 | Coleção e ID | Campos principais | Uso |
 | --- | --- | --- |
-| `users/{uid}` | `uid`, `name`, `email`, `partnerUid`, `photoUrl`, `createdAt` | Perfil e ligação ao parceiro. |
+| `users/{uid}` | `uid`, `name`, `email`, `partnerUid`, `photoUrl`, `createdAt`, `relationshipId`, `coupleEpoch` | Perfil e ligação ao parceiro. |
+| `partner_invites/{code}` | Participantes/versões internos, nome/foto, estado e timestamps do servidor | Convite temporário, reserva e decisão; sem acesso pessoal antes do aceite. |
+| `partner_invite_slots/{uid}` | `code`, `issuedAt` | Último convite enviado; consulta própria e controle de criação. |
+| `partner_invite_lookups/{uid}` | `code`, `requestedAt` | Consulta própria e limite de descoberta. |
 | `partner_profiles/{uid}` | `name`, `photoUrl` opcional/nulo | Apresentação mínima, consultável somente pelo dono/parceiro recíproco nas regras candidatas. UID vem do caminho, sem duplicá-lo no conteúdo. |
 | `books/{documentId}` | `userId`, `title`, `authors`, `coverUrl`, `status`, `publishedDate`, `finishedDate`, `addedAt`, `googleBooksId` opcional | Livro na estante de uma pessoa. |
 | `bible_progress/{uid_nomeNormalizado}` | `userId`, `bookName`, `readChapters`, `updatedAt` | Capítulos lidos por pessoa/livro bíblico. |
@@ -133,13 +136,13 @@ A seleção bloqueia ações concorrentes; a escrita mostra carregamento e só a
 
 ## Vínculo e autorização atuais
 
-O código de vínculo continua sendo o UID da outra conta, sem convite/aceite. `PartnerService` envia um batch alterando somente `partnerUid` nas duas contas e aguarda o commit, sem ler previamente o perfil do destinatário. `AuthService` exige sessão/perfil válido, bloqueia ações repetidas e captura a identidade da operação; logout/troca de conta/descarte invalidam resultados antigos. A atualização do perfil/parceiro continua vindo dos streams.
+COUPLE-03 substitui novos vínculos diretos por convites com código aleatório de 128 bits, apresentação mínima, reserva, aceite, recusa e cancelamento. As regras conferem validade de sete dias, um enviado ativo, intervalos de criação/consulta e aceite do destinatário com as duas contas livres. A consulta não libera registros pessoais. `PartnerService` concentra os acessos; `AuthService` guarda sessão/operação e a tela confirma consentimento antes de criar/aceitar.
 
-As regras candidatas em `firestore.rules` validam contas livres e reciprocidade com estado anterior e `getAfter`, exigindo o lote dos dois perfis. Desvinculação exige o par persistido; estado antigo não pode limpar um novo parceiro. Não há transação que leia o destinatário no cliente: leitura antes do vínculo é negada, e o servidor faz as verificações atômicas. Essa consistência depende da implantação das regras, e não apenas de um batch no app.
+Aceite grava convite e os dois perfis em transação, sem ler o perfil privado do remetente. `relationshipId` identifica o convite consumido e `coupleEpoch` incrementa a versão dos dois participantes, invalidando convites antigos mesmo após término. O convite enviado do destinatário é cancelado no mesmo aceite. Desvínculo lê somente o perfil próprio e compara parceiro/identificador capturados; o servidor exige limpeza recíproca e preservação da versão. Legados sem identificador/versão continuam suportados, sem conversão automática em consentimento. [Contrato e consequências](COUPLE_INVITATIONS.md).
 
-A auditoria remota de 03/10/2026 confirmou regra recursiva permitindo qualquer leitura/escrita a contas autenticadas. A regra candidata restringe livros/Bíblia à escrita do dono e leitura dele ou parceiro recíproco, protege campos/autoria/perfis, nega terceiros e outras coleções. SEC-04 acrescentou a separação local: somente o dono lê `users`; o parceiro recíproco lê `partner_profiles` com nome/foto, sem campos privados. Escritas da projeção são exclusivas do dono e conferidas contra o estado privado após a transação. Perfis consultáveis com campos extras são negados ao parceiro e rejeitados pelo parser do app. **As regras não estão implantadas no remoto**; usar o novo modelo no cliente sozinho não protege dados remotos. A [política v1](COUPLE_POLICY.md) orienta a evolução consentida; o vínculo continua direto nesta etapa.
+SEC-04 restringe `users` ao dono e `partner_profiles` a nome/foto do dono/parceiro recíproco. **As regras não estão implantadas no remoto**: a auditoria de 03/10/2026 encontrou autorização recursiva para qualquer conta autenticada. A política v1 ainda depende de ocultação, bloqueio, feed sem retroatividade e cache em COUPLE-04/DATA-05. Código local não comprova proteção remota nem aprovação de distribuição.
 
-`firebase.emulators.json` usa somente `demo-bookself`, Auth/Firestore locais, sem substituir `firebase.json`. `firestore.indexes.json` registra zero índices compostos/overrides, compatível com filtros atuais; auditoria remota confirmou a mesma configuração. `tool/firebase` fixa ferramentas e contém 32 testes de autorização/concorrência com dados fictícios, incluindo disputa pelo mesmo parceiro, desvínculo antigo, separação de perfis, edições concorrentes e ex/novo parceiro. `test/partner_service_test.dart` tem 11 regressões de lote, confirmação, falhas, repetição e sessão; `test/firebase_environment_test.dart` tem quatro de configuração isolada. Detalhes, critérios e implantação pendente: [SECURITY.md](SECURITY.md).
+`firebase.emulators.json` usa somente `demo-bookself`, Auth/Firestore locais, sem substituir `firebase.json`. Os filtros atuais não exigem índices compostos. A suíte tem 43 integrações de autorização/concorrência; regressões Dart cobrem contrato, confirmação, falhas, sessão, troca de streams, consentimento e tela pequena. Duas sessões Flutter web demo validaram a jornada consentida. [Evidências e implantação pendente](SECURITY.md).
 
 ## Limitações observadas
 

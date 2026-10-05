@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../services/user_profile_service.dart';
@@ -7,7 +6,7 @@ import '../widgets/dialog_with_controllers.dart';
 import '../../services/auth_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/reading_surface.dart';
-import '../widgets/custom_text_field.dart';
+import 'partner_invitation_screen.dart';
 import '../../services/theme_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
@@ -24,7 +23,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final _partnerCodeController = TextEditingController();
   bool _isPhotoLoading = false;
   late final _profiles = widget.profiles ?? UserProfileService();
   late final _imagePicker = widget.imagePicker ?? ImagePicker();
@@ -68,7 +66,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
-    _partnerCodeController.dispose();
     super.dispose();
   }
 
@@ -365,30 +362,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _submitLink(AuthService authService) async {
-    final code = _partnerCodeController.text.trim();
-    if (code.isEmpty) return;
-
-    final error = await authService.linkPartner(code);
-    if (error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    } else if (mounted) {
-      _partnerCodeController.clear();
-      FocusScope.of(context).unfocus();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Vínculo realizado com sucesso! Bem-vindos!'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
@@ -618,93 +591,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          'Compartilhe suas estantes e progresso da Bíblia! Insira o código do seu parceiro abaixo para se conectar:',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        CustomTextField(
-                          controller: _partnerCodeController,
-                          label: 'Código do seu Parceiro',
-                          hint: 'Cole o código dele(a) aqui',
-                          prefixIcon: Icons.vpn_key_rounded,
+                        const Text(
+                          'O vínculo começa somente quando a outra pessoa aceita o convite.',
                         ),
                         const SizedBox(height: 16),
                         CustomButton(
-                          text: 'Vincular Casal',
-                          isLoading: authService.isLoading,
-                          onPressed: () => _submitLink(authService),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Card Código Pessoal
-              Text(
-                'Compartilhamento',
-                style: theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.primaryColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Seu Código de Convite',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.scaffoldBackgroundColor,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                user.uid,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.1,
-                                ),
-                              ),
+                          text: 'Convites do casal',
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const PartnerInvitationScreen(),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.copy),
-                            tooltip: 'Copiar código',
-                            onPressed: () {
-                              Clipboard.setData(ClipboardData(text: user.uid));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Código copiado!'),
-                                  duration: Duration(seconds: 1),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

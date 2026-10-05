@@ -17,10 +17,54 @@ const book = uid => ({userId: uid, title: 'Livro fictício', authors: ['Autor'],
 const progress = (uid, bookName = 'Gênesis', readChapters = [1]) => ({userId: uid, bookName, readChapters, updatedAt: serverTimestamp()});
 const db = uid => env.authenticatedContext(uid, {email: `${uid}@example.com`}).firestore();
 
-function pair(database, a, b, linking = true) {
+const {randomBytes} = require('node:crypto');
+async function issue(database, sender, code = randomBytes(16).toString('hex')) {
+  const own=(await getDoc(doc(database,'users',sender))).data();
   const batch = writeBatch(database);
-  batch.update(doc(database, 'users', a), {partnerUid: linking ? b : null});
-  batch.update(doc(database, 'users', b), {partnerUid: linking ? a : null});
+  batch.set(doc(database, 'partner_invites', code), {version:1, senderUid:sender, senderEpoch:own.coupleEpoch ?? 0, senderName:own.name, senderPhotoUrl:own.photoUrl ?? null,
+    recipientUid:null, recipientEpoch:null, recipientName:null, recipientPhotoUrl:null, status:'pending', createdAt:serverTimestamp(), decidedAt:null});
+  batch.set(doc(database, 'partner_invite_slots', sender), {code, issuedAt:serverTimestamp()});
+  await batch.commit(); return code;
+}
+async function lookup(database, code, recipient) {
+  await setDoc(doc(database,'partner_invite_lookups',recipient), {code,requestedAt:serverTimestamp()});
+}
+async function claim(database, code, recipient) {
+  await lookup(database,code,recipient);
+  const own=(await getDoc(doc(database,'users',recipient))).data();
+  return updateDoc(doc(database, 'partner_invites', code), {recipientUid:recipient, recipientEpoch:own?.coupleEpoch ?? 0, recipientName:'Pessoa fictícia', recipientPhotoUrl:null});
+}
+async function accept(database, code, sender, recipient) {
+  const raw=(await getDoc(doc(database,'partner_invites',code))).data();
+  const batch=writeBatch(database);
+  batch.update(doc(database,'partner_invites',code), {status:'accepted', decidedAt:serverTimestamp()});
+  batch.update(doc(database,'users',sender), {partnerUid:recipient, relationshipId:code, coupleEpoch:raw.senderEpoch+1});
+  batch.update(doc(database,'users',recipient), {partnerUid:sender, relationshipId:code, coupleEpoch:raw.recipientEpoch+1});
+  const slot=await getDoc(doc(database, 'partner_invite_slots', recipient));
+  if (slot.exists()) {
+    const outgoing=await getDoc(doc(database, 'partner_invites', slot.data().code));
+    if (outgoing.data().status === 'pending') batch.update(outgoing.ref, {status:'cancelled', decidedAt:serverTimestamp()});
+  }
+  return batch.commit();
+}
+async function pair(database, a, b, linking = true) {
+  if (linking) {
+    // Avança somente o relógio da fixture de cooldown para re-vínculos do teste.
+    await env.withSecurityRulesDisabled(async context => {
+      const ref=doc(context.firestore(),'partner_invite_slots',a);
+      if ((await getDoc(ref)).exists()) await updateDoc(ref, {issuedAt:stamp});
+    });
+    const code=await issue(database,a);
+    await env.withSecurityRulesDisabled(async context => {
+      const ref=doc(context.firestore(),'partner_invite_lookups',b);
+      if ((await getDoc(ref)).exists()) await updateDoc(ref,{requestedAt:stamp});
+    });
+    await claim(db(b),code,b);
+    return accept(db(b),code,a,b);
+  }
+  const batch = writeBatch(database);
+  batch.update(doc(database, 'users', a), {partnerUid:null, relationshipId:null});
+  batch.update(doc(database, 'users', b), {partnerUid:null, relationshipId:null});
   return batch.commit();
 }
 async function state() {
@@ -198,7 +242,7 @@ test('coleções desconhecidas são negadas', async () => {
   await assertFails(setDoc(doc(db('a'), 'private', 'document'), {userId:'a'}));
   await assertFails(getDoc(doc(db('a'), 'private', 'document')));
 });
-test('vínculo não exige leitura do destinatário e muda somente partnerUid', async () => {
+test('aceite não exige leitura privada do remetente e mantém vínculo recíproco', async () => {
   await assertFails(getDoc(doc(db('a'), 'users', 'b')));
   await assertSucceeds(pair(db('a'), 'a', 'b'));
   assert.deepEqual(await state(), {a:'b', b:'a', c:null, d:null});
@@ -208,7 +252,9 @@ test('vínculo não exige leitura do destinatário e muda somente partnerUid', a
 test('vínculo/desvínculo unilateral, auto-vínculo e conta ausente são rejeitados', async () => {
   await assertFails(updateDoc(doc(db('a'), 'users', 'a'), {partnerUid:'b'}));
   await assertFails(updateDoc(doc(db('a'), 'users', 'a'), {partnerUid:'a'}));
-  await assertFails(pair(db('a'), 'a', 'missing'));
+  const missingCode=await issue(db('a'),'a');
+  await assertFails(claim(db('missing'),missingCode,'missing'));
+  await updateDoc(doc(db('a'),'partner_invites',missingCode),{status:'cancelled',decidedAt:serverTimestamp()});
   await pair(db('a'), 'a', 'b');
   await assertFails(updateDoc(doc(db('a'), 'users', 'a'), {partnerUid:null}));
   assert.deepEqual(await state(), {a:'b', b:'a', c:null, d:null});
@@ -364,4 +410,138 @@ test('assinatura do perfil mínimo perde autorização depois do desvínculo', a
     clearTimeout(timeout);
     unsubscribe();
   }
+});
+
+test('convite sem aceite não compartilha registros; vínculo direto por UID é negado', async () => {
+  const code=await issue(db('a'),'a');
+  const ownDatabase=db('a');
+  const direct=writeBatch(ownDatabase);
+  direct.update(doc(ownDatabase,'users','a'),{partnerUid:'b'});
+  direct.update(doc(ownDatabase,'users','b'),{partnerUid:'a'});
+  await assertFails(direct.commit());
+  await claim(db('b'),code,'b');
+  for(const group of ['users','partner_profiles','books','bible_progress']) {
+    const id=group==='books'?'a-book':group==='bible_progress'?'a_gênesis':'a';
+    await assertFails(getDoc(doc(db('b'),group,id)));
+  }
+  await assertFails(accept(db('a'),code,'a','b'));
+  await assertSucceeds(accept(db('b'),code,'a','b'));
+  assert.deepEqual(await state(),{a:'b',b:'a',c:null,d:null});
+});
+
+test('descoberta requer código opaco, consulta individual limitada e autenticação',async()=>{
+  const code=await issue(db('a'),'a');
+  const ref=doc(db('b'),'partner_invites',code);
+  await assertFails(getDoc(ref));
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),'partner_invites',code)));
+  await lookup(db('b'),code,'b');
+  const invitation=(await assertSucceeds(getDoc(ref))).data();
+  assert.deepEqual(Object.keys(invitation).sort(), ['version','senderUid','senderEpoch','senderName','senderPhotoUrl','recipientUid','recipientEpoch','recipientName','recipientPhotoUrl','status','createdAt','decidedAt'].sort());
+  assert.equal(invitation.email,undefined);
+  await assertFails(lookup(db('b'),randomBytes(16).toString('hex'),'b'));
+  await assertFails(getDocs(collection(db('b'),'partner_invites')));
+  await assertFails(getDoc(doc(db('c'),'partner_invite_lookups','b')));
+  await assertFails(getDoc(doc(db('c'),'partner_invite_slots','a')));
+  await assertFails(issue(db('c'),'c','a'));
+});
+
+test('primeira reserva fixa destinatário; auto-reserva e terceiro não decidem nem adulteram convite',async()=>{
+  const code=await issue(db('a'),'a');
+  await assertFails(claim(db('a'),code,'a'));
+  await claim(db('b'),code,'b');
+  await assertFails(claim(db('c'),code,'c'));
+  await assertFails(getDoc(doc(db('c'),'partner_invites',code)));
+  for(const patch of [{recipientUid:'c'},{senderUid:'c'},{senderName:'Outro'},{createdAt:serverTimestamp()},{email:'private@example.com'},{status:'accepted',decidedAt:serverTimestamp()}]) {
+    await assertFails(updateDoc(doc(db('b'),'partner_invites',code),patch));
+  }
+  await assertFails(updateDoc(doc(db('c'),'partner_invites',code),{status:'declined',decidedAt:serverTimestamp()}));
+  assert.deepEqual(await state(),{a:null,b:null,c:null,d:null});
+});
+
+test('um convite enviado ativo por conta e intervalo de criação são exigidos no servidor',async()=>{
+  const code=await issue(db('a'),'a');
+  await assertFails(issue(db('a'),'a'));
+  await updateDoc(doc(db('a'),'partner_invites',code),{status:'cancelled',decidedAt:serverTimestamp()});
+  await assertFails(issue(db('a'),'a'));
+  await assertFails(updateDoc(doc(db('a'),'partner_invite_slots','a'),{issuedAt:stamp}));
+  await assertFails(deleteDoc(doc(db('a'),'partner_invite_slots','a')));
+  await env.withSecurityRulesDisabled(context=>updateDoc(doc(context.firestore(),'partner_invite_slots','a'),{issuedAt:stamp}));
+  const next=await assertSucceeds(issue(db('a'),'a'));
+  assert.notEqual(next,code);
+});
+
+for(const terminal of ['declined','cancelled']) test(`${terminal} é terminal, sem acesso e sem reutilização`,async()=>{
+  const code=await issue(db('a'),'a');
+  await claim(db('b'),code,'b');
+  const actor=terminal==='declined'?'b':'a';
+  await assertSucceeds(updateDoc(doc(db(actor),'partner_invites',code),{status:terminal,decidedAt:serverTimestamp()}));
+  await assertFails(accept(db('b'),code,'a','b'));
+  await assertFails(updateDoc(doc(db(actor),'partner_invites',code),{status:'pending',decidedAt:null}));
+  await assertFails(getDoc(doc(db('b'),'books','a-book')));
+  assert.deepEqual(await state(),{a:null,b:null,c:null,d:null});
+});
+
+test('expiração do servidor impede descoberta/reserva/aceite e não apaga registros pessoais',async()=>{
+  const code=await issue(db('a'),'a');
+  await claim(db('b'),code,'b');
+  await env.withSecurityRulesDisabled(context=>updateDoc(doc(context.firestore(),'partner_invites',code),{createdAt:stamp}));
+  await assertFails(accept(db('b'),code,'a','b'));
+  await assertFails(claim(db('c'),code,'c'));
+  assert.deepEqual(await state(),{a:null,b:null,c:null,d:null});
+  await assertSucceeds(getDoc(doc(db('a'),'books','a-book')));
+});
+
+test('aceite e cancelamento concorrentes têm uma única transição vencedora',async()=>{
+  const code=await issue(db('a'),'a');await claim(db('b'),code,'b');
+  const results=await Promise.allSettled([
+    accept(db('b'),code,'a','b'),
+    updateDoc(doc(db('a'),'partner_invites',code),{status:'cancelled',decidedAt:serverTimestamp()}),
+  ]);
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  const invite=(await getDoc(doc(db('a'),'partner_invites',code))).data();
+  const links=await state();assertReciprocal(links);
+  assert.equal(links.a,invite.status==='accepted'?'b':null);
+});
+
+test('dois aceites disputando a conta e respostas antigas não recriam vínculo',async()=>{
+  const first=await issue(db('a'),'a');const second=await issue(db('c'),'c');
+  await claim(db('b'),first,'b');
+  await env.withSecurityRulesDisabled(context=>updateDoc(doc(context.firestore(),'partner_invite_lookups','b'),{requestedAt:stamp}));
+  await claim(db('b'),second,'b');
+  const results=await Promise.allSettled([accept(db('b'),first,'a','b'),accept(db('b'),second,'c','b')]);
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  const links=await state(); assertReciprocal(links);
+  const sender=links.b;const consumed=sender==='a'?first:second;
+  await pair(db('b'),sender,'b',false);
+  await assertFails(accept(db('b'),consumed,sender,'b'));
+  const losing=sender==='a'?second:first;const loser=sender==='a'?'c':'a';
+  await assertFails(accept(db('b'),losing,loser,'b'));
+  assert.equal((await getDoc(doc(db('b'),'books','b-book'))).exists(),true);
+});
+
+test('aceite encerra o convite enviado do destinatário na mesma operação',async()=>{
+  const incoming=await issue(db('a'),'a');const outgoing=await issue(db('b'),'b');
+  await claim(db('c'),outgoing,'c'); await claim(db('b'),incoming,'b');
+  const ownDatabase=db('b');
+  const incomplete=writeBatch(ownDatabase);
+  incomplete.update(doc(ownDatabase,'partner_invites',incoming),{status:'accepted',decidedAt:serverTimestamp()});
+  incomplete.update(doc(ownDatabase,'users','a'),{partnerUid:'b',relationshipId:incoming});
+  incomplete.update(doc(ownDatabase,'users','b'),{partnerUid:'a',relationshipId:incoming});
+  await assertFails(incomplete.commit());
+  await assertSucceeds(accept(db('b'),incoming,'a','b'));
+  assert.equal((await getDoc(doc(db('b'),'partner_invites',outgoing))).data().status,'cancelled');
+  await pair(db('b'),'a','b',false);
+  await assertFails(accept(db('c'),outgoing,'b','c'));
+});
+
+test('duas reservas simultâneas fixam somente um destinatário e não ativam vínculo',async()=>{
+  const code=await issue(db('a'),'a');
+  const results=await Promise.allSettled([claim(db('b'),code,'b'),claim(db('c'),code,'c')]);
+  assert.equal(results.filter(result=>result.status==='fulfilled').length,1);
+  const invitation=(await getDoc(doc(db('a'),'partner_invites',code))).data();
+  assert.ok(['b','c'].includes(invitation.recipientUid));
+  assert.equal(invitation.status,'pending');
+  assert.deepEqual(await state(),{a:null,b:null,c:null,d:null});
+  const loser=invitation.recipientUid==='b'?'c':'b';
+  await assertFails(accept(db(loser),code,'a',invitation.recipientUid));
 });

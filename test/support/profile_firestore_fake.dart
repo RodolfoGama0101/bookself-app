@@ -11,7 +11,9 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
   Completer<void>? commitGate;
   int writes = 0;
   int reads = 0;
+  final readPaths = <String>[];
   bool includeMetadataChanges = false;
+  bool wrapTransactionErrors = false;
 
   StreamController<DocumentSnapshot<Map<String, dynamic>>> controller(
     String uid,
@@ -21,7 +23,16 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
 
   @override
   CollectionReference<Map<String, dynamic>> collection(String collectionPath) {
-    expect(collectionPath, anyOf('users', 'partner_profiles'));
+    expect(
+      collectionPath,
+      anyOf(
+        'users',
+        'partner_profiles',
+        'partner_invites',
+        'partner_invite_slots',
+        'partner_invite_lookups',
+      ),
+    );
     return _ProfileCollection(this, collectionPath);
   }
 
@@ -32,7 +43,15 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
     int maxAttempts = 5,
   }) async {
     var transaction = _ProfileTransaction(this);
-    var result = await transactionHandler(transaction);
+    T result;
+    try {
+      result = await transactionHandler(transaction);
+    } catch (_) {
+      if (wrapTransactionErrors) {
+        throw FirebaseException(plugin: 'cloud_firestore', code: 'unknown');
+      }
+      rethrow;
+    }
     if (concurrentProfile != null) {
       // Simula a repetição do callback pelo SDK após conflito na leitura.
       documents[concurrentProfile!['uid'] as String] = concurrentProfile!;
@@ -42,7 +61,12 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
     }
     if (commitGate != null) await commitGate!.future;
     for (final entry in transaction.pending.entries) {
-      documents[entry.key] = entry.value;
+      documents[entry.key] = entry.value.map(
+        (key, value) => MapEntry(
+          key,
+          value == FieldValue.serverTimestamp() ? Timestamp.now() : value,
+        ),
+      );
       writes++;
     }
     return result;
@@ -101,6 +125,7 @@ class _ProfileTransaction extends Fake implements Transaction {
     DocumentReference<T> reference,
   ) async {
     database.reads++;
+    database.readPaths.add(reference.path);
     final key = (reference as _ProfileReference).key;
     return ProfileSnapshot(reference.id, database.documents[key])
         as DocumentSnapshot<T>;

@@ -68,3 +68,23 @@ Evidências: [sessão restaurada](evidence/web-session-restored-2026-10-05.png) 
 Formatação, análise limpa, 283 testes Flutter e seis testes Node de isolamento/ordem/nova tentativa passaram; builds web padrão e demo compilaram, incluindo dry run Wasm. O build padrão foi apenas compilado, sem autenticação em produção. Regras, dados e vínculo não mudaram; testes de regras não foram repetidos. A CI ganhou o comando do bootstrap, ainda sem execução remota. Os processos desta validação foram encerrados ao terminar.
 
 Também permanecem pendentes: capas externas/CORS, execução offline das fontes, recuperação de conexão, câmeras/permissões nativas, execução Android/iOS, contas simultâneas em navegadores distintos, cliente antigo/cache após revogação e autorização remota implantada. A jornada sequencial não substitui os testes de terceiros/concorrência dos emuladores. DOC-03 exige reprodução por outra pessoa; API-05 e REL-04 exigem a matriz de plataformas. Esses itens continuam abertos no [backlog](../BACKLOG.md).
+
+## Convites consentidos — COUPLE-03
+
+Em 05/10/2026, build demo final com Auth 19099/Firestore 18080, somente `demo-bookself`, servido em `127.0.0.1:17359`. Dois Chromes isolados via agent-browser; runtime público CanvasKit/Firebase e recursos de fontes permitidos, sem chave Google Books. Nenhuma consulta/escrita Firebase remota. As capturas/fixtures ficaram ignoradas; não há novas imagens ou credenciais neste commit.
+
+| Cenário | Observação |
+| --- | --- |
+| Cadastro | Duas contas fictícias cadastradas na interface Flutter, com perfil publicado. |
+| Consentimento do remetente | Criar convite estava desabilitado antes de marcar concordância. |
+| Criação | Convite confirmado com código aleatório de 32 hexadecimais, prazo de sete dias, cópia e cancelamento disponíveis. |
+| Consulta | Segunda conta consultou o código; nome do remetente apareceu, e a primeira sessão passou a identificar a destinatária. Vínculo ainda inativo. |
+| Aceite | Concordância habilitou Aceitar/Recusar; aceite ativou o casal nas duas sessões. Perfil mostrou nome do parceiro, mantendo apenas o próprio e-mail. |
+| Término | Confirmação de desvínculo removeu o par e restaurou a entrada Convites do casal. |
+| Reuso | Código consumido foi rejeitado depois do término, sem recriar relação. A mensagem inicialmente genérica revelou reempacotamento de erro pelo SDK web; o wrapper foi corrigido e recebeu regressão específica. |
+
+Análise limpa, 308 testes Flutter, 43 Auth/Firestore e build demo final aprovados. Retenção pessoal, terceiros, limites, expiração e concorrência são evidências dos testes de serviços/regras; esta jornada não repetiu biblioteca/Bíblia pessoal da validação anterior, nem testou expiração acelerando o relógio do navegador. Não houve execução nativa ou produção. Ocultação por item, bloqueio, feed sem retroatividade e cache permanecem em COUPLE-04/DATA-05.
+
+A acessibilidade do canvas foi ativada para interação. Os refs mudam com os campos Flutter; preencher um campo de cada vez e obter nova árvore evita escrever no campo anterior. O contêiner acessível de rolagem foi usado para conferir o convite completo; a espera por texto DOM não encontra alguns rótulos do canvas, mesmo quando já renderizados. A cópia produziu feedback confirmado; leitura do clipboard pelo navegador foi negada, portanto o código foi conferido visualmente. Processos/sessões desta validação foram encerrados, sem importação/exportação de dados.
+
+A correção da mensagem web foi recompilada e conferida também no navegador: uma conta fictícia e um convite terminal preparados somente nos emuladores produziram **“Este convite expirou ou já foi encerrado. Peça um novo convite.”**. O vínculo continuou ausente. Essa regressão adicional usa fixture local, sem alegar uma nova jornada completa de biblioteca. Não foram observados erros no console das sessões verificadas; isso não é auditoria de todas as requisições/plataformas.

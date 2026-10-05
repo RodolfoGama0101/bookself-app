@@ -12,12 +12,39 @@ service cloud.firestore {
     function canRead(uid) { return isOwner(uid) || isPartner(uid); }
     function nullableString(value) { return value == null || value is string; }
 
-    // Autoriza apenas duas contas livres, alteradas no mesmo lote.
+    function invitePath(code) { return /databases/$(database)/documents/partner_invites/$(code); }
+    function slotPath(uid) { return /databases/$(database)/documents/partner_invite_slots/$(uid); }
+    function pending(data) {
+      return data.status == 'pending' && request.time < data.createdAt + duration.value(7, 'd');
+    }
+    function free(uid) { return get(userPath(uid)).data.get('partnerUid', null) == null; }
+    function epoch(uid) { return get(userPath(uid)).data.get('coupleEpoch', 0); }
+    function usable(data) {
+      return pending(data) && data.senderEpoch == epoch(data.senderUid)
+        && (data.recipientUid == null || data.recipientEpoch == epoch(data.recipientUid));
+    }
+    function currentInvite(code, sender) { return get(slotPath(sender)).data.code == code; }
+    function lookupPath(uid) { return /databases/$(database)/documents/partner_invite_lookups/$(uid); }
+    function lookedUp(code) {
+      let lookup = get(lookupPath(request.auth.uid)).data;
+      return lookup.code == code && request.time < lookup.requestedAt + duration.value(1, 'm');
+    }
+    function outgoingClosed(uid) {
+      return !exists(slotPath(uid)) || getAfter(invitePath(get(slotPath(uid)).data.code)).data.status != 'pending';
+    }
     function linkPair(uid, before, after) {
-      return before == null && after is string && after.size() > 0 && after != uid
-        && (request.auth.uid == uid || request.auth.uid == after)
-        && get(userPath(after)).data.get('partnerUid', null) == null
-        && getAfter(userPath(after)).data.get('partnerUid', null) == uid;
+      let code = request.resource.data.get('relationshipId', null);
+      let invitation = get(invitePath(code)).data;
+      return before == null && after is string && after != uid
+        && code is string && usable(invitation)
+        && invitation.recipientUid == request.auth.uid
+        && ((invitation.senderUid == uid && invitation.recipientUid == after)
+          || (invitation.senderUid == after && invitation.recipientUid == uid))
+        && getAfter(invitePath(code)).data.status == 'accepted'
+        && free(after) && getAfter(userPath(after)).data.partnerUid == uid
+        && getAfter(userPath(after)).data.relationshipId == code
+        && request.resource.data.coupleEpoch == epoch(uid) + 1
+        && getAfter(userPath(after)).data.coupleEpoch == epoch(after) + 1;
     }
     // Usa o vínculo persistido: um lote antigo não pode desfazer novo parceiro.
     function unlinkPair(uid, before, after) {
@@ -48,10 +75,87 @@ service cloud.firestore {
           && request.resource.data.name is string && request.resource.data.name.size() > 0
           && request.resource.data.name.size() <= 200
           && nullableString(request.resource.data.get('photoUrl', null)))
-        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['partnerUid'])
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['partnerUid', 'relationshipId', 'coupleEpoch'])
           && (linkPair(uid, resource.data.get('partnerUid', null), request.resource.data.get('partnerUid', null))
-            || unlinkPair(uid, resource.data.get('partnerUid', null), request.resource.data.get('partnerUid', null))))
+            || (request.resource.data.get('relationshipId', null) == null
+              && request.resource.data.get('coupleEpoch', 0) == resource.data.get('coupleEpoch', 0)
+              && unlinkPair(uid, resource.data.get('partnerUid', null), request.resource.data.get('partnerUid', null)))))
       );
+    }
+
+    function validInvitation(data) {
+      return data.keys().hasAll(['version', 'senderUid', 'senderEpoch', 'senderName', 'senderPhotoUrl', 'recipientUid', 'recipientEpoch', 'recipientName', 'recipientPhotoUrl', 'status', 'createdAt', 'decidedAt'])
+        && data.keys().hasOnly(['version', 'senderUid', 'senderEpoch', 'senderName', 'senderPhotoUrl', 'recipientUid', 'recipientEpoch', 'recipientName', 'recipientPhotoUrl', 'status', 'createdAt', 'decidedAt'])
+        && data.version == 1 && data.senderUid is string
+        && data.senderName is string && data.senderName.size() > 0 && data.senderName.size() <= 200
+        && nullableString(data.senderPhotoUrl) && nullableString(data.recipientUid)
+        && nullableString(data.recipientName) && nullableString(data.recipientPhotoUrl)
+        && data.senderEpoch is int && data.senderEpoch >= 0
+        && (data.recipientEpoch == null || (data.recipientEpoch is int && data.recipientEpoch >= 0))
+        && data.createdAt is timestamp;
+    }
+    match /partner_invite_slots/{uid} {
+      allow get: if isOwner(uid);
+      allow list, delete: if false;
+      allow create, update: if isOwner(uid) && free(uid)
+        && request.resource.data.keys().hasOnly(['code', 'issuedAt'])
+        && request.resource.data.code.matches('^[a-f0-9]{32}$')
+        && request.resource.data.issuedAt == request.time
+        && (!exists(slotPath(uid)) || (!pending(get(invitePath(resource.data.code)).data)
+          && request.time >= resource.data.issuedAt + duration.value(1, 'm')))
+        && !exists(invitePath(request.resource.data.code))
+        && getAfter(invitePath(request.resource.data.code)).data.senderUid == uid
+        && getAfter(invitePath(request.resource.data.code)).data.status == 'pending';
+    }
+    match /partner_invites/{code} {
+      // Capacidade aleatória para descoberta pontual, sem listagem pública.
+      allow get: if signedIn() && (resource.data.senderUid == request.auth.uid
+        || resource.data.recipientUid == request.auth.uid
+        || (resource.data.recipientUid == null && pending(resource.data) && lookedUp(code)));
+      allow list, delete: if false;
+      allow create: if signedIn() && code.matches('^[a-f0-9]{32}$')
+        && validInvitation(request.resource.data) && free(request.auth.uid)
+        && request.resource.data.senderUid == request.auth.uid
+        && request.resource.data.senderEpoch == epoch(request.auth.uid)
+        && request.resource.data.senderName == get(userPath(request.auth.uid)).data.name
+        && request.resource.data.senderPhotoUrl == get(userPath(request.auth.uid)).data.get('photoUrl', null)
+        && request.resource.data.recipientUid == null && request.resource.data.recipientEpoch == null && request.resource.data.recipientName == null
+        && request.resource.data.recipientPhotoUrl == null && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time && request.resource.data.decidedAt == null
+        && getAfter(slotPath(request.auth.uid)).data.code == code
+        && getAfter(slotPath(request.auth.uid)).data.issuedAt == request.time;
+      allow update: if signedIn() && validInvitation(request.resource.data) && (
+        (usable(resource.data) && resource.data.recipientUid == null
+          && lookedUp(code)
+          && request.auth.uid != resource.data.senderUid && free(request.auth.uid) && free(resource.data.senderUid)
+          && currentInvite(code, resource.data.senderUid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['recipientUid', 'recipientEpoch', 'recipientName', 'recipientPhotoUrl'])
+          && request.resource.data.recipientUid == request.auth.uid
+          && request.resource.data.recipientEpoch == epoch(request.auth.uid)
+          && request.resource.data.recipientName == get(userPath(request.auth.uid)).data.name
+          && request.resource.data.recipientPhotoUrl == get(userPath(request.auth.uid)).data.get('photoUrl', null))
+        || (resource.data.status == 'pending'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
+          && request.resource.data.decidedAt == request.time && (
+            (request.resource.data.status == 'cancelled' && resource.data.senderUid == request.auth.uid)
+            || (request.resource.data.status == 'declined' && resource.data.recipientUid == request.auth.uid)
+            || (request.resource.data.status == 'accepted' && usable(resource.data)
+              && resource.data.recipientUid == request.auth.uid && currentInvite(code, resource.data.senderUid)
+              && free(resource.data.senderUid) && free(request.auth.uid) && outgoingClosed(request.auth.uid)
+              && getAfter(userPath(resource.data.senderUid)).data.partnerUid == request.auth.uid
+              && getAfter(userPath(resource.data.senderUid)).data.relationshipId == code
+              && getAfter(userPath(request.auth.uid)).data.partnerUid == resource.data.senderUid
+              && getAfter(userPath(request.auth.uid)).data.relationshipId == code))));
+    }
+
+    match /partner_invite_lookups/{uid} {
+      allow get: if isOwner(uid);
+      allow list, delete: if false;
+      allow create, update: if isOwner(uid) && free(uid)
+        && request.resource.data.keys().hasOnly(['code', 'requestedAt'])
+        && request.resource.data.code.matches('^[a-f0-9]{32}$')
+        && request.resource.data.requestedAt == request.time
+        && (!exists(lookupPath(uid)) || request.time >= resource.data.requestedAt + duration.value(5, 's'));
     }
 
     function validPartnerProfile(data) {

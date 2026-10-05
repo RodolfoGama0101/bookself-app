@@ -65,7 +65,7 @@ Prazo de retenção, exportação e exclusão de conta continuam em SEC-05. A po
 
 ### Relações existentes
 
-O vínculo direto atual não comprova aceite desta política. DATA-03 deve definir uma transição compatível, mantendo contas, livros e capítulos; a ativação da nova política requer consentimento explícito dos dois participantes. Não converter silenciosamente `partnerUid` em aceite, nem reparar vínculos divergentes como efeito colateral. Sem migração validada, o contrato e o fluxo atuais permanecem os descritos em [ARCHITECTURE.md](ARCHITECTURE.md).
+Vínculos legados diretos não comprovam aceite desta política. DATA-03 deve definir uma transição compatível, mantendo contas, livros e capítulos; a ativação da nova política requer consentimento explícito dos dois participantes. Não converter silenciosamente `partnerUid` em aceite, nem reparar vínculos divergentes como efeito colateral. Sem migração validada, o contrato e o fluxo atuais permanecem os descritos em [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Critérios para validar a implementação futura
 
@@ -90,6 +90,6 @@ Esta matriz define verificações necessárias; nenhum cenário novo foi executa
 
 ## Efeitos técnicos e sequência
 
-SEC-04 separou localmente o perfil consultável do privado, conforme [registro 007](decisions/007-perfil-privado-e-consultavel.md), com implantação remota pendente. COUPLE-03 implementará os convites e as transições; o batch direto atual não implementa aceite. COUPLE-04 implementará visibilidade e revogação, incluindo ouvintes, caches e agregados. DATA-01 deve separar catálogo, estado pessoal e experiência conjunta; esta política não escolhe nomes de coleções ou IDs do novo esquema.
+SEC-04 separou localmente o perfil consultável do privado, conforme [registro 007](decisions/007-perfil-privado-e-consultavel.md), com implantação remota pendente. COUPLE-03 implementou localmente convites e transições consentidas; contrato e limites em [COUPLE_INVITATIONS.md](COUPLE_INVITATIONS.md). Relações legadas permanecem, sem conversão automática em aceite. COUPLE-04 implementará visibilidade e revogação, incluindo ouvintes, caches e agregados. DATA-01 deve separar catálogo, estado pessoal e experiência conjunta; esta política não escolhe nomes de coleções ou IDs do novo esquema.
 
 A decisão explícita do usuário está registrada nesta política e no [registro 006](decisions/006-consentimento-e-visibilidade.md); COUPLE-01 está concluída no backlog. As dependências podem avançar em desenvolvimento, mas só ficam concluídas com código e testes próprios. A aprovação de uma política não autoriza implantação de regras, migração ou publicação. SEC-06 continua aguardando aprovação separada, conforme [SECURITY.md](SECURITY.md#implantação-pendente). Critérios e dependências permanecem no [backlog](../BACKLOG.md).
