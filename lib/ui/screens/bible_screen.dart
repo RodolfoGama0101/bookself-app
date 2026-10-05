@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../widgets/reading_surface.dart';
 import 'package:provider/provider.dart';
 import '../../data/bible_data.dart';
 import '../../services/auth_service.dart';
@@ -49,82 +49,85 @@ class _BibleScreenState extends State<BibleScreen>
     final otBooks = BibleData.books.where((b) => !b.isNewTestament).toList();
     final ntBooks = BibleData.books.where((b) => b.isNewTestament).toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Progresso da Bíblia',
-          style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
+    return ReadingPage(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Progresso da Bíblia'),
+          bottom: TabBar(
+            controller: _testamentTabController,
+            tabs: const [
+              Tab(text: 'Antigo Testamento'),
+              Tab(text: 'Novo Testamento'),
+            ],
+          ),
         ),
-        bottom: TabBar(
-          controller: _testamentTabController,
-          tabs: const [
-            Tab(text: 'Antigo Testamento'),
-            Tab(text: 'Novo Testamento'),
-          ],
-        ),
-      ),
-      body: StreamBuilder<Map<String, BibleProgressModel>>(
-        stream: _bibleService.streamAllProgress(user.uid),
-        builder: (context, userProgressSnapshot) {
-          if (userProgressSnapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: SelectableText(
-                  'Erro ao carregar progresso da Bíblia: ${ErrorHandler.getFriendlyErrorMessage(userProgressSnapshot.error, operation: ErrorOperation.loadBibleProgress)}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.redAccent),
-                ),
-              ),
-            );
-          }
-
-          final userProgress = userProgressSnapshot.data ?? {};
-
-          return StreamBuilder<Map<String, BibleProgressModel>>(
-            stream: partner != null
-                ? _bibleService.streamAllProgress(partner.uid)
-                : Stream.value({}),
-            builder: (context, partnerProgressSnapshot) {
-              if (partnerProgressSnapshot.hasError) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: SelectableText(
-                      'Erro ao carregar progresso da Bíblia do parceiro: ${ErrorHandler.getFriendlyErrorMessage(partnerProgressSnapshot.error, operation: ErrorOperation.loadPartnerBibleProgress)}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.redAccent),
+        body: StreamBuilder<Map<String, BibleProgressModel>>(
+          stream: _bibleService.streamAllProgress(user.uid),
+          builder: (context, userProgressSnapshot) {
+            if (userProgressSnapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: SelectableText(
+                    'Erro ao carregar progresso da Bíblia: ${ErrorHandler.getFriendlyErrorMessage(userProgressSnapshot.error, operation: ErrorOperation.loadBibleProgress)}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
                     ),
                   ),
-                );
-              }
-
-              final partnerProgress = partnerProgressSnapshot.data ?? {};
-
-              return TabBarView(
-                controller: _testamentTabController,
-                children: [
-                  _buildBookList(
-                    otBooks,
-                    user.uid,
-                    partner?.uid,
-                    userProgress,
-                    partnerProgress,
-                    partner?.name,
-                  ),
-                  _buildBookList(
-                    ntBooks,
-                    user.uid,
-                    partner?.uid,
-                    userProgress,
-                    partnerProgress,
-                    partner?.name,
-                  ),
-                ],
+                ),
               );
-            },
-          );
-        },
+            }
+
+            final userProgress = userProgressSnapshot.data ?? {};
+
+            return StreamBuilder<Map<String, BibleProgressModel>>(
+              stream: partner != null
+                  ? _bibleService.streamAllProgress(partner.uid)
+                  : Stream.value({}),
+              builder: (context, partnerProgressSnapshot) {
+                if (partnerProgressSnapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: SelectableText(
+                        'Erro ao carregar progresso da Bíblia do parceiro: ${ErrorHandler.getFriendlyErrorMessage(partnerProgressSnapshot.error, operation: ErrorOperation.loadPartnerBibleProgress)}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                final partnerProgress = partnerProgressSnapshot.data ?? {};
+
+                return TabBarView(
+                  controller: _testamentTabController,
+                  children: [
+                    _buildBookList(
+                      otBooks,
+                      user.uid,
+                      partner?.uid,
+                      userProgress,
+                      partnerProgress,
+                      partner?.name,
+                    ),
+                    _buildBookList(
+                      ntBooks,
+                      user.uid,
+                      partner?.uid,
+                      userProgress,
+                      partnerProgress,
+                      partner?.name,
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -178,23 +181,11 @@ class _BibleScreenState extends State<BibleScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Nome do Livro e número de capítulos
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        book.name,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontFamily: GoogleFonts.playfairDisplay().fontFamily,
-                        ),
-                      ),
-                      Text(
-                        '${book.chapters} cap.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                    ],
+                  _progressLabels(
+                    book.name,
+                    '${book.chapters} cap.',
+                    theme.textTheme.titleMedium,
+                    theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 12),
 
@@ -202,17 +193,11 @@ class _BibleScreenState extends State<BibleScreen>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Você', style: theme.textTheme.bodySmall),
-                          Text(
-                            '${(uPercent * 100).toInt()}% ($uReadCount/${book.chapters})',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      _progressLabels(
+                        'Você',
+                        '${(uPercent * 100).toInt()}% ($uReadCount/${book.chapters})',
+                        theme.textTheme.bodySmall,
+                        theme.textTheme.labelMedium,
                       ),
                       const SizedBox(height: 4),
                       ClipRRect(
@@ -237,21 +222,13 @@ class _BibleScreenState extends State<BibleScreen>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              partnerName ?? 'Parceiro',
-                              style: theme.textTheme.bodySmall,
-                            ),
-                            Text(
-                              '${(pPercent * 100).toInt()}% ($pReadCount/${book.chapters})',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.secondary,
-                              ),
-                            ),
-                          ],
+                        _progressLabels(
+                          partnerName ?? 'Parceiro',
+                          '${(pPercent * 100).toInt()}% ($pReadCount/${book.chapters})',
+                          theme.textTheme.bodySmall,
+                          theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.secondary,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         ClipRRect(
@@ -275,6 +252,24 @@ class _BibleScreenState extends State<BibleScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _progressLabels(
+    String label,
+    String value,
+    TextStyle? labelStyle,
+    TextStyle? valueStyle,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: Text(label, style: labelStyle)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(value, textAlign: TextAlign.right, style: valueStyle),
+        ),
+      ],
     );
   }
 }
@@ -459,7 +454,7 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Não foi possível salvar o progresso de ${book.name}.'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Theme.of(context).colorScheme.error,
           action: SnackBarAction(label: 'Repetir', onPressed: retry),
         ),
       );
@@ -478,39 +473,36 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.book.name,
-          style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _readError != null
-          ? Center(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Não foi possível carregar seu progresso. $_readError',
-                        textAlign: TextAlign.center,
-                      ),
-                      TextButton(
-                        onPressed: _isSaving
-                            ? null
-                            : () => setState(_bindProgress),
-                        child: const Text('Tentar novamente'),
-                      ),
-                    ],
+    return ReadingPage(
+      child: Scaffold(
+        appBar: AppBar(title: Text(widget.book.name)),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _readError != null
+            ? Center(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Não foi possível carregar seu progresso. $_readError',
+                          textAlign: TextAlign.center,
+                        ),
+                        TextButton(
+                          onPressed: _isSaving
+                              ? null
+                              : () => setState(_bindProgress),
+                          child: const Text('Tentar novamente'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            )
-          : _buildChapters(theme),
+              )
+            : _buildChapters(theme),
+      ),
     );
   }
 
@@ -579,7 +571,9 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
                   Text(
                     _writeError!,
                     key: const ValueKey('bible-write-error'),
-                    style: const TextStyle(color: Colors.redAccent),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                   TextButton(
                     onPressed: _isSaving ? null : _retryWrite,

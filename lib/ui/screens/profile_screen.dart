@@ -6,6 +6,7 @@ import '../../services/user_profile_service.dart';
 import '../widgets/dialog_with_controllers.dart';
 import '../../services/auth_service.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/reading_surface.dart';
 import '../widgets/custom_text_field.dart';
 import '../../services/theme_service.dart';
 import 'package:image_picker/image_picker.dart';
@@ -34,7 +35,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         : await service.setThemeMode(mode);
     if (!mounted || error == null) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+      SnackBar(
+        content: Text(error),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
     );
   }
 
@@ -82,7 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (dialogContext) => AlertDialog(
         title: Text(
           'Editar Nome',
-          style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
         ),
         content: TextField(
           controller: nameController,
@@ -117,9 +121,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _profiles.updateName(uid, newName);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Nome atualizado com sucesso!'),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     } catch (e) {
@@ -129,7 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           content: Text(
             'Não foi possível atualizar o nome: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.updateName)}',
           ),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -139,7 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Desvincular Casal?'),
+        title: Text('Desvincular Casal?'),
         content: const Text(
           'Você tem certeza que deseja se desvincular do seu parceiro? '
           'Vocês deixarão de compartilhar a estante e o progresso da Bíblia.',
@@ -151,10 +155,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(
+            child: Text(
               'Desvincular',
               style: TextStyle(
-                color: Colors.redAccent,
+                color: Theme.of(context).colorScheme.error,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -168,7 +172,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(error ?? 'Vínculo desfeito.'),
-        backgroundColor: error == null ? Colors.orange : Colors.redAccent,
+        backgroundColor: error == null
+            ? Theme.of(context).colorScheme.inverseSurface
+            : Theme.of(context).colorScheme.error,
       ),
     );
   }
@@ -192,9 +198,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _profiles.updatePhoto(uid, dataUri);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Foto de perfil atualizada com sucesso!'),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     } catch (e) {
@@ -204,7 +210,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           content: Text(
             'Erro ao atualizar foto: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.updatePhoto)}',
           ),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     } finally {
@@ -219,9 +225,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _profiles.updatePhoto(uid, null);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Foto de perfil removida com sucesso!'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Theme.of(context).colorScheme.inverseSurface,
         ),
       );
     } catch (e) {
@@ -231,7 +237,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           content: Text(
             'Erro ao remover foto: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.updatePhoto)}',
           ),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     } finally {
@@ -268,7 +274,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[600]?.withValues(alpha: 0.5),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outlineVariant.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -276,7 +284,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
                 Text(
                   'Alterar Foto de Perfil',
-                  style: GoogleFonts.playfairDisplay(
+                  style: GoogleFonts.outfit(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -307,13 +315,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (hasPhoto) ...[
                   const Divider(),
                   ListTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.delete_outline_rounded,
-                      color: Colors.redAccent,
+                      color: Theme.of(context).colorScheme.error,
                     ),
-                    title: const Text(
+                    title: Text(
                       'Remover Foto',
-                      style: TextStyle(color: Colors.redAccent),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                     onTap: () {
                       Navigator.pop(context);
@@ -341,14 +351,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erro ao enviar e-mail de redefinição: $error'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Link de redefinição enviado para: $email'),
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
       }
@@ -362,15 +372,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final error = await authService.linkPartner(code);
     if (error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     } else if (mounted) {
       _partnerCodeController.clear();
       FocusScope.of(context).unfocus();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Vínculo realizado com sucesso! Bem-vindos!'),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     }
@@ -388,416 +401,421 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Perfil',
-          style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              theme.brightness == Brightness.dark
-                  ? Icons.light_mode_rounded
-                  : Icons.dark_mode_rounded,
+    return ReadingPage(
+      maxWidth: 720,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Perfil'),
+          actions: [
+            IconButton(
+              icon: Icon(
+                theme.brightness == Brightness.dark
+                    ? Icons.light_mode_rounded
+                    : Icons.dark_mode_rounded,
+              ),
+              tooltip: 'Alterar Tema',
+              onPressed: themeService.isSaving || themeService.isLoading
+                  ? null
+                  : () => _changeTheme(themeService),
             ),
-            tooltip: 'Alterar Tema',
-            onPressed: themeService.isSaving || themeService.isLoading
-                ? null
-                : () => _changeTheme(themeService),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 46,
-                      backgroundColor: theme.primaryColor.withValues(
-                        alpha: 0.15,
-                      ),
-                      backgroundImage: _getAvatarImage(user.photoUrl),
-                      child: _isPhotoLoading
-                          ? const CircularProgressIndicator()
-                          : (user.photoUrl == null || user.photoUrl!.isEmpty
-                                ? Text(
-                                    user.name.isNotEmpty
-                                        ? user.name
-                                              .substring(0, 1)
-                                              .toUpperCase()
-                                        : '?',
-                                    style: TextStyle(
-                                      color: theme.primaryColor,
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  )
-                                : null),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: () => _showAvatarSelectionSheet(
-                          context,
-                          user.uid,
-                          user.photoUrl != null && user.photoUrl!.isNotEmpty,
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 46,
+                        backgroundColor: theme.primaryColor.withValues(
+                          alpha: 0.15,
                         ),
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: theme.primaryColor,
-                          child: Icon(
-                            Icons.camera_alt_rounded,
-                            size: 16,
-                            color: theme.brightness == Brightness.dark
-                                ? Colors.black
-                                : Colors.white,
+                        backgroundImage: _getAvatarImage(user.photoUrl),
+                        child: _isPhotoLoading
+                            ? const CircularProgressIndicator()
+                            : (user.photoUrl == null || user.photoUrl!.isEmpty
+                                  ? Text(
+                                      user.name.isNotEmpty
+                                          ? user.name
+                                                .substring(0, 1)
+                                                .toUpperCase()
+                                          : '?',
+                                      style: TextStyle(
+                                        color: theme.primaryColor,
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : null),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: () => _showAvatarSelectionSheet(
+                            context,
+                            user.uid,
+                            user.photoUrl != null && user.photoUrl!.isNotEmpty,
+                          ),
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: theme.primaryColor,
+                            child: Icon(
+                              Icons.camera_alt_rounded,
+                              size: 16,
+                              color: theme.colorScheme.onPrimary,
+                            ),
                           ),
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                user.name,
+                                style: theme.textTheme.titleLarge,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              constraints: const BoxConstraints(),
+                              padding: const EdgeInsets.all(4),
+                              tooltip: 'Editar Nome',
+                              onPressed: () => _showEditNameDialog(
+                                context,
+                                user.name,
+                                user.uid,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user.email,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              // Card Vínculo do Casal
+              Text(
+                'Relacionamento',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.primaryColor,
                 ),
-                const SizedBox(width: 20),
-                Expanded(
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      if (partner != null) ...[
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.favorite_rounded,
+                              color: theme.colorScheme.secondary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Vinculado com:',
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                  Text(
+                                    partner.name,
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    partner.email,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        CustomButton(
+                          text: 'Desvincular Casal',
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.error.withValues(alpha: 0.1),
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                          onPressed: () => _confirmUnlink(context, authService),
+                        ),
+                      ] else ...[
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.favorite_border_rounded,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Status:',
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                  Text(
+                                    'Nenhum vínculo ativo',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Compartilhe suas estantes e progresso da Bíblia! Insira o código do seu parceiro abaixo para se conectar:',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          controller: _partnerCodeController,
+                          label: 'Código do seu Parceiro',
+                          hint: 'Cole o código dele(a) aqui',
+                          prefixIcon: Icons.vpn_key_rounded,
+                        ),
+                        const SizedBox(height: 16),
+                        CustomButton(
+                          text: 'Vincular Casal',
+                          isLoading: authService.isLoading,
+                          onPressed: () => _submitLink(authService),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Card Código Pessoal
+              Text(
+                'Compartilhamento',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Seu Código de Convite',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 8),
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Flexible(
-                            child: Text(
-                              user.name,
-                              style: theme.textTheme.titleLarge,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.scaffoldBackgroundColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                user.uid,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           IconButton(
-                            icon: const Icon(Icons.edit_outlined, size: 18),
-                            constraints: const BoxConstraints(),
-                            padding: const EdgeInsets.all(4),
-                            tooltip: 'Editar Nome',
-                            onPressed: () => _showEditNameDialog(
-                              context,
-                              user.name,
-                              user.uid,
-                            ),
+                            icon: const Icon(Icons.copy),
+                            tooltip: 'Copiar código',
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: user.uid));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Código copiado!'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        user.email,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[500],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 32),
+              ),
+              const SizedBox(height: 24),
 
-            // Card Vínculo do Casal
-            Text(
-              'Relacionamento',
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (partner != null) ...[
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.favorite_rounded,
-                            color: theme.colorScheme.secondary,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Vinculado com:',
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                                Text(
-                                  partner.name,
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  partner.email,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey[500],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      CustomButton(
-                        text: 'Desvincular Casal',
-                        backgroundColor: Colors.redAccent.withValues(
-                          alpha: 0.1,
-                        ),
-                        foregroundColor: Colors.redAccent,
-                        onPressed: () => _confirmUnlink(context, authService),
-                      ),
-                    ] else ...[
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.favorite_border_rounded,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Status:',
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                                Text(
-                                  'Nenhum vínculo ativo',
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Compartilhe suas estantes e progresso da Bíblia! Insira o código do seu parceiro abaixo para se conectar:',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      CustomTextField(
-                        controller: _partnerCodeController,
-                        label: 'Código do seu Parceiro',
-                        hint: 'Cole o código dele(a) aqui',
-                        prefixIcon: Icons.vpn_key_rounded,
-                      ),
-                      const SizedBox(height: 16),
-                      CustomButton(
-                        text: 'Vincular Casal',
-                        isLoading: authService.isLoading,
-                        onPressed: () => _submitLink(authService),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Card Código Pessoal
-            Text(
-              'Compartilhamento',
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Seu Código de Convite',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              user.uid,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.1,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.copy),
-                          tooltip: 'Copiar código',
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(text: user.uid));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Código copiado!'),
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Card Tema
-            Text(
-              'Aparência',
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text('Tema do aplicativo'),
-                    DropdownButton<ThemeMode>(
-                      key: const ValueKey('theme-mode-selector'),
-                      value: themeService.themeMode,
-                      isExpanded: true,
-                      items: const [
-                        DropdownMenuItem(
-                          value: ThemeMode.light,
-                          child: Text('Claro'),
-                        ),
-                        DropdownMenuItem(
-                          value: ThemeMode.dark,
-                          child: Text('Escuro'),
-                        ),
-                        DropdownMenuItem(
-                          value: ThemeMode.system,
-                          child: Text('Sistema'),
-                        ),
-                      ],
-                      onChanged: themeService.isSaving || themeService.isLoading
-                          ? null
-                          : (mode) {
-                              if (mode != null) {
-                                _changeTheme(themeService, mode);
-                              }
-                            },
-                    ),
-                    if (themeService.themeMode == ThemeMode.system)
-                      const Text('Acompanha o tema do dispositivo.'),
-                    if (themeService.isSaving || themeService.isLoading) ...[
-                      const SizedBox(height: 8),
-                      const LinearProgressIndicator(),
-                      const SizedBox(height: 8),
-                      Text(
-                        themeService.isSaving
-                            ? 'Salvando tema…'
-                            : 'Carregando tema…',
-                      ),
-                    ],
-                    if (themeService.loadError != null) ...[
-                      const SizedBox(height: 8),
-                      Text(themeService.loadError!),
-                      TextButton(
-                        onPressed:
-                            themeService.isSaving || themeService.isLoading
-                            ? null
-                            : themeService.retryLoading,
-                        child: const Text('Tentar carregar novamente'),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Card Segurança
-            Text(
-              'Segurança',
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: ListTile(
-                leading: Icon(
-                  Icons.lock_reset_rounded,
+              // Card Tema
+              Text(
+                'Aparência',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
                   color: theme.primaryColor,
                 ),
-                title: const Text('Redefinir Senha'),
-                subtitle: const Text(
-                  'Enviar link de alteração para o seu e-mail',
-                ),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () =>
-                    _sendPasswordResetEmail(context, authService, user.email),
               ),
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 8),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text('Tema do aplicativo'),
+                      DropdownButton<ThemeMode>(
+                        key: const ValueKey('theme-mode-selector'),
+                        value: themeService.themeMode,
+                        isExpanded: true,
+                        items: const [
+                          DropdownMenuItem(
+                            value: ThemeMode.light,
+                            child: Text('Claro'),
+                          ),
+                          DropdownMenuItem(
+                            value: ThemeMode.dark,
+                            child: Text('Escuro'),
+                          ),
+                          DropdownMenuItem(
+                            value: ThemeMode.system,
+                            child: Text('Sistema'),
+                          ),
+                        ],
+                        onChanged:
+                            themeService.isSaving || themeService.isLoading
+                            ? null
+                            : (mode) {
+                                if (mode != null) {
+                                  _changeTheme(themeService, mode);
+                                }
+                              },
+                      ),
+                      if (themeService.themeMode == ThemeMode.system)
+                        const Text('Acompanha o tema do dispositivo.'),
+                      if (themeService.isSaving || themeService.isLoading) ...[
+                        const SizedBox(height: 8),
+                        const LinearProgressIndicator(),
+                        const SizedBox(height: 8),
+                        Text(
+                          themeService.isSaving
+                              ? 'Salvando tema…'
+                              : 'Carregando tema…',
+                        ),
+                      ],
+                      if (themeService.loadError != null) ...[
+                        const SizedBox(height: 8),
+                        Text(themeService.loadError!),
+                        TextButton(
+                          onPressed:
+                              themeService.isSaving || themeService.isLoading
+                              ? null
+                              : themeService.retryLoading,
+                          child: const Text('Tentar carregar novamente'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
 
-            // Botão de Logout
-            CustomButton(
-              text: 'Sair da Conta',
-              backgroundColor: theme.brightness == Brightness.dark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.grey[200],
-              foregroundColor: theme.brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black87,
-              onPressed: () => _signOut(authService),
-            ),
-          ],
+              // Card Segurança
+              Text(
+                'Segurança',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: ListTile(
+                  leading: Icon(
+                    Icons.lock_reset_rounded,
+                    color: theme.primaryColor,
+                  ),
+                  title: const Text('Redefinir Senha'),
+                  subtitle: const Text(
+                    'Enviar link de alteração para o seu e-mail',
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () =>
+                      _sendPasswordResetEmail(context, authService, user.email),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Botão de Logout
+              CustomButton(
+                text: 'Sair da Conta',
+                backgroundColor: theme.colorScheme.surface,
+                foregroundColor: theme.colorScheme.onSurface,
+                onPressed: () => _signOut(authService),
+              ),
+            ],
+          ),
         ),
       ),
     );

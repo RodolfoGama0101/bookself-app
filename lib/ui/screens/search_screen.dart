@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/reading_surface.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -89,10 +90,10 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
             duration: const Duration(seconds: 7),
-            backgroundColor: Colors.orange[800],
+            backgroundColor: Theme.of(context).colorScheme.inverseSurface,
             action: SnackBarAction(
               label: 'Manual',
-              textColor: Colors.white,
+              textColor: Theme.of(context).colorScheme.onInverseSurface,
               onPressed: () {
                 if (mounted && uid.isNotEmpty) {
                   _showManualAddDialog(context, uid);
@@ -165,7 +166,7 @@ class _SearchScreenState extends State<SearchScreen> {
               scrollable: true,
               title: Text(
                 'Adicionar à Estante',
-                style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -282,7 +283,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   content: Text(
                                     '"${book.title}" adicionado com sucesso!',
                                   ),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: theme.colorScheme.primary,
                                 ),
                               );
                             }
@@ -296,7 +297,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   content: Text(
                                     'Não foi possível salvar o livro. ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.saveBook)}',
                                   ),
-                                  backgroundColor: Colors.redAccent,
+                                  backgroundColor: theme.colorScheme.error,
                                 ),
                               );
                             }
@@ -340,7 +341,7 @@ class _SearchScreenState extends State<SearchScreen> {
               scrollable: true,
               title: Text(
                 'Adicionar Manualmente',
-                style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
               ),
               content: SingleChildScrollView(
                 child: Form(
@@ -498,7 +499,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   content: Text(
                                     '"${bookToSave.title}" cadastrado com sucesso!',
                                   ),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: theme.colorScheme.primary,
                                 ),
                               );
                             }
@@ -512,7 +513,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   content: Text(
                                     'Não foi possível cadastrar o livro. ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.saveBook)}',
                                   ),
-                                  backgroundColor: Colors.redAccent,
+                                  backgroundColor: theme.colorScheme.error,
                                 ),
                               );
                             }
@@ -542,155 +543,155 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (user == null) return const Scaffold();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Buscar Livros',
-          style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
+    return ReadingPage(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Buscar Livros'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline_rounded),
+              tooltip: 'Cadastro Manual',
+              onPressed: () => _showManualAddDialog(context, user.uid),
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded),
-            tooltip: 'Cadastro Manual',
-            onPressed: () => _showManualAddDialog(context, user.uid),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Campo de Busca
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: CustomTextField(
-                    controller: _searchController,
-                    label: 'Pesquisar livro',
-                    hint: 'Título, autor ou ISBN...',
-                    prefixIcon: Icons.search_rounded,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  icon: const Icon(Icons.search_rounded),
-                  style: IconButton.styleFrom(
-                    backgroundColor: theme.primaryColor,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    padding: const EdgeInsets.all(14),
-                  ),
-                  onPressed: _performSearch,
-                ),
-              ],
-            ),
-          ),
-
-          // Área de Resultados
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _searchResults.isEmpty
-                ? Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _hasSearched
-                                ? Icons.search_off_rounded
-                                : Icons.library_books_rounded,
-                            size: 48,
-                            color: Colors.grey[600],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            _searchError ??
-                                (_hasSearched
-                                    ? 'Nenhum resultado encontrado.\nTente buscar por outros termos ou adicione manualmente.'
-                                    : 'Pesquise pelo título ou autor para encontrar novos livros.'),
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                          if (_searchError != null)
-                            Wrap(
-                              alignment: WrapAlignment.center,
-                              children: [
-                                TextButton(
-                                  onPressed: _performSearch,
-                                  child: const Text('Tentar novamente'),
-                                ),
-                                TextButton(
-                                  onPressed: () =>
-                                      _showManualAddDialog(context, user.uid),
-                                  child: const Text('Cadastrar manualmente'),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
+        body: Column(
+          children: [
+            // Campo de Busca
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: CustomTextField(
+                      controller: _searchController,
+                      label: 'Pesquisar livro',
+                      hint: 'Título, autor ou ISBN...',
+                      prefixIcon: Icons.search_rounded,
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    itemCount: _searchResults.length,
-                    itemBuilder: (context, index) {
-                      final book = _searchResults[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                        child: BookCard(
-                          book: book,
-                          onTap: () => showBookDetailsSheet(
-                            this.context,
-                            book,
-                            false,
-                            bookService: _bookService,
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(
-                              Icons.add_box_rounded,
-                              color: theme.primaryColor,
-                              size: 28,
-                            ),
-                            tooltip: 'Adicionar à estante',
-                            onPressed: () =>
-                                _showAddBookDialog(context, book, user.uid),
-                          ),
-                        ),
-                      );
-                    },
                   ),
-          ),
-          if (_skippedCount > 0)
-            const Padding(
-              padding: EdgeInsets.all(8),
-              child: Text(
-                'Alguns resultados não estão disponíveis.',
-                textAlign: TextAlign.center,
+                  const SizedBox(width: 8),
+                  IconButton.filled(
+                    tooltip: 'Buscar livros',
+                    icon: const Icon(Icons.search_rounded),
+                    style: IconButton.styleFrom(
+                      backgroundColor: theme.primaryColor,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      padding: const EdgeInsets.all(14),
+                    ),
+                    onPressed: _performSearch,
+                  ),
+                ],
               ),
             ),
-          if (_paginationError != null)
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Text(_paginationError!, textAlign: TextAlign.center),
+
+            // Área de Resultados
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _searchResults.isEmpty
+                  ? Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _hasSearched
+                                  ? Icons.search_off_rounded
+                                  : Icons.library_books_rounded,
+                              size: 48,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              _searchError ??
+                                  (_hasSearched
+                                      ? 'Nenhum resultado encontrado.\nTente buscar por outros termos ou adicione manualmente.'
+                                      : 'Pesquise pelo título ou autor para encontrar novos livros.'),
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            if (_searchError != null)
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  TextButton(
+                                    onPressed: _performSearch,
+                                    child: const Text('Tentar novamente'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        _showManualAddDialog(context, user.uid),
+                                    child: const Text('Cadastrar manualmente'),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final book = _searchResults[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: BookCard(
+                            book: book,
+                            onTap: () => showBookDetailsSheet(
+                              this.context,
+                              book,
+                              false,
+                              bookService: _bookService,
+                            ),
+                            trailing: IconButton(
+                              icon: Icon(
+                                Icons.add_box_rounded,
+                                color: theme.primaryColor,
+                                size: 28,
+                              ),
+                              tooltip: 'Adicionar à estante',
+                              onPressed: () =>
+                                  _showAddBookDialog(context, book, user.uid),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
-          if (_nextStartIndex != null || _isLoadingMore)
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: TextButton(
-                onPressed: _isLoadingMore ? null : _loadMore,
+            if (_skippedCount > 0)
+              const Padding(
+                padding: EdgeInsets.all(8),
                 child: Text(
-                  _isLoadingMore
-                      ? 'Carregando mais livros…'
-                      : _paginationError != null
-                      ? 'Tentar carregar mais'
-                      : 'Carregar mais',
+                  'Alguns resultados não estão disponíveis.',
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
-        ],
+            if (_paginationError != null)
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(_paginationError!, textAlign: TextAlign.center),
+              ),
+            if (_nextStartIndex != null || _isLoadingMore)
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: TextButton(
+                  onPressed: _isLoadingMore ? null : _loadMore,
+                  child: Text(
+                    _isLoadingMore
+                        ? 'Carregando mais livros…'
+                        : _paginationError != null
+                        ? 'Tentar carregar mais'
+                        : 'Carregar mais',
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

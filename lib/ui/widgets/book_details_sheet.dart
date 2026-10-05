@@ -74,7 +74,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Status atualizado para "$newStatus"!'),
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
       }
@@ -87,7 +87,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
             content: Text(
               'Não foi possível atualizar o status: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.saveBook)}',
             ),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -118,9 +118,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Data de conclusão atualizada!'),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     } catch (error) {
@@ -131,7 +131,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
           content: Text(
             'Não foi possível atualizar a data: ${ErrorHandler.getFriendlyErrorMessage(error, operation: ErrorOperation.saveBook)}',
           ),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -145,9 +145,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
       builder: (dialogContext) => AlertDialog(
         title: Text(
           'Excluir Livro',
-          style: GoogleFonts.playfairDisplay(
+          style: GoogleFonts.outfit(
             fontWeight: FontWeight.bold,
-            color: Colors.redAccent,
+            color: Theme.of(context).colorScheme.error,
           ),
         ),
         content: Text(
@@ -156,14 +156,14 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
+            child: Text('Cancelar'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(
+            child: Text(
               'Remover',
               style: TextStyle(
-                color: Colors.redAccent,
+                color: Theme.of(context).colorScheme.error,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -180,13 +180,14 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     final service = _bookService;
     final book = _currentBook;
     final feedback = widget.onDeletionFeedback;
+    final scheme = Theme.of(context).colorScheme;
     Navigator.pop(context);
     try {
       await service.deleteBook(book.id);
       feedback(
         SnackBar(
           content: Text('"${book.title}" removido com sucesso.'),
-          backgroundColor: Colors.green,
+          backgroundColor: scheme.primary,
         ),
       );
     } catch (e) {
@@ -195,7 +196,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
           content: Text(
             'Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.deleteBook)}',
           ),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: scheme.error,
         ),
       );
     }
@@ -219,7 +220,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
             blurRadius: 15,
             spreadRadius: 2,
           ),
@@ -237,7 +238,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[600]?.withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outlineVariant.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -251,7 +254,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.4),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.12,
+                      ),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -277,7 +282,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
               _currentBook.title,
               textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall?.copyWith(
-                fontFamily: GoogleFonts.playfairDisplay().fontFamily,
+                fontFamily: GoogleFonts.outfit().fontFamily,
                 fontWeight: FontWeight.bold,
                 height: 1.25,
               ),
@@ -333,7 +338,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                           Icons.check_circle_rounded,
                           'Lido em',
                           finishedDateStr ?? 'Data não informada',
-                          textColor: Colors.greenAccent[700],
+                          textColor: Theme.of(context).colorScheme.primary,
                         ),
                     ],
             ),
@@ -395,8 +400,11 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
               const SizedBox(height: 20),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.redAccent,
-                  side: const BorderSide(color: Colors.redAccent, width: 1.2),
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.error,
+                    width: 1.2,
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -429,8 +437,12 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
           end: Alignment.bottomRight,
         ),
       ),
-      child: const Center(
-        child: Icon(Icons.book_rounded, size: 48, color: Colors.grey),
+      child: Center(
+        child: Icon(
+          Icons.book_rounded,
+          size: 48,
+          color: theme.colorScheme.primary,
+        ),
       ),
     );
   }
@@ -449,7 +461,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
         const SizedBox(height: 6),
         Text(
           label,
-          style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 2),
         Text(
@@ -476,11 +490,16 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
             status,
           ).withValues(alpha: 0.15),
           foregroundColor: _getStatusColor(context, status),
+          disabledForegroundColor: _getStatusColor(context, status),
+          disabledBackgroundColor: _getStatusColor(
+            context,
+            status,
+          ).withValues(alpha: .15),
           elevation: 0,
           side: BorderSide(color: _getStatusColor(context, status), width: 1.5),
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
         onPressed: null, // Desabilita se já for o status atual
@@ -492,11 +511,13 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     } else {
       return OutlinedButton(
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.grey[400],
-          side: BorderSide(color: Colors.grey[700] ?? Colors.grey),
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
         onPressed: _isBusy ? null : () => _updateStatus(status),
@@ -520,11 +541,11 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     final theme = Theme.of(context);
     switch (status) {
       case 'Lido':
-        return Colors.green;
+        return Theme.of(context).colorScheme.primary;
       case 'Lendo':
         return theme.primaryColor;
       default:
-        return Colors.grey[500] ?? Colors.grey;
+        return Theme.of(context).colorScheme.onSurfaceVariant;
     }
   }
 }

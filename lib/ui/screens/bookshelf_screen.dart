@@ -110,7 +110,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('"${book.title}" marcado como lido!'),
-              backgroundColor: Colors.green,
+              backgroundColor: Theme.of(context).colorScheme.primary,
             ),
           );
         }
@@ -121,7 +121,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
               content: Text(
                 'Não foi possível marcar como lido. ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.saveBook)}',
               ),
-              backgroundColor: Colors.redAccent,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -141,9 +141,9 @@ class _BookshelfScreenState extends State<BookshelfScreen>
         return AlertDialog(
           title: Text(
             'Excluir Livro',
-            style: GoogleFonts.playfairDisplay(
+            style: GoogleFonts.outfit(
               fontWeight: FontWeight.bold,
-              color: Colors.redAccent,
+              color: Theme.of(context).colorScheme.error,
             ),
           ),
           content: Text(
@@ -165,7 +165,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('"${book.title}" removido com sucesso.'),
-                        backgroundColor: Colors.green,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                       ),
                     );
                   }
@@ -176,16 +176,16 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                         content: Text(
                           'Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.deleteBook)}',
                         ),
-                        backgroundColor: Colors.redAccent,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                       ),
                     );
                   }
                 }
               },
-              child: const Text(
+              child: Text(
                 'Remover',
                 style: TextStyle(
-                  color: Colors.redAccent,
+                  color: Theme.of(context).colorScheme.error,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -205,7 +205,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
         return AlertDialog(
           title: Text(
             'Começar Leitura',
-            style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
           ),
           content: Text(
             'Deseja iniciar a leitura de "${book.title}" agora?',
@@ -230,7 +230,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                         content: Text(
                           'Você começou a ler "${book.title}"! Boa leitura!',
                         ),
-                        backgroundColor: Colors.green,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                       ),
                     );
                   }
@@ -241,7 +241,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                         content: Text(
                           'Não foi possível iniciar a leitura. ${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.saveBook)}',
                         ),
-                        backgroundColor: Colors.redAccent,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                       ),
                     );
                   }
@@ -274,10 +274,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Estantes',
-          style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
-        ),
+        title: Text('Estantes'),
         bottom: TabBar(
           controller: _userTabController,
           tabs: [
@@ -306,14 +303,16 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                         Icon(
                           Icons.favorite_border_rounded,
                           size: 48,
-                          color: Colors.grey[600],
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(height: 12),
                         Text(
                           'Aguardando conexão com o seu amor.\nVincule a conta na aba de perfil!',
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[500],
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -322,7 +321,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                 ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
             context,
@@ -330,7 +329,9 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           );
         },
         backgroundColor: theme.primaryColor,
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Adicionar livro'),
+        tooltip: 'Buscar ou cadastrar um livro',
       ),
     );
   }
@@ -349,7 +350,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
               child: SelectableText(
                 'Erro ao carregar estante: ${ErrorHandler.getFriendlyErrorMessage(snapshot.error, operation: ErrorOperation.loadLibrary)}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.redAccent),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
           );
@@ -424,7 +425,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
             emptyMessage,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[500],
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -474,9 +475,10 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                             _confirmAndStartReading(this.context, book),
                       ),
                       IconButton(
-                        icon: const Icon(
+                        tooltip: 'Excluir livro',
+                        icon: Icon(
                           Icons.delete_outline,
-                          color: Colors.redAccent,
+                          color: Theme.of(context).colorScheme.error,
                         ),
                         onPressed: () =>
                             _confirmAndDeleteBook(this.context, book),
@@ -505,7 +507,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           child: Text(
             'Nenhuma leitura concluída ainda.',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[500],
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -542,7 +544,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                 Text(
                   '${_getMonthName(month)} / $year',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontFamily: GoogleFonts.playfairDisplay().fontFamily,
+                    fontFamily: GoogleFonts.outfit().fontFamily,
                     fontWeight: FontWeight.bold,
                     color: theme.primaryColor,
                   ),
@@ -550,7 +552,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                 Text(
                   '${monthBooks.length} ${monthBooks.length == 1 ? 'lido' : 'lidos'}',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[500],
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],

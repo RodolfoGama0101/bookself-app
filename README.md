@@ -13,6 +13,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
 | [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
+| [docs/DESIGN.md](docs/DESIGN.md) | Sistema visual, layouts responsivos e validação do redesign das telas atuais. |
 | [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integrações atuais e candidatas, com fontes oficiais. |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Configuração isolada de Auth/Firestore, comandos e clientes por plataforma. |
 | [docs/SECURITY.md](docs/SECURITY.md) | Auditoria remota, regras candidatas, concorrência de vínculo e implantação pendente. |
@@ -35,6 +36,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 - Vínculo de duas contas por código, consulta da estante do parceiro e feed de atividades recentes de livros. O cliente aguarda o lote, bloqueia ações repetidas e não consulta o perfil do destinatário antes de vincular. Validação de concorrência/reciprocidade está pronta nas regras locais e precisa ser implantada no servidor. O Início atualiza feed e estatísticas automaticamente pelo stream; não oferece gesto de atualização manual.
 - Acompanhamento de capítulos lidos nos 66 livros da Bíblia, com comparação do progresso do casal. Marcação individual/em lote aguarda confirmação, bloqueia ações repetidas e permite nova tentativa após falha.
 - Edição de nome e foto de perfil; escolha de tema Claro, Escuro ou Sistema, salva localmente e restaurada ao abrir o app.
+- Design Organic com paleta areia/sálvia/musgo, tipografia Outfit, cartões flexíveis e navegação lateral em telas grandes. Login, busca, capítulos e perfil têm limites de largura; a barra inferior mantém as quatro abas em telas pequenas.
 - Fechamento seguro de busca, perfil, detalhes e diálogos durante requisições, com resultado de exclusão na estante.
 
 A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes, séries e músicas ainda não estão implementados. O vínculo atual é direto por código, sem etapa de aceite.

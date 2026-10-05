@@ -45,6 +45,7 @@ class CustomTextField extends StatelessWidget {
             : null,
         suffixIcon: suffixIcon != null
             ? IconButton(
+                tooltip: obscureText ? 'Mostrar senha' : 'Ocultar senha',
                 icon: Icon(
                   suffixIcon,
                   color: theme.primaryColor.withValues(alpha: 0.8),
