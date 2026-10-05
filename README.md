@@ -12,6 +12,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 | [AGENTS.md](AGENTS.md) | Orientações para trabalhar neste repositório. |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
 | [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
+| [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
 | [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integrações atuais e candidatas, com fontes oficiais. |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Configuração isolada de Auth/Firestore, comandos e clientes por plataforma. |
@@ -79,6 +80,8 @@ Há projetos para Android, iOS e web, com opções Firebase para essas plataform
    ```
 
 ## Validação
+
+Em **05/10/2026**, a jornada Flutter web foi executada no navegador integrado com duas contas fictícias em Auth/Firestore demo: cadastro/perfil, livro manual sem capa, status/data, progresso bíblico, vínculo/consulta e desvínculo com dados pessoais preservados. A busca sem chave teve sua mensagem repetida corrigida; análise limpa, 275 testes Flutter e build web demo passaram. Restauração automática após recarga, rede/offline, capas externas e plataformas nativas continuam pendentes. O [registro web](docs/WEB_VALIDATION.md) atualiza o limite da jornada emulada nas evidências anteriores, sem validar produção ou concluir toda a matriz de release.
 
 Em **05/10/2026**, a jornada Flutter web foi executada no navegador integrado com duas contas fictícias em Auth/Firestore demo: cadastro/perfil, livro manual sem capa, status/data, progresso bíblico, vínculo/consulta e desvínculo com dados pessoais preservados. A busca sem chave teve sua mensagem repetida corrigida; análise limpa, 275 testes Flutter e build web demo passaram. Restauração automática após recarga, rede/offline, capas externas e plataformas nativas continuam pendentes. O [registro web](docs/WEB_VALIDATION.md) atualiza o limite da jornada emulada nas evidências anteriores, sem validar produção ou concluir toda a matriz de release.
 

@@ -11,6 +11,7 @@ Leia `README.md`, as tarefas relacionadas em `BACKLOG.md` e os documentos releva
 - Use `BACKLOG.md` como fonte central de tarefas. Preserve IDs e atualize status, dependências e evidências de conclusão.
 - Trabalhe no escopo solicitado pelo usuário; não implemente todo o backlog em resposta a uma solicitação pontual.
 - Preserve alterações locais. Consulte `git status` e o diff antes de editar.
+- Ao concluir uma atividade com alterações, crie um commit local com as mudanças verificadas e a documentação correspondente. Essa é uma orientação permanente do usuário. Mantenha segredos, configurações locais e artefatos gerados fora dos commits.
 - Atualize a documentação quando comportamento, configuração ou modelo de dados mudar.
 - Registre decisões pendentes como propostas. Não escolha silenciosamente marca definitiva, fornecedor musical ou política de compartilhamento.
 - Use português brasileiro na documentação e interface, mantendo os identificadores em inglês usados no código.

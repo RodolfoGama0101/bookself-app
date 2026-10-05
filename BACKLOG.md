@@ -54,6 +54,8 @@ Decisões/ensaios e ajustes de documentação podem ocorrer enquanto correções
 
 - [x] **CORE-12 · P2 · Correção:** evitar orientação duplicada na mensagem de falha da busca. **Dep.:** CORE-08. **Concluído em 05/10/2026:** jornada web demo revelou que configuração ausente mostrava duas frases sobre cadastro manual. `SearchScreen` agora apresenta somente a tradução de `ErrorHandler`, mantendo as ações Manual e Cadastrar manualmente. Formatação executada; análise limpa e 275 testes Flutter passaram. Build web demo recompilado e mensagem única conferida no navegador integrado. Sem alteração de dependências, dados ou regras; evidências em `docs/WEB_VALIDATION.md`.
 
+- [x] **CORE-12 · P2 · Correção:** evitar orientação duplicada na mensagem de falha da busca. **Dep.:** CORE-08. **Concluído em 05/10/2026:** jornada web demo revelou que configuração ausente mostrava duas frases sobre cadastro manual. `SearchScreen` agora apresenta somente a tradução de `ErrorHandler`, mantendo as ações Manual e Cadastrar manualmente. Formatação executada; análise limpa e 275 testes Flutter passaram. Build web demo recompilado e mensagem única conferida no navegador integrado. Sem alteração de dependências, dados ou regras; evidências em `docs/WEB_VALIDATION.md`.
+
 ## 3. Autorização, dados pessoais e ambiente
 
 - [x] **SEC-01 · P0 · Verificação/Evolução:** auditar regras remotas e versionar regras do Firestore; registrar índices necessários. **Dep.:** —. **Concluído localmente em 03/10/2026; implantação pendente:** consulta somente de metadados pela sessão existente do CLI confirmou regra remota recursiva `request.auth != null` e zero índices/overrides; nenhum documento pessoal consultado nem escrita remota. Auditoria/fingerprint em `docs/SECURITY.md`. `firestore.rules` candidata protege dono/parceiro recíproco/terceiro, autoria, perfil/campos, estados/datas de livro e ID/limites dos 66 livros bíblicos; demais coleções negadas. `firestore.indexes.json` versiona configuração vazia, compatível com queries atuais. Testes de acesso, negações, dados legados, queries e desvínculo passaram em servidor Firestore emulado, parte da suíte de 24 testes de integração (QA-02). **As regras remotas continuam permissivas até implantação explícita posterior**, que exige revisão de release, compatibilidade dos documentos/clientes e recuperação. E-mail ainda é consultável pelo parceiro no perfil inteiro; separar dados privados permanece em SEC-04. Sem migração ou ampliação de compartilhamento.
@@ -151,6 +153,10 @@ Estes itens são sugestões de produto, não compromissos do MVP solicitado.
 - [ ] **IDEA-05 · P3 · Verificação:** avaliar links de onde assistir/ouvir e reprodução/sessões sincronizadas. **Dep.:** API-02, API-03. **Concluir quando:** viabilidade, regiões, permissões, disponibilidade e valor forem documentados; separar links externos de reprodução interna antes de planejar implementação.
 
 ## Evidências e limites da análise inicial
+
+### Avanço local de 05/10/2026
+
+Decisões parciais de PROD-01/COUPLE-01 registradas acima; CORE-12 concluída. Jornada Flutter web com duas contas fictícias em Auth/Firestore demo cobriu cadastro/perfil, livro manual/status/data/feed, Bíblia, vínculo/consulta/desvínculo e preservação pessoal em nova sessão. Evidências, comandos e limites em [WEB_VALIDATION.md](docs/WEB_VALIDATION.md). Isso avança **DOC-03/API-05/REL-04**, sem concluir os itens: reprodução por outra pessoa, capas externas/offline, Android/iOS e restauração automática após recarga permanecem pendentes. Análise limpa, 275 testes Flutter e build web demo aprovados. Sem implantação ou migração; alterações locais anteriores preservadas e novos commits separados por entrega.
 
 ### Avanço local de 05/10/2026
 
