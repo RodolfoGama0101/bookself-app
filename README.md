@@ -51,6 +51,8 @@ Há projetos para Android, iOS e web, com opções Firebase para essas plataform
 
 ## Configuração e execução
 
+APK Android **1.1.0+2** disponível na [pré-release v1.1.0](https://github.com/RodolfoGama0101/bookself-app/releases/tag/v1.1.0), com arquivo SHA-256. Versão para testes com assinatura debug; catálogo sem chave Google Books, mantendo cadastro manual. [Notas e limites](docs/releases/v1.1.0.md).
+
 1. Selecione Flutter 3.44.0/Dart 3.12.0, na revisão registrada em `tool/flutter-sdk.json`. Instalação e conferência do SDK estão em [DEVELOPMENT.md](docs/DEVELOPMENT.md#selecionar-o-sdk-reproduzível).
 2. Na raiz do repositório, instale as dependências:
 
@@ -115,7 +117,7 @@ O serviço bíblico valida nome, proprietário, capítulo e total do lote antes 
 
 Em 03/10/2026, os builds Android **debug** padrão e demo passaram com o lockfile atual, sem alterar Gradle, IDs ou configuração Firebase gerada. O log antigo registra falha no compilador Java sem o diagnóstico da causa; ela não reapareceu nos builds atuais. Detalhes, avisos e limites em [ANDROID_BUILD.md](docs/ANDROID_BUILD.md). Nenhum APK foi instalado/executado; a assinatura Android de release continua debug.
 
-O workflow [CI](.github/workflows/ci.yml) está preparado e validado por actionlint, com análise/testes Flutter/build web demo e testes de Auth/Firestore emulado. Instalação por lockfile, SDK/ações fixados e ausência de deploy/credenciais de produção estão documentados em [DEVELOPMENT.md](docs/DEVELOPMENT.md#integração-contínua). Execução no GitHub e proteção de branch obrigando os checks permanecem pendentes; criar o arquivo não garante bloqueio de merge.
+O workflow [CI](.github/workflows/ci.yml) está preparado e validado por actionlint, com análise/testes Flutter/build web demo e testes de Auth/Firestore emulado. Instalação por lockfile, SDK/ações fixados e ausência de deploy/credenciais de produção estão documentados em [DEVELOPMENT.md](docs/DEVELOPMENT.md#integração-contínua). Os dois checks passaram no [GitHub em 05/10/2026](https://github.com/RodolfoGama0101/bookself-app/actions/runs/37344664198), após corrigir a seleção do canal stable no runner. Proteção de branch obrigando os checks e comprovação de bloqueio de merge permanecem pendentes.
 
 Não foram validados: login real em produção, autorização remota por operações com contas reais, jornada Flutter com emuladores no navegador/dispositivo e builds de distribuição Android/iOS. Regras/índices remotos foram consultados somente como metadados, sem ler/escrever documentos pessoais. A aprovação de implantação permanece adiada em SEC-06.
 
