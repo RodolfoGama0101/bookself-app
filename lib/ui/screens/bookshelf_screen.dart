@@ -8,6 +8,7 @@ import '../widgets/book_card.dart';
 import 'search_screen.dart';
 import '../../utils/error_handler.dart';
 import '../widgets/book_details_sheet.dart';
+import '../widgets/completion_date_picker.dart';
 
 class BookshelfScreen extends StatefulWidget {
   const BookshelfScreen({super.key, this.bookService});
@@ -24,6 +25,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
   late TabController _myInnerTabController;
   late TabController _partnerInnerTabController;
   late final BookService _bookService = widget.bookService ?? BookService();
+  final Set<String> _pendingCompletions = {};
 
   @override
   void initState() {
@@ -87,27 +89,16 @@ class _BookshelfScreenState extends State<BookshelfScreen>
 
   // Abre seletor de data e atualiza o livro para "Lido"
   void _markAsRead(BuildContext context, BookModel book) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      helpText: 'Quando você terminou a leitura?',
-      cancelText: 'Cancelar',
-      confirmText: 'Confirmar',
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(
-              context,
-            ).colorScheme.copyWith(primary: Theme.of(context).primaryColor),
-          ),
-          child: child!,
-        );
-      },
-    );
+    if (!_pendingCompletions.add(book.id)) return;
+    final pickedDate = await showCompletionDatePicker(context);
+    if (!context.mounted) return;
+    if (pickedDate == null) {
+      _pendingCompletions.remove(book.id);
+      return;
+    }
+    setState(() {});
 
-    if (pickedDate != null && context.mounted) {
+    if (context.mounted) {
       final updatedBook = book.copyWith(
         status: 'Lido',
         finishedDate: pickedDate,
@@ -134,6 +125,9 @@ class _BookshelfScreenState extends State<BookshelfScreen>
             ),
           );
         }
+      } finally {
+        _pendingCompletions.remove(book.id);
+        if (mounted) setState(() {});
       }
     }
   }
@@ -462,7 +456,9 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                       color: theme.primaryColor,
                     ),
                     tooltip: 'Marcar como Lido',
-                    onPressed: () => _markAsRead(this.context, book),
+                    onPressed: _pendingCompletions.contains(book.id)
+                        ? null
+                        : () => _markAsRead(this.context, book),
                   )
                 : isEditable && book.status == 'Quero Ler'
                 ? Row(
@@ -498,8 +494,11 @@ class _BookshelfScreenState extends State<BookshelfScreen>
   Widget _buildGroupedReadList(List<BookModel> books, bool isEditable) {
     final theme = Theme.of(context);
     final groupedData = _groupBooksByDate(books);
+    final undatedBooks = books
+        .where((book) => book.status == 'Lido' && book.finishedDate == null)
+        .toList();
 
-    if (groupedData.isEmpty) {
+    if (groupedData.isEmpty && undatedBooks.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -536,7 +535,9 @@ class _BookshelfScreenState extends State<BookshelfScreen>
               bottom: 8.0,
               right: 20.0,
             ),
-            child: Row(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
               children: [
                 Text(
                   '${_getMonthName(month)} / $year',
@@ -546,14 +547,6 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                     color: theme.primaryColor,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Divider(
-                    color: theme.primaryColor.withOpacity(0.3),
-                    thickness: 1,
-                  ),
-                ),
-                const SizedBox(width: 8),
                 Text(
                   '${monthBooks.length} ${monthBooks.length == 1 ? 'lido' : 'lidos'}',
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -585,6 +578,40 @@ class _BookshelfScreenState extends State<BookshelfScreen>
             ),
           );
         }
+      }
+    }
+
+    if (undatedBooks.isNotEmpty) {
+      listItems.add(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+          child: Text(
+            'Data de conclusão não informada',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.primaryColor,
+            ),
+          ),
+        ),
+      );
+      for (final book in undatedBooks) {
+        listItems.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: BookCard(
+              book: book,
+              onTap: () => showBookDetailsSheet(
+                context,
+                book,
+                isEditable,
+                bookService: _bookService,
+              ),
+              onDelete: isEditable
+                  ? () => _confirmAndDeleteBook(context, book)
+                  : null,
+            ),
+          ),
+        );
       }
     }
 

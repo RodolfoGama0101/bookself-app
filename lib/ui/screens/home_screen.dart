@@ -176,15 +176,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          theme.primaryColor.withOpacity(0.15),
-                          theme.colorScheme.secondary.withOpacity(0.08),
+                          theme.primaryColor.withValues(alpha: 0.15),
+                          theme.colorScheme.secondary.withValues(alpha: 0.08),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: theme.primaryColor.withOpacity(0.2),
+                        color: theme.primaryColor.withValues(alpha: 0.2),
                         width: 1,
                       ),
                     ),
@@ -209,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 CircleAvatar(
                                   radius: 26,
                                   backgroundColor: theme.primaryColor
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                                   backgroundImage: _getAvatarImage(
                                     user.photoUrl,
                                     false,
@@ -272,8 +272,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             // Ícone de Divisória Romântica
                             Icon(
                               Icons.favorite_rounded,
-                              color: theme.colorScheme.secondary.withOpacity(
-                                0.7,
+                              color: theme.colorScheme.secondary.withValues(
+                                alpha: 0.7,
                               ),
                               size: 28,
                             ),
@@ -284,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 CircleAvatar(
                                   radius: 26,
                                   backgroundColor: theme.colorScheme.secondary
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                                   backgroundImage: _getAvatarImage(
                                     partner?.photoUrl,
                                     true,

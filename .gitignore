@@ -33,6 +33,11 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Ferramentas e dados locais dos emuladores
+**/node_modules/
+/tool/firebase/.emulator-data/
+/config/*.local.json
+
 # Symbolication related
 app.*.symbols
 

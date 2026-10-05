@@ -1,0 +1,58 @@
+[
+  {
+    "file": "Outfit-Regular.ttf",
+    "weight": 400,
+    "sha256": "28fe0a241b5270b9a576ef60c21bec15aefd15ac11df0537e954ef6bd4aece9c",
+    "bytes": 47820,
+    "url": "https://fonts.gstatic.com/s/a/28fe0a241b5270b9a576ef60c21bec15aefd15ac11df0537e954ef6bd4aece9c.ttf"
+  },
+  {
+    "file": "Outfit-Medium.ttf",
+    "weight": 500,
+    "sha256": "020dd19794fbcb05ec8e4ea2d2a35dd46e8073a1fbf7ed674aa8d32f3b063cf2",
+    "bytes": 47776,
+    "url": "https://fonts.gstatic.com/s/a/020dd19794fbcb05ec8e4ea2d2a35dd46e8073a1fbf7ed674aa8d32f3b063cf2.ttf"
+  },
+  {
+    "file": "Outfit-SemiBold.ttf",
+    "weight": 600,
+    "sha256": "9f897e407e3027fe1022db28d78d19851195331567fb477801cf3d12edc3e3af",
+    "bytes": 48432,
+    "url": "https://fonts.gstatic.com/s/a/9f897e407e3027fe1022db28d78d19851195331567fb477801cf3d12edc3e3af.ttf"
+  },
+  {
+    "file": "Outfit-Bold.ttf",
+    "weight": 700,
+    "sha256": "20bb459e188481fbcfa23f518d92efd946077016c47d8546e6fb6558ad6c2036",
+    "bytes": 48316,
+    "url": "https://fonts.gstatic.com/s/a/20bb459e188481fbcfa23f518d92efd946077016c47d8546e6fb6558ad6c2036.ttf"
+  },
+  {
+    "file": "PlayfairDisplay-Regular.ttf",
+    "weight": 400,
+    "sha256": "775cd3f92411b97cc374e0d8909c5caf3713508120866dc62b08f7a20213ba6d",
+    "bytes": 123216,
+    "url": "https://fonts.gstatic.com/s/a/775cd3f92411b97cc374e0d8909c5caf3713508120866dc62b08f7a20213ba6d.ttf"
+  },
+  {
+    "file": "PlayfairDisplay-Medium.ttf",
+    "weight": 500,
+    "sha256": "102a056af74fd12dd9436188b5c3bf72aa6e7e1ae55223d4e6cd76652edff492",
+    "bytes": 123584,
+    "url": "https://fonts.gstatic.com/s/a/102a056af74fd12dd9436188b5c3bf72aa6e7e1ae55223d4e6cd76652edff492.ttf"
+  },
+  {
+    "file": "PlayfairDisplay-SemiBold.ttf",
+    "weight": 600,
+    "sha256": "9d28ec9ef0160652a7f0c9a1be5a55361b9f5249e8da1ad0b81916dbf1fee7e5",
+    "bytes": 123648,
+    "url": "https://fonts.gstatic.com/s/a/9d28ec9ef0160652a7f0c9a1be5a55361b9f5249e8da1ad0b81916dbf1fee7e5.ttf"
+  },
+  {
+    "file": "PlayfairDisplay-Bold.ttf",
+    "weight": 700,
+    "sha256": "529bffba18f383c1e3d0c1851b77b3bccfdd841ab051a5517543efca15b65038",
+    "bytes": 123512,
+    "url": "https://fonts.gstatic.com/s/a/529bffba18f383c1e3d0c1851b77b3bccfdd841ab051a5517543efca15b65038.ttf"
+  }
+]

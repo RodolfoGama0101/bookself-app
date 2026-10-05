@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../data/models/user_model.dart';
 import 'user_profile_service.dart';
+import 'partner_service.dart';
+import 'firebase_environment.dart';
 import '../utils/error_handler.dart';
 
 enum AuthSessionState {
@@ -18,9 +20,7 @@ enum AuthSessionState {
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth;
-  final FirebaseFirestore? _injectedFirestore;
-  FirebaseFirestore get _firestore =>
-      _injectedFirestore ?? FirebaseFirestore.instance;
+  final PartnerService _partners;
   final UserProfileService _profiles;
   final Duration sessionTimeout;
 
@@ -49,15 +49,18 @@ class AuthService extends ChangeNotifier {
   UserModel? get partnerUserModel => _partnerUserModel;
 
   bool _isLoading = false;
-  bool get isLoading => _isLoading;
+  bool _partnerOperationPending = false;
+  int _partnerOperationRevision = 0;
+  bool get isLoading => _isLoading || _partnerOperationPending;
 
   AuthService({
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
     UserProfileService? profiles,
+    PartnerService? partners,
     this.sessionTimeout = const Duration(seconds: 15),
-  }) : _auth = auth ?? FirebaseAuth.instance,
-       _injectedFirestore = firestore,
+  }) : _auth = auth ?? FirebaseEnvironment.auth,
+       _partners = partners ?? PartnerService(firestore: firestore),
        _profiles = profiles ?? UserProfileService(firestore: firestore) {
     _listenToAuth();
   }
@@ -95,6 +98,8 @@ class AuthService extends ChangeNotifier {
   }
 
   void _handleAuthError(Object error) {
+    _partnerOperationRevision++;
+    _partnerOperationPending = false;
     _cancelSubscriptions();
     _currentUserModel = null;
     _sessionState = AuthSessionState.authError;
@@ -105,6 +110,8 @@ class AuthService extends ChangeNotifier {
   }
 
   void _handleAuthUser(User? user) {
+    _partnerOperationRevision++;
+    _partnerOperationPending = false;
     _cancelSubscriptions();
     _sessionUser = user;
     _currentUserModel = null;
@@ -382,102 +389,64 @@ class AuthService extends ChangeNotifier {
     await _auth.signOut();
   }
 
-  // Vincular com parceiro via código (que é o UID do parceiro)
+  // O lote e as regras verificam ambas as contas sem ler o destinatário.
   Future<String?> linkPartner(String partnerCode) async {
-    if (partnerCode.trim().isEmpty) return 'O código não pode ser vazio.';
-    if (partnerCode.trim() == _currentUserModel?.uid) {
+    final code = partnerCode.trim();
+    if (code.isEmpty) return 'O código não pode ser vazio.';
+    if (code == _currentUserModel?.uid) {
       return 'Você não pode colar o seu próprio código!';
     }
-
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      // 1. Verifica se o parceiro existe no Firestore
-      DocumentSnapshot partnerDoc = await _firestore
-          .collection('users')
-          .doc(partnerCode.trim())
-          .get();
-
-      if (!partnerDoc.exists) {
-        _isLoading = false;
-        notifyListeners();
-        return 'Parceiro não encontrado. Verifique o código e tente novamente.';
-      }
-
-      UserModel partner = UserModel.fromFirestore(partnerDoc);
-
-      // 2. Verifica se o parceiro já tem outro vínculo
-      if (partner.partnerUid != null &&
-          partner.partnerUid != _currentUserModel?.uid) {
-        _isLoading = false;
-        notifyListeners();
-        return 'Este usuário já está vinculado a outra pessoa.';
-      }
-
-      // 3. Atualiza os dois documentos no Firestore (Relação bidirecional)
-      WriteBatch batch = _firestore.batch();
-
-      DocumentReference myRef = _firestore
-          .collection('users')
-          .doc(_currentUserModel!.uid);
-      DocumentReference partnerRef = _firestore
-          .collection('users')
-          .doc(partner.uid);
-
-      batch.update(myRef, {'partnerUid': partner.uid});
-      batch.update(partnerRef, {'partnerUid': _currentUserModel!.uid});
-
-      await batch.commit();
-
-      _isLoading = false;
-      notifyListeners();
-      return null; // Sucesso
-    } catch (e) {
-      _isLoading = false;
-      notifyListeners();
-      return ErrorHandler.getFriendlyErrorMessage(
-        e,
-        operation: ErrorOperation.linkPartner,
-      );
+    if (_currentUserModel?.partnerUid != null) {
+      return 'Desvincule a conta atual antes de criar outro vínculo.';
     }
+    return _changePartner(code, linking: true);
   }
 
-  // Desvincular parceiro
   Future<String?> unlinkPartner() async {
-    if (_currentUserModel == null || _currentUserModel!.partnerUid == null) {
-      return 'Você não possui nenhum vínculo ativo.';
+    final partnerUid = _currentUserModel?.partnerUid;
+    if (partnerUid == null) return 'Você não possui nenhum vínculo ativo.';
+    return _changePartner(partnerUid, linking: false);
+  }
+
+  Future<String?> _changePartner(
+    String partnerUid, {
+    required bool linking,
+  }) async {
+    final uid = _currentUserModel?.uid;
+    if (_disposed ||
+        uid == null ||
+        _auth.currentUser?.uid != uid ||
+        _sessionState != AuthSessionState.ready) {
+      return 'Entre novamente para continuar.';
     }
-
-    _isLoading = true;
+    if (isLoading) return 'Aguarde a operação atual terminar.';
+    final revision = ++_partnerOperationRevision;
+    _partnerOperationPending = true;
     notifyListeners();
-
     try {
-      String partnerUid = _currentUserModel!.partnerUid!;
-      WriteBatch batch = _firestore.batch();
-
-      DocumentReference myRef = _firestore
-          .collection('users')
-          .doc(_currentUserModel!.uid);
-      DocumentReference partnerRef = _firestore
-          .collection('users')
-          .doc(partnerUid);
-
-      batch.update(myRef, {'partnerUid': null});
-      batch.update(partnerRef, {'partnerUid': null});
-
-      await batch.commit();
-
-      _isLoading = false;
-      notifyListeners();
-      return null; // Sucesso
-    } catch (e) {
-      _isLoading = false;
-      notifyListeners();
+      if (linking) {
+        await _partners.link(uid, partnerUid);
+      } else {
+        await _partners.unlink(uid, partnerUid);
+      }
+      if (_disposed ||
+          revision != _partnerOperationRevision ||
+          _auth.currentUser?.uid != uid) {
+        return 'A sessão mudou. Entre novamente para continuar.';
+      }
+      return null;
+    } catch (error) {
       return ErrorHandler.getFriendlyErrorMessage(
-        e,
-        operation: ErrorOperation.unlinkPartner,
+        error,
+        operation: linking
+            ? ErrorOperation.linkPartner
+            : ErrorOperation.unlinkPartner,
       );
+    } finally {
+      if (!_disposed && revision == _partnerOperationRevision) {
+        _partnerOperationPending = false;
+        notifyListeners();
+      }
     }
   }
 

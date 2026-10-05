@@ -41,6 +41,14 @@ class CatalogRequestException implements Exception {
   final int statusCode;
 }
 
+class CatalogConfigurationException implements Exception {
+  const CatalogConfigurationException();
+}
+
+class CatalogQuotaException extends CatalogRequestException {
+  const CatalogQuotaException(super.statusCode);
+}
+
 class ErrorHandler {
   static const networkMessage =
       'Não foi possível conectar. Verifique sua conexão e tente novamente.';
@@ -100,6 +108,14 @@ class ErrorHandler {
         'Permita o acesso à câmera nas configurações do dispositivo.',
     'photo_access_denied':
         'Permita o acesso às fotos nas configurações do dispositivo.',
+    'camera_access_denied_without_prompt':
+        'Permita o acesso à câmera nas configurações do dispositivo.',
+    'photo_access_denied_without_prompt':
+        'Permita o acesso às fotos nas configurações do dispositivo.',
+    'camera_access_restricted':
+        'O acesso à câmera está restrito neste dispositivo.',
+    'photo_access_restricted':
+        'O acesso às fotos está restrito neste dispositivo.',
     'read_external_storage_denied':
         'Permita o acesso às fotos nas configurações do dispositivo.',
     'network_error': networkMessage,
@@ -143,6 +159,21 @@ class ErrorHandler {
   static ({String message, String category, String code}) _describe(
     Object? error,
   ) {
+    if (error is CatalogConfigurationException) {
+      return (
+        message:
+            'A busca de livros está indisponível. Você pode cadastrar manualmente.',
+        category: 'catalog',
+        code: 'not-configured',
+      );
+    }
+    if (error is CatalogQuotaException) {
+      return (
+        message: _limitMessage,
+        category: 'catalog',
+        code: 'quota-exceeded',
+      );
+    }
     if (error is FirebaseAuthException) {
       return (
         message:

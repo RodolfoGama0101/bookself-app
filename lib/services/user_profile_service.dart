@@ -1,3 +1,4 @@
+import 'firebase_environment.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../data/models/user_model.dart';
@@ -6,7 +7,7 @@ class UserProfileService {
   UserProfileService({this.firestore});
 
   final FirebaseFirestore? firestore;
-  FirebaseFirestore get _database => firestore ?? FirebaseFirestore.instance;
+  FirebaseFirestore get _database => firestore ?? FirebaseEnvironment.firestore;
 
   Future<void> updateName(String uid, String name) {
     return _database.collection('users').doc(uid).update({'name': name});

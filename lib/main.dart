@@ -1,8 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
+import 'services/firebase_environment.dart';
 import 'ui/theme.dart';
 import 'ui/screens/login_screen.dart';
 import 'ui/screens/main_navigation.dart';
@@ -12,6 +17,7 @@ import 'ui/screens/session_gate.dart';
 import 'firebase_options.dart';
 
 void main() {
+  GoogleFonts.config.allowRuntimeFetching = false;
   WidgetsFlutterBinding.ensureInitialized();
 
   runApp(
@@ -63,7 +69,22 @@ class BookselfBootstrap extends StatelessWidget {
 }
 
 Future<void> _initializeFirebase() async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  const environment = FirebaseEnvironment.fromDefines;
+  environment.validate();
+  final app = await Firebase.initializeApp(
+    name: environment.useEmulators ? FirebaseEnvironment.demoProjectId : null,
+    options: environment.useEmulators
+        ? environment.demoOptions
+        : DefaultFirebaseOptions.currentPlatform,
+  );
+  if (environment.useEmulators) {
+    final firestore = FirebaseFirestore.instanceFor(app: app);
+    firestore.settings = const Settings(persistenceEnabled: false);
+    firestore.useFirestoreEmulator(environment.host, environment.firestorePort);
+    await FirebaseAuth.instanceFor(
+      app: app,
+    ).useAuthEmulator(environment.host, environment.authPort);
+  }
 }
 
 class BookselfApp extends StatelessWidget {
@@ -75,6 +96,9 @@ class BookselfApp extends StatelessWidget {
       builder: (context, themeService, _) {
         return MaterialApp(
           title: 'Bookself App',
+          locale: const Locale('pt', 'BR'),
+          supportedLocales: const [Locale('pt', 'BR')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

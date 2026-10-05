@@ -1,0 +1,14 @@
+{
+  "name": "bookself-firebase-tests",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "emulators": "firebase emulators:start --config ../../firebase.emulators.json --project demo-bookself --only auth,firestore",
+    "test": "node run-tests.cjs"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "firebase": "12.19.0",
+    "firebase-tools": "15.24.0"
+  }
+}

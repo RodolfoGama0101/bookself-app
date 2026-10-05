@@ -12,6 +12,7 @@ class BookModel {
   final String publishedDate;
   final DateTime? finishedDate; // Data personalizada selecionada pelo usuário
   final DateTime addedAt;
+  final String? googleBooksId;
 
   BookModel({
     required this.id,
@@ -23,6 +24,7 @@ class BookModel {
     required this.publishedDate,
     this.finishedDate,
     required this.addedAt,
+    this.googleBooksId,
   }) : coverUrl = coverUrl.startsWith('http://')
            ? coverUrl.replaceFirst('http://', 'https://')
            : coverUrl;
@@ -39,6 +41,7 @@ class BookModel {
       publishedDate: data['publishedDate'] ?? '',
       finishedDate: (data['finishedDate'] as Timestamp?)?.toDate(),
       addedAt: (data['addedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      googleBooksId: data['googleBooksId'] as String?,
     );
   }
 
@@ -54,6 +57,7 @@ class BookModel {
           ? Timestamp.fromDate(finishedDate!)
           : null,
       'addedAt': Timestamp.fromDate(addedAt),
+      if (googleBooksId != null) 'googleBooksId': googleBooksId,
     };
   }
 
@@ -68,6 +72,7 @@ class BookModel {
     String? publishedDate,
     Object? finishedDate = _CopyWithValue.unchanged,
     DateTime? addedAt,
+    Object? googleBooksId = _CopyWithValue.unchanged,
   }) {
     return BookModel(
       id: id ?? this.id,
@@ -81,6 +86,9 @@ class BookModel {
           ? this.finishedDate
           : finishedDate as DateTime?,
       addedAt: addedAt ?? this.addedAt,
+      googleBooksId: identical(googleBooksId, _CopyWithValue.unchanged)
+          ? this.googleBooksId
+          : googleBooksId as String?,
     );
   }
 }

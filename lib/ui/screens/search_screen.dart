@@ -10,6 +10,7 @@ import '../widgets/custom_text_field.dart';
 import '../../utils/error_handler.dart';
 import '../widgets/book_details_sheet.dart';
 import '../widgets/dialog_with_controllers.dart';
+import '../widgets/completion_date_picker.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key, this.bookService});
@@ -27,35 +28,54 @@ class _SearchScreenState extends State<SearchScreen> {
   List<BookModel> _searchResults = [];
   bool _isLoading = false;
   bool _hasSearched = false;
+  int _requestRevision = 0;
+  String _activeQuery = '';
+  int? _nextStartIndex;
+  bool _isLoadingMore = false;
+  String? _searchError;
+  String? _paginationError;
+  int _skippedCount = 0;
 
   @override
   void dispose() {
+    _requestRevision++;
     _searchController.dispose();
     super.dispose();
   }
 
   // Executa busca na Google Books API
-  void _performSearch() async {
+  Future<void> _performSearch() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) return;
+    final revision = ++_requestRevision;
 
     setState(() {
       _isLoading = true;
       _hasSearched = true;
+      _activeQuery = query;
+      _searchResults = [];
+      _searchError = null;
+      _paginationError = null;
+      _nextStartIndex = null;
+      _isLoadingMore = false;
+      _skippedCount = 0;
     });
 
     try {
-      final results = await _bookService.searchGoogleBooks(query);
-      if (!mounted) return;
+      final page = await _bookService.searchGoogleBooksPage(query);
+      if (!mounted || revision != _requestRevision) return;
       setState(() {
-        _searchResults = results;
+        _searchResults = page.books;
+        _nextStartIndex = page.nextStartIndex;
+        _skippedCount = page.skippedCount;
         _isLoading = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || revision != _requestRevision) return;
       setState(() {
         _searchResults = [];
         _isLoading = false;
+        _searchError = 'Não foi possível buscar livros.';
       });
       if (mounted) {
         final authService = Provider.of<AuthService>(context, listen: false);
@@ -85,10 +105,53 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  Future<void> _loadMore() async {
+    final startIndex = _nextStartIndex;
+    if (_isLoading || _isLoadingMore || startIndex == null) return;
+    final revision = _requestRevision;
+    final query = _activeQuery;
+    setState(() {
+      _isLoadingMore = true;
+      _paginationError = null;
+    });
+    try {
+      final page = await _bookService.searchGoogleBooksPage(
+        query,
+        startIndex: startIndex,
+      );
+      if (!mounted || revision != _requestRevision) return;
+      final existing = _searchResults
+          .map((book) => book.googleBooksId ?? book.id)
+          .toSet();
+      setState(() {
+        _searchResults = [
+          ..._searchResults,
+          ...page.books.where(
+            (book) => existing.add(book.googleBooksId ?? book.id),
+          ),
+        ];
+        _nextStartIndex = page.nextStartIndex;
+        _skippedCount += page.skippedCount;
+      });
+    } catch (error) {
+      if (!mounted || revision != _requestRevision) return;
+      setState(() {
+        _paginationError = ErrorHandler.getFriendlyErrorMessage(
+          error,
+          operation: ErrorOperation.searchBooks,
+        );
+      });
+    } finally {
+      if (mounted && revision == _requestRevision) {
+        setState(() => _isLoadingMore = false);
+      }
+    }
+  }
+
   // Abre diálogo para escolher o status e data ao salvar o livro
   void _showAddBookDialog(BuildContext context, BookModel book, String userId) {
     String selectedStatus = 'Quero Ler';
-    DateTime selectedDate = DateTime.now();
+    DateTime selectedDate = DateUtils.dateOnly(DateTime.now());
     final theme = Theme.of(context);
     final screenContext = this.context;
     bool isSaving = false;
@@ -99,6 +162,7 @@ class _SearchScreenState extends State<SearchScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+              scrollable: true,
               title: Text(
                 'Adicionar à Estante',
                 style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
@@ -117,7 +181,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
                   // Dropdown de seleção de Status
                   DropdownButtonFormField<String>(
-                    value: selectedStatus,
+                    isExpanded: true,
+                    initialValue: selectedStatus,
                     decoration: const InputDecoration(
                       labelText: 'Status de Leitura',
                     ),
@@ -143,14 +208,9 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(height: 16),
                     InkWell(
                       onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
+                        final picked = await showCompletionDatePicker(
+                          context,
                           initialDate: selectedDate,
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime.now().add(
-                            const Duration(days: 365),
-                          ),
-                          helpText: 'Data de Conclusão',
                         );
                         if (picked != null && context.mounted) {
                           setDialogState(() {
@@ -167,7 +227,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           color: theme.inputDecorationTheme.fillColor,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: theme.primaryColor.withOpacity(0.3),
+                            color: theme.primaryColor.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
@@ -264,7 +324,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final authorController = TextEditingController();
     final coverController = TextEditingController();
     String selectedStatus = 'Quero Ler';
-    DateTime selectedDate = DateTime.now();
+    DateTime selectedDate = DateUtils.dateOnly(DateTime.now());
     final theme = Theme.of(context);
     final formKey = GlobalKey<FormState>();
     final screenContext = this.context;
@@ -277,6 +337,7 @@ class _SearchScreenState extends State<SearchScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+              scrollable: true,
               title: Text(
                 'Adicionar Manualmente',
                 style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
@@ -326,7 +387,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       const SizedBox(height: 12),
 
                       DropdownButtonFormField<String>(
-                        value: selectedStatus,
+                        isExpanded: true,
+                        initialValue: selectedStatus,
                         decoration: const InputDecoration(
                           labelText: 'Status de Leitura',
                         ),
@@ -350,14 +412,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         const SizedBox(height: 12),
                         InkWell(
                           onTap: () async {
-                            final picked = await showDatePicker(
-                              context: context,
+                            final picked = await showCompletionDatePicker(
+                              context,
                               initialDate: selectedDate,
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                              helpText: 'Data de Conclusão',
                             );
                             if (picked != null && context.mounted) {
                               setDialogState(() {
@@ -374,7 +431,9 @@ class _SearchScreenState extends State<SearchScreen> {
                               color: theme.inputDecorationTheme.fillColor,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: theme.primaryColor.withOpacity(0.3),
+                                color: theme.primaryColor.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                             child: Row(
@@ -532,7 +591,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : _searchResults.isEmpty
                 ? Center(
-                    child: Padding(
+                    child: SingleChildScrollView(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -546,14 +605,30 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            _hasSearched
-                                ? 'Nenhum resultado encontrado.\nTente buscar por outros termos ou adicione manualmente.'
-                                : 'Pesquise pelo título ou autor para encontrar novos livros na API do Google.',
+                            _searchError ??
+                                (_hasSearched
+                                    ? 'Nenhum resultado encontrado.\nTente buscar por outros termos ou adicione manualmente.'
+                                    : 'Pesquise pelo título ou autor para encontrar novos livros.'),
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: Colors.grey[500],
                             ),
                           ),
+                          if (_searchError != null)
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              children: [
+                                TextButton(
+                                  onPressed: _performSearch,
+                                  child: const Text('Tentar novamente'),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      _showManualAddDialog(context, user.uid),
+                                  child: const Text('Cadastrar manualmente'),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
@@ -588,6 +663,33 @@ class _SearchScreenState extends State<SearchScreen> {
                     },
                   ),
           ),
+          if (_skippedCount > 0)
+            const Padding(
+              padding: EdgeInsets.all(8),
+              child: Text(
+                'Alguns resultados não estão disponíveis.',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          if (_paginationError != null)
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Text(_paginationError!, textAlign: TextAlign.center),
+            ),
+          if (_nextStartIndex != null || _isLoadingMore)
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: TextButton(
+                onPressed: _isLoadingMore ? null : _loadMore,
+                child: Text(
+                  _isLoadingMore
+                      ? 'Carregando mais livros…'
+                      : _paginationError != null
+                      ? 'Tentar carregar mais'
+                      : 'Carregar mais',
+                ),
+              ),
+            ),
         ],
       ),
     );

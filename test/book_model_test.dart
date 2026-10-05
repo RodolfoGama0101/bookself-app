@@ -106,4 +106,25 @@ void main() {
       throwsA(isA<TypeError>()),
     );
   });
+
+  test('referência Google Books preserva identidade pessoal independente', () {
+    final original = readBook().copyWith(googleBooksId: 'catalog-id');
+    final restored = BookModel.fromFirestore(
+      ProfileSnapshot('personal-id', original.toMap()),
+    );
+    expect(restored.id, 'personal-id');
+    expect(restored.googleBooksId, 'catalog-id');
+    expect(
+      restored.copyWith(title: 'Outro título').googleBooksId,
+      'catalog-id',
+    );
+    expect(
+      restored
+          .copyWith(googleBooksId: null)
+          .toMap()
+          .containsKey('googleBooksId'),
+      isFalse,
+    );
+    expect(readBook().toMap().containsKey('googleBooksId'), isFalse);
+  });
 }

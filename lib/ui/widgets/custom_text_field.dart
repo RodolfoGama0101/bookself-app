@@ -41,11 +41,14 @@ class CustomTextField extends StatelessWidget {
         labelText: label,
         hintText: hint,
         prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, color: theme.primaryColor.withOpacity(0.8))
+            ? Icon(prefixIcon, color: theme.primaryColor.withValues(alpha: 0.8))
             : null,
         suffixIcon: suffixIcon != null
             ? IconButton(
-                icon: Icon(suffixIcon, color: theme.primaryColor.withOpacity(0.8)),
+                icon: Icon(
+                  suffixIcon,
+                  color: theme.primaryColor.withValues(alpha: 0.8),
+                ),
                 onPressed: onSuffixPressed,
               )
             : null,

@@ -1,9 +1,8 @@
+import 'book_cover.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/book_model.dart';
-import '../../utils/error_handler.dart';
 
 class BookCard extends StatelessWidget {
   final BookModel book;
@@ -22,12 +21,6 @@ class BookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasCover =
-        book.coverUrl.isNotEmpty &&
-        (book.coverUrl.startsWith('http://') ||
-            book.coverUrl.startsWith('https://')) &&
-        Uri.tryParse(book.coverUrl)?.hasAbsolutePath == true;
-
     // Formata a data de conclusão se o livro estiver "Lido"
     String? finishedDateStr;
     if (book.status == 'Lido' && book.finishedDate != null) {
@@ -49,34 +42,10 @@ class BookCard extends StatelessWidget {
                 child: SizedBox(
                   width: 75,
                   height: 104,
-                  child: hasCover
-                      ? Image.network(
-                          kIsWeb
-                              ? 'https://wsrv.nl/?url=${Uri.encodeComponent(book.coverUrl)}'
-                              : book.coverUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            ErrorHandler.report(
-                              error,
-                              operation: ErrorOperation.loadBookCover,
-                            );
-                            return _buildCoverPlaceholder(theme);
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                value:
-                                    loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                    : null,
-                              ),
-                            );
-                          },
-                        )
-                      : _buildCoverPlaceholder(theme),
+                  child: BookCover(
+                    url: book.coverUrl,
+                    placeholderBuilder: (_) => _buildCoverPlaceholder(theme),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -103,8 +72,8 @@ class BookCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(
-                          0.7,
+                        color: theme.textTheme.bodyMedium?.color?.withValues(
+                          alpha: 0.7,
                         ),
                       ),
                     ),
@@ -122,7 +91,7 @@ class BookCard extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.primaryColor.withOpacity(0.1),
+                              color: theme.primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -163,8 +132,8 @@ class BookCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            theme.primaryColor.withOpacity(0.3),
-            theme.colorScheme.secondary.withOpacity(0.2),
+            theme.primaryColor.withValues(alpha: 0.3),
+            theme.colorScheme.secondary.withValues(alpha: 0.2),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -183,15 +152,15 @@ class BookCard extends StatelessWidget {
 
     switch (status) {
       case 'Lido':
-        chipColor = Colors.green.withOpacity(0.15);
+        chipColor = Colors.green.withValues(alpha: 0.15);
         textColor = Colors.greenAccent[700] ?? Colors.green;
         break;
       case 'Lendo':
-        chipColor = theme.primaryColor.withOpacity(0.15);
+        chipColor = theme.primaryColor.withValues(alpha: 0.15);
         textColor = theme.primaryColor;
         break;
       default: // "Quero Ler"
-        chipColor = Colors.grey.withOpacity(0.15);
+        chipColor = Colors.grey.withValues(alpha: 0.15);
         textColor = Colors.grey[600] ?? Colors.grey;
     }
 

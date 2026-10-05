@@ -4,6 +4,7 @@ import 'package:bookself_app/data/models/book_model.dart';
 import 'package:bookself_app/data/models/user_model.dart';
 import 'package:bookself_app/services/auth_service.dart';
 import 'package:bookself_app/services/book_service.dart';
+import 'package:bookself_app/data/models/book_search_page.dart';
 import 'package:bookself_app/services/theme_service.dart';
 import 'package:bookself_app/services/user_profile_service.dart';
 import 'package:bookself_app/ui/screens/bookshelf_screen.dart';
@@ -49,6 +50,12 @@ class UiBooks extends BookService {
   final books = StreamController<List<BookModel>>.broadcast();
 
   @override
+  Future<BookSearchPage> searchGoogleBooksPage(
+    String query, {
+    int startIndex = 0,
+  }) async => BookSearchPage(books: await searchGoogleBooks(query));
+
+  @override
   Future<List<BookModel>> searchGoogleBooks(String query) async {
     searches++;
     return search == null ? [] : await search!();
@@ -92,6 +99,7 @@ class UiProfiles extends UserProfileService {
 
 class UiPicker extends ImagePicker {
   final selection = Completer<XFile?>();
+  bool? requestedFullMetadata;
   @override
   Future<XFile?> pickImage({
     required ImageSource source,
@@ -100,7 +108,10 @@ class UiPicker extends ImagePicker {
     int? imageQuality,
     CameraDevice preferredCameraDevice = CameraDevice.rear,
     bool requestFullMetadata = true,
-  }) => selection.future;
+  }) {
+    requestedFullMetadata = requestFullMetadata;
+    return selection.future;
+  }
 }
 
 class PendingImage extends Fake implements XFile {
@@ -488,7 +499,7 @@ void main() {
     await tester.pumpAndSettle();
     nav.currentState!.removeRoute(sheetRoute);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('OK'));
+    await tester.tap(find.text('Confirmar'));
     await tester.pumpAndSettle();
     expect(service.saves, 0);
     expect(tester.takeException(), isNull);
@@ -513,7 +524,7 @@ void main() {
     await tester.pumpAndSettle();
     nav.currentState!.removeRoute(dialogRoute);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('OK'));
+    await tester.tap(find.text('Confirmar'));
     await tester.pumpAndSettle();
     expect(service.saves, 0);
     expect(tester.takeException(), isNull);

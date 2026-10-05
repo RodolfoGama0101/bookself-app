@@ -219,7 +219,9 @@ class _BibleScreenState extends State<BibleScreen>
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: uPercent,
-                          backgroundColor: theme.primaryColor.withOpacity(0.15),
+                          backgroundColor: theme.primaryColor.withValues(
+                            alpha: 0.15,
+                          ),
                           valueColor: AlwaysStoppedAnimation<Color>(
                             theme.primaryColor,
                           ),
@@ -257,7 +259,7 @@ class _BibleScreenState extends State<BibleScreen>
                           child: LinearProgressIndicator(
                             value: pPercent,
                             backgroundColor: theme.colorScheme.secondary
-                                .withOpacity(0.15),
+                                .withValues(alpha: 0.15),
                             valueColor: AlwaysStoppedAnimation<Color>(
                               theme.colorScheme.secondary,
                             ),
@@ -521,7 +523,7 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
         SliverToBoxAdapter(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: theme.cardTheme.color?.withOpacity(0.4),
+            color: theme.cardTheme.color?.withValues(alpha: 0.4),
             child: Wrap(
               alignment: WrapAlignment.spaceBetween,
               crossAxisAlignment: WrapCrossAlignment.center,
@@ -620,13 +622,13 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: isReadByMe
-                          ? theme.primaryColor.withOpacity(0.2)
+                          ? theme.primaryColor.withValues(alpha: 0.2)
                           : theme.inputDecorationTheme.fillColor,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isReadByMe
                             ? theme.primaryColor
-                            : theme.primaryColor.withOpacity(0.15),
+                            : theme.primaryColor.withValues(alpha: 0.15),
                         width: isReadByMe ? 1.5 : 1,
                       ),
                     ),

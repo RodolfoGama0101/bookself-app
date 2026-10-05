@@ -1,10 +1,11 @@
+import 'book_cover.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/book_model.dart';
 import '../../services/book_service.dart';
 import '../../utils/error_handler.dart';
+import 'completion_date_picker.dart';
 
 class BookDetailsSheet extends StatefulWidget {
   final BookModel book;
@@ -28,7 +29,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
   late final BookService _bookService = widget.bookService ?? BookService();
   late BookModel _currentBook;
   bool _isLoading = false;
+  bool _isPickingDate = false;
   bool _isConfirmingDelete = false;
+  bool get _isBusy => _isLoading || _isPickingDate || _isConfirmingDelete;
 
   @override
   void initState() {
@@ -37,22 +40,21 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
   }
 
   void _updateStatus(String newStatus) async {
-    if (_isLoading || newStatus == _currentBook.status) return;
+    if (_isBusy || newStatus == _currentBook.status) {
+      return;
+    }
 
     DateTime? finishedDate;
     if (newStatus == 'Lido') {
-      // Abre seletor de data de término
-      final pickedDate = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(2000),
-        lastDate: DateTime.now().add(const Duration(days: 365)),
-        helpText: 'Quando você terminou a leitura?',
-      );
-      if (!mounted || pickedDate == null) return; // cancelou
+      setState(() => _isPickingDate = true);
+      final pickedDate = await showCompletionDatePicker(context);
+      if (!mounted) return;
+      setState(() => _isPickingDate = false);
+      if (pickedDate == null) {
+        return;
+      }
       finishedDate = pickedDate;
     }
-
     setState(() => _isLoading = true);
 
     final updated = _currentBook.copyWith(
@@ -92,8 +94,51 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     }
   }
 
+  Future<void> _editFinishedDate() async {
+    if (_isBusy) return;
+    setState(() => _isPickingDate = true);
+    final pickedDate = await showCompletionDatePicker(
+      context,
+      initialDate: _currentBook.finishedDate,
+    );
+    if (!mounted) return;
+    setState(() => _isPickingDate = false);
+    if (pickedDate == null ||
+        DateUtils.isSameDay(pickedDate, _currentBook.finishedDate)) {
+      return;
+    }
+    setState(() => _isLoading = true);
+    // Corrigir a data não altera o status nem cria nova atividade no feed.
+    final updated = _currentBook.copyWith(finishedDate: pickedDate);
+    try {
+      await _bookService.saveBook(updated);
+      if (!mounted) return;
+      setState(() {
+        _currentBook = updated;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Data de conclusão atualizada!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Não foi possível atualizar a data: ${ErrorHandler.getFriendlyErrorMessage(error, operation: ErrorOperation.saveBook)}',
+          ),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
   void _confirmDelete() async {
-    if (_isLoading || _isConfirmingDelete) return;
+    if (_isBusy) return;
     setState(() => _isConfirmingDelete = true);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -159,11 +204,6 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasCover =
-        _currentBook.coverUrl.isNotEmpty &&
-        (_currentBook.coverUrl.startsWith('http://') ||
-            _currentBook.coverUrl.startsWith('https://')) &&
-        Uri.tryParse(_currentBook.coverUrl)?.hasAbsolutePath == true;
 
     String dateStr = DateFormat('dd/MM/yyyy').format(_currentBook.addedAt);
     String? finishedDateStr;
@@ -179,7 +219,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             spreadRadius: 2,
           ),
@@ -197,7 +237,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[600]?.withOpacity(0.5),
+                  color: Colors.grey[600]?.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -211,7 +251,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
+                      color: Colors.black.withValues(alpha: 0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -222,21 +262,10 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   child: SizedBox(
                     width: 140,
                     height: 195,
-                    child: hasCover
-                        ? Image.network(
-                            kIsWeb
-                                ? 'https://wsrv.nl/?url=${Uri.encodeComponent(_currentBook.coverUrl)}'
-                                : _currentBook.coverUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              ErrorHandler.report(
-                                error,
-                                operation: ErrorOperation.loadBookCover,
-                              );
-                              return _buildCoverPlaceholder(theme);
-                            },
-                          )
-                        : _buildCoverPlaceholder(theme),
+                    child: BookCover(
+                      url: _currentBook.coverUrl,
+                      placeholderBuilder: (_) => _buildCoverPlaceholder(theme),
+                    ),
                   ),
                 ),
               ),
@@ -258,7 +287,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
               _currentBook.authors.join(', '),
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.textTheme.titleMedium?.color?.withOpacity(0.7),
+                color: theme.textTheme.titleMedium?.color?.withValues(
+                  alpha: 0.7,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -266,8 +297,10 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
             const SizedBox(height: 12),
 
             // Informações do Livro
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            Wrap(
+              alignment: WrapAlignment.spaceAround,
+              spacing: 16,
+              runSpacing: 12,
               children: _currentBook.userId.isEmpty
                   ? [
                       _buildInfoColumn(
@@ -294,12 +327,12 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                           _currentBook.status,
                         ),
                       ),
-                      if (finishedDateStr != null)
+                      if (_currentBook.status == 'Lido')
                         _buildInfoColumn(
                           context,
                           Icons.check_circle_rounded,
                           'Lido em',
-                          finishedDateStr,
+                          finishedDateStr ?? 'Data não informada',
                           textColor: Colors.greenAccent[700],
                         ),
                     ],
@@ -326,33 +359,39 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   ),
                 )
               else
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    Expanded(
-                      child: _buildStatusActionButton(
-                        context,
-                        'Quero Ler',
-                        _currentBook.status == 'Quero Ler',
-                      ),
+                    _buildStatusActionButton(
+                      context,
+                      'Quero Ler',
+                      _currentBook.status == 'Quero Ler',
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildStatusActionButton(
-                        context,
-                        'Lendo',
-                        _currentBook.status == 'Lendo',
-                      ),
+                    _buildStatusActionButton(
+                      context,
+                      'Lendo',
+                      _currentBook.status == 'Lendo',
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildStatusActionButton(
-                        context,
-                        'Lido',
-                        _currentBook.status == 'Lido',
-                      ),
+                    _buildStatusActionButton(
+                      context,
+                      'Lido',
+                      _currentBook.status == 'Lido',
                     ),
                   ],
                 ),
+              if (_currentBook.status == 'Lido') ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _isBusy ? null : _editFinishedDate,
+                  icon: const Icon(Icons.edit_calendar_rounded),
+                  label: Text(
+                    _currentBook.finishedDate == null
+                        ? 'Informar data de conclusão'
+                        : 'Editar data de conclusão',
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
@@ -368,9 +407,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   'Excluir da Estante',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                onPressed: _isLoading || _isConfirmingDelete
-                    ? null
-                    : _confirmDelete,
+                onPressed: _isBusy ? null : _confirmDelete,
               ),
             ],
             const SizedBox(height: 12),
@@ -385,8 +422,8 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            theme.primaryColor.withOpacity(0.3),
-            theme.colorScheme.secondary.withOpacity(0.2),
+            theme.primaryColor.withValues(alpha: 0.3),
+            theme.colorScheme.secondary.withValues(alpha: 0.2),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -434,7 +471,10 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     if (isActive) {
       return ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: _getStatusColor(context, status).withOpacity(0.15),
+          backgroundColor: _getStatusColor(
+            context,
+            status,
+          ).withValues(alpha: 0.15),
           foregroundColor: _getStatusColor(context, status),
           elevation: 0,
           side: BorderSide(color: _getStatusColor(context, status), width: 1.5),
@@ -459,7 +499,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        onPressed: () => _updateStatus(status),
+        onPressed: _isBusy ? null : () => _updateStatus(status),
         child: Text(status),
       );
     }

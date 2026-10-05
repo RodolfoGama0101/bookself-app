@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bookself_app/data/bible_data.dart';
 import 'package:bookself_app/data/models/bible_progress_model.dart';
 import 'package:bookself_app/services/bible_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -96,18 +97,21 @@ void main() {
       database.documents[id] = progress([2]);
       database.commitGate = Completer<void>();
       var completed = false;
-      final pending = service.markAllChapters('owner', '1 Samuel', 3, all).then(
-        (value) {
-          completed = true;
-          return value;
-        },
-      );
+      final pending = service
+          .markAllChapters('owner', '1 Samuel', 31, all)
+          .then((value) {
+            completed = true;
+            return value;
+          });
       await Future<void>.delayed(Duration.zero);
       expect(completed, isFalse);
       expect(database.documents[id]!['readChapters'], [2]);
       database.commitGate!.complete();
-      expect(await pending, all ? [1, 2, 3] : []);
-      expect(database.documents[id]!['readChapters'], all ? [1, 2, 3] : []);
+      final expected = all
+          ? List<int>.generate(31, (index) => index + 1)
+          : <int>[];
+      expect(await pending, expected);
+      expect(database.documents[id]!['readChapters'], expected);
     });
     for (final code in ['permission-denied', 'unavailable']) {
       test(
@@ -117,7 +121,7 @@ void main() {
           database.documents[id] = existing;
           database.commitGate = Completer<void>();
           final pending = all
-              ? service.markAllChapters('owner', '1 Samuel', 3, true)
+              ? service.markAllChapters('owner', '1 Samuel', 31, true)
               : service.toggleChapter('owner', '1 Samuel', 1, true);
           final rejection = FirebaseException(
             plugin: 'cloud_firestore',
@@ -133,6 +137,115 @@ void main() {
       );
     }
   }
+
+  test('primeiro e último capítulo são válidos nos 66 livros', () async {
+    for (final book in BibleData.books) {
+      expect(await service.toggleChapter('owner', book.name, 1, true), [1]);
+      final expected = book.chapters == 1 ? [1] : [1, book.chapters];
+      expect(
+        await service.toggleChapter('owner', book.name, book.chapters, true),
+        expected,
+        reason: book.name,
+      );
+      expect(
+        await service.toggleChapter('owner', book.name, book.chapters, true),
+        expected,
+        reason: 'Repetição em ${book.name}',
+      );
+    }
+    expect(database.documents.length, 66);
+  });
+
+  test('capítulos fora dos limites não escrevem em nenhum livro', () async {
+    for (final book in BibleData.books) {
+      for (final chapter in [-1, 0, book.chapters + 1]) {
+        for (final isRead in [true, false]) {
+          await expectLater(
+            service.toggleChapter('owner', book.name, chapter, isRead),
+            throwsRangeError,
+            reason: '${book.name}: $chapter',
+          );
+        }
+      }
+    }
+    expect(database.documents, isEmpty);
+    expect(database.commits, 0);
+  });
+
+  test('lotes completos são idempotentes e isolados nos 66 livros', () async {
+    for (final book in BibleData.books) {
+      final docId = 'owner_${book.name.replaceAll(' ', '_').toLowerCase()}';
+      final partnerId =
+          'partner_${book.name.replaceAll(' ', '_').toLowerCase()}';
+      final partnerProgress = {
+        'userId': 'partner',
+        'bookName': book.name,
+        'readChapters': [1],
+      };
+      database.documents[partnerId] = partnerProgress;
+      final all = List<int>.generate(book.chapters, (index) => index + 1);
+      for (final isRead in [true, true, false, false]) {
+        final commitsBefore = database.commits;
+        final expected = isRead ? all : <int>[];
+        expect(
+          await service.markAllChapters(
+            'owner',
+            book.name,
+            book.chapters,
+            isRead,
+          ),
+          expected,
+          reason: book.name,
+        );
+        expect(database.commits, commitsBefore + 1);
+        expect(database.documents[docId]!['readChapters'], expected);
+        expect(database.documents[docId]!['userId'], 'owner');
+        expect(database.documents[partnerId], partnerProgress);
+      }
+    }
+    expect(database.documents.length, 132);
+  });
+
+  test(
+    'lotes com totais divergentes são rejeitados antes da escrita',
+    () async {
+      for (final book in BibleData.books) {
+        for (final total in [-1, 0, book.chapters - 1, book.chapters + 1]) {
+          for (final isRead in [true, false]) {
+            await expectLater(
+              service.markAllChapters('owner', book.name, total, isRead),
+              throwsArgumentError,
+            );
+          }
+        }
+      }
+      expect(database.documents, isEmpty);
+      expect(database.commits, 0);
+    },
+  );
+
+  test('identidade ausente ou livro desconhecido não cria progresso', () async {
+    final invalid = [
+      ('', 'Gênesis'),
+      ('   ', 'Gênesis'),
+      ('owner/other', 'Gênesis'),
+      ('owner', ''),
+      ('owner', 'Desconhecido'),
+      ('owner', 'genesis'),
+    ];
+    for (final (owner, book) in invalid) {
+      await expectLater(
+        service.toggleChapter(owner, book, 1, true),
+        throwsArgumentError,
+      );
+      await expectLater(
+        service.markAllChapters(owner, book, 1, true),
+        throwsArgumentError,
+      );
+    }
+    expect(database.documents, isEmpty);
+    expect(database.commits, 0);
+  });
 
   testWidgets(
     'stream de livro ignora escrita local e recebe confirmação por metadata',

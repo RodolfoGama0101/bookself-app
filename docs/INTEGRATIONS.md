@@ -6,14 +6,28 @@ Referências revisadas em 02/10/2026. Revalidar requisitos, limites e termos ant
 
 | Serviço | Uso | Pendências |
 | --- | --- | --- |
-| Firebase Authentication | Conta e sessão por e-mail/senha. | Inicialização, ciclo de vida, erros e testes. |
-| Cloud Firestore | Perfis, vínculos, livros e progresso em tempo real. | Regras, índices necessários, emuladores e migração. |
-| Google Books | Busca de volumes com até 20 resultados por chamada. | Chave embutida, timeout, paginação, IDs externos e erros. |
-| Google Fonts | Fontes Playfair Display e Outfit. | Validar carregamento sem rede e possível empacotamento. |
-| Image Picker | Avatar salvo em Base64 no Firestore. | Permissões, falhas e estratégia de armazenamento. |
-| `wsrv.nl` | Proxy de capas em cards/detalhes na web. | Dependência, disponibilidade e alternativa. |
+| Firebase Authentication | Conta e sessão por e-mail/senha; emulador local com projeto demo. | Validação da jornada Flutter em plataformas e autenticação remota. |
+| Cloud Firestore | Perfis, vínculos, livros e progresso em tempo real; regras/índices candidatos versionados e emulador isolado. | Implantação das regras, dados privados do perfil, visibilidade/cache e migração. |
+| Google Books | Busca de volumes com até 20 resultados por chamada, timeout de 15 s, paginação e `googleBooksId` opcional. | Revisão real de restrições/quotas (SEC-03) e jornada do catálogo em plataformas. |
+| Google Fonts | Fontes Playfair Display e Outfit empacotadas; busca de fontes na rede desabilitada. | Inspeção visual em plataformas. |
+| Image Picker | Avatar salvo em Base64 no Firestore; cancelamento/negação tratados e descrições de uso iOS adicionadas. | Permissões nativas/build Apple e estratégia de armazenamento. |
+| Capas HTTPS | Carregamento direto com fallback; web permite elemento HTML quando a decodificação falha por CORS. | Verificação real Android/iOS/web; `wsrv.nl` removido do app. |
 
 Não há servidor próprio no repositório. `storageBucket` na configuração Firebase não significa que haja upload para Firebase Storage implementado.
+
+## Busca e recursos locais de leitura
+
+Implementação local de 03/10/2026: `BookService.searchGoogleBooksPage` normaliza a consulta, codifica parâmetros e usa `startIndex`. Avança pela quantidade bruta recebida, inclusive quando descarta itens sem identidade; página vazia encerra o percurso mesmo com total estimado maior. Campo parcial válido usa título/autor/data padrão. Resposta com estrutura inválida falha; quota conhecida em HTTP 403 é distinta de autorização, e HTTP 429 continua limite de uso. Erros não exibem corpo externo nem URL com chave. Não há retry automático ilimitado ou cache de catálogo implementado.
+
+A tela ignora sucesso/falha antigos, mantém os resultados quando uma página seguinte falha e permite nova tentativa na mesma posição. Páginas subsequentes removem referências repetidas da lista apresentada, sem impor política de duplicatas na biblioteca. Cadastro manual e formulários de inclusão funcionam com rolagem e status expandido em tela pequena/texto ampliado. Referência externa opcional não substitui a identidade pessoal. Configuração, inventário e impedimento da revisão remota em [CONFIGURATION.md](CONFIGURATION.md).
+
+`BookCover` atende cards/detalhes: ausência, endereço inválido, carregamento e falha usam o placeholder existente. Endereços HTTP válidos são elevados para HTTPS; URLs com credenciais e esquemas não HTTP(S) são rejeitadas. O app não envia capas ao proxy anterior. Na web, `WebHtmlElementStrategy.fallback` permite a alternativa HTML da versão fixada do Flutter, com as limitações de plataforma do SDK; funcionamento CORS real continua pendente.
+
+As oito fontes estáticas em `assets/fonts/` cobrem Outfit/Playfair Display nos pesos 400/500/600/700. `GoogleFonts.config.allowRuntimeFetching = false` força os assets; `manifest.json` registra origem, bytes e SHA-256 conferidos. Licenças OFL estão junto dos arquivos; referências de origem: [Outfit](https://github.com/google/fonts/tree/main/ofl/outfit) e [Playfair Display](https://github.com/google/fonts/tree/main/ofl/playfairdisplay). Teste próprio carrega fontes reais sem o mock de tipografia dos demais testes. Novos pesos/itálicos precisam ser empacotados antes de uso.
+
+Verificações locais: análise limpa, 275 testes Flutter, 25 testes em Auth/Firestore emulados e builds web/Android debug demo aprovados. Login web demo inspecionado no navegador integrado com fontes exibidas e sem erros de console observados; sem credenciais enviadas. Agent-browser bloqueado pelo Controle de Aplicativo Windows. A conferência visual foi limitada ao login, com rede disponível; não valida funcionamento offline em navegador nem capas/CORS. Build não comprova execução ou aparência nativa. Permissões/build Apple e matriz de execução estão em [IOS_VALIDATION.md](IOS_VALIDATION.md); API-05/REL-03 continuam abertas para validação em plataformas.
+
+Em 03/10/2026, a auditoria remota somente de metadados confirmou regra permitindo qualquer leitura/escrita a uma conta autenticada. A correção foi validada em emuladores; implantação permanece separada. Consulte [SECURITY.md](SECURITY.md) e [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Filmes e séries
 

@@ -171,7 +171,9 @@ void main() {
         addTearDown(client.close);
         await open(
           tester,
-          SearchScreen(bookService: BookService(httpClient: client)),
+          SearchScreen(
+            bookService: BookService(httpClient: client, apiKey: 'fixture-key'),
+          ),
           signedIn: true,
         );
         await tester.enterText(field('Pesquisar livro'), 'Consulta de teste');

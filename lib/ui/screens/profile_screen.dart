@@ -183,6 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         maxWidth: 200,
         maxHeight: 200,
         imageQuality: 75,
+        requestFullMetadata: false,
       );
       if (!mounted || image == null) return;
       final bytes = await image.readAsBytes();
@@ -267,7 +268,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[600]?.withOpacity(0.5),
+                      color: Colors.grey[600]?.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -419,7 +420,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 46,
-                      backgroundColor: theme.primaryColor.withOpacity(0.15),
+                      backgroundColor: theme.primaryColor.withValues(
+                        alpha: 0.15,
+                      ),
                       backgroundImage: _getAvatarImage(user.photoUrl),
                       child: _isPhotoLoading
                           ? const CircularProgressIndicator()
@@ -560,7 +563,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 16),
                       CustomButton(
                         text: 'Desvincular Casal',
-                        backgroundColor: Colors.redAccent.withOpacity(0.1),
+                        backgroundColor: Colors.redAccent.withValues(
+                          alpha: 0.1,
+                        ),
                         foregroundColor: Colors.redAccent,
                         onPressed: () => _confirmUnlink(context, authService),
                       ),
@@ -785,7 +790,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             CustomButton(
               text: 'Sair da Conta',
               backgroundColor: theme.brightness == Brightness.dark
-                  ? Colors.white.withOpacity(0.05)
+                  ? Colors.white.withValues(alpha: 0.05)
                   : Colors.grey[200],
               foregroundColor: theme.brightness == Brightness.dark
                   ? Colors.white

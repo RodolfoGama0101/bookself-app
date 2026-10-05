@@ -1,11 +1,24 @@
+import 'firebase_environment.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../data/bible_data.dart';
 import '../data/models/bible_progress_model.dart';
 
 class BibleService {
   BibleService({FirebaseFirestore? firestore}) : _database = firestore;
 
   final FirebaseFirestore? _database;
-  FirebaseFirestore get _firestore => _database ?? FirebaseFirestore.instance;
+  FirebaseFirestore get _firestore =>
+      _database ?? FirebaseEnvironment.firestore;
+
+  BibleBook _validateBook(String userId, String bookName) {
+    if (userId.trim().isEmpty || userId.contains('/')) {
+      throw ArgumentError.value(userId, 'userId', 'Proprietário inválido');
+    }
+    for (final book in BibleData.books) {
+      if (book.name == bookName) return book;
+    }
+    throw ArgumentError.value(bookName, 'bookName', 'Livro bíblico inválido');
+  }
 
   // Stream do progresso de um livro bíblico específico de um usuário
   Stream<BibleProgressModel?> streamBookProgress(
@@ -51,6 +64,10 @@ class BibleService {
     int chapter,
     bool isRead,
   ) async {
+    final book = _validateBook(userId, bookName);
+    if (chapter < 1 || chapter > book.chapters) {
+      throw RangeError.range(chapter, 1, book.chapters, 'chapter');
+    }
     final docId = '${userId}_${bookName.replaceAll(' ', '_').toLowerCase()}';
     final docRef = _firestore.collection('bible_progress').doc(docId);
 
@@ -91,6 +108,14 @@ class BibleService {
     int totalChapters,
     bool isRead,
   ) async {
+    final book = _validateBook(userId, bookName);
+    if (totalChapters != book.chapters) {
+      throw ArgumentError.value(
+        totalChapters,
+        'totalChapters',
+        'O total deve corresponder ao catálogo bíblico',
+      );
+    }
     final docId = '${userId}_${bookName.replaceAll(' ', '_').toLowerCase()}';
     final docRef = _firestore.collection('bible_progress').doc(docId);
 

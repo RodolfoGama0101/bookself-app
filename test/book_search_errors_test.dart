@@ -11,7 +11,7 @@ void main() {
         (_) async => http.Response('PRIVATE_FIXTURE', status),
       );
       addTearDown(client.close);
-      final service = BookService(httpClient: client);
+      final service = BookService(httpClient: client, apiKey: 'fixture-key');
       await expectLater(
         service.searchGoogleBooks('Consulta de teste'),
         throwsA(
@@ -32,7 +32,7 @@ void main() {
         (_) async => throw http.ClientException('PRIVATE_FIXTURE'),
       );
       addTearDown(client.close);
-      final service = BookService(httpClient: client);
+      final service = BookService(httpClient: client, apiKey: 'fixture-key');
       try {
         await service.searchGoogleBooks('Consulta de teste');
         fail('A busca deveria falhar');
@@ -53,7 +53,7 @@ void main() {
         (_) async => http.Response('PRIVATE_FIXTURE', 200),
       );
       addTearDown(client.close);
-      final service = BookService(httpClient: client);
+      final service = BookService(httpClient: client, apiKey: 'fixture-key');
       try {
         await service.searchGoogleBooks('Consulta de teste');
         fail('A busca deveria falhar');
@@ -79,7 +79,7 @@ void main() {
         );
       });
       addTearDown(client.close);
-      final service = BookService(httpClient: client);
+      final service = BookService(httpClient: client, apiKey: 'fixture-key');
       expect(await service.searchGoogleBooks('  '), isEmpty);
       expect(requests, 0);
       final books = await service.searchGoogleBooks('Consulta de teste');
