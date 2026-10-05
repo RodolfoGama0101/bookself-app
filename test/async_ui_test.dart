@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bookself_app/data/models/book_model.dart';
 import 'package:bookself_app/data/models/user_model.dart';
+import 'package:bookself_app/data/models/partner_profile.dart';
 import 'package:bookself_app/services/auth_service.dart';
 import 'package:bookself_app/services/book_service.dart';
 import 'package:bookself_app/data/models/book_search_page.dart';
@@ -32,7 +33,7 @@ class UiAuth extends ChangeNotifier implements AuthService {
     createdAt: DateTime(2020),
   );
   @override
-  UserModel? get partnerUserModel => null;
+  PartnerProfile? get partnerUserModel => null;
   @override
   bool get isLoading => false;
   final reset = Completer<String?>();

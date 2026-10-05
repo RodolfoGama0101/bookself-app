@@ -21,8 +21,8 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
 
   @override
   CollectionReference<Map<String, dynamic>> collection(String collectionPath) {
-    expect(collectionPath, 'users');
-    return _ProfileCollection(this);
+    expect(collectionPath, anyOf('users', 'partner_profiles'));
+    return _ProfileCollection(this, collectionPath);
   }
 
   @override
@@ -59,20 +59,25 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
 // ignore: subtype_of_sealed_class
 class _ProfileCollection extends Fake
     implements CollectionReference<Map<String, dynamic>> {
-  _ProfileCollection(this.database);
+  _ProfileCollection(this.database, this.collectionPath);
   final ProfileFirestoreFake database;
+  final String collectionPath;
 
   @override
   DocumentReference<Map<String, dynamic>> doc([String? path]) {
-    return _ProfileReference(database, path!);
+    return _ProfileReference(database, path!, collectionPath);
   }
 }
 
 // ignore: subtype_of_sealed_class
 class _ProfileReference extends Fake
     implements DocumentReference<Map<String, dynamic>> {
-  _ProfileReference(this.database, this.id);
+  _ProfileReference(this.database, this.id, this.collectionPath);
   final ProfileFirestoreFake database;
+  final String collectionPath;
+  @override
+  String get path => '$collectionPath/$id';
+  String get key => collectionPath == 'users' ? id : path;
   @override
   final String id;
 
@@ -82,7 +87,7 @@ class _ProfileReference extends Fake
     ListenSource source = ListenSource.defaultSource,
   }) {
     database.includeMetadataChanges = includeMetadataChanges;
-    return database.controller(id).stream;
+    return database.controller(key).stream;
   }
 }
 
@@ -96,7 +101,8 @@ class _ProfileTransaction extends Fake implements Transaction {
     DocumentReference<T> reference,
   ) async {
     database.reads++;
-    return ProfileSnapshot(reference.id, database.documents[reference.id])
+    final key = (reference as _ProfileReference).key;
+    return ProfileSnapshot(reference.id, database.documents[key])
         as DocumentSnapshot<T>;
   }
 
@@ -106,9 +112,19 @@ class _ProfileTransaction extends Fake implements Transaction {
     T data, [
     SetOptions? options,
   ]) {
-    pending[reference.id] = Map<String, dynamic>.from(
+    pending[(reference as _ProfileReference).key] = Map<String, dynamic>.from(
       data as Map<String, dynamic>,
     );
+    return this;
+  }
+
+  @override
+  Transaction update(DocumentReference reference, Map<Object, Object?> data) {
+    final key = (reference as _ProfileReference).key;
+    pending[key] = {
+      ...database.documents[key]!,
+      ...Map<String, dynamic>.from(data),
+    };
     return this;
   }
 }

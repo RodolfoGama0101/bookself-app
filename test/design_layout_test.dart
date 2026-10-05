@@ -1,5 +1,6 @@
 import 'package:bookself_app/data/models/book_model.dart';
 import 'package:bookself_app/data/models/user_model.dart';
+import 'package:bookself_app/data/models/partner_profile.dart';
 import 'package:bookself_app/services/auth_service.dart';
 import 'package:bookself_app/services/book_service.dart';
 import 'package:bookself_app/ui/screens/home_screen.dart';
@@ -23,11 +24,9 @@ class _DesignAuth extends ChangeNotifier implements AuthService {
     createdAt: DateTime(2026),
   );
   @override
-  UserModel get partnerUserModel => UserModel(
+  PartnerProfile get partnerUserModel => PartnerProfile(
     uid: 'demo-partner',
     name: 'Pessoa parceira com um nome extenso',
-    email: 'partner@example.test',
-    createdAt: DateTime(2026),
   );
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

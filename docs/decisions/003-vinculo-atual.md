@@ -14,6 +14,6 @@ O lote mais validação no servidor permite tratar concorrência e limitar autor
 
 ## Efeitos e pendências
 
-O lote sozinho é insuficiente enquanto o remoto estiver permissivo. Relações legadas divergentes não são reparadas automaticamente. Perfil consultável ainda contém e-mail. **Atualização de 05/10/2026:** consentimento/visibilidade foram definidos em COUPLE-01, conforme [registro 006](006-consentimento-e-visibilidade.md). SEC-04 e COUPLE-03/04/05 continuam pendentes de implementação; a decisão aprovada não substitui o vínculo direto nem implanta regras.
+O lote sozinho é insuficiente enquanto o remoto estiver permissivo. Relações legadas divergentes não são reparadas automaticamente. **Atualizações de 05/10/2026:** consentimento/visibilidade foram definidos em COUPLE-01, conforme [registro 006](006-consentimento-e-visibilidade.md). SEC-04 separou o perfil mínimo do privado em código/regras locais, conforme [registro 007](007-perfil-privado-e-consultavel.md), sem implantação remota. COUPLE-03/04/05 continuam pendentes de implementação; a separação não substitui o vínculo direto nem concede aceite da política nova.
 
 Evidências: 11 regressões de vínculo/sessão e testes de autorização, concorrência e desvínculo nos emuladores. [SECURITY.md](../SECURITY.md) descreve controles, limites, auditoria e condições de implantação. A aprovação da implantação foi explicitamente adiada pelo usuário.

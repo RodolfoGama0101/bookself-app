@@ -561,14 +561,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  Text(
-                                    partner.email,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
+                                  if (!partner.isAvailable)
+                                    Text(
+                                      'Perfil do parceiro indisponível no momento.',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                          ),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),

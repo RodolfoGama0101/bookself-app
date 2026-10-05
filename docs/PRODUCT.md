@@ -89,7 +89,7 @@ Etapas indicam dependências, não prazos. Tarefas executáveis estão em [BACKL
 | --- | --- | --- |
 | Marca | Entrelace, a confirmar. | NAME-01 |
 | Música | Escopo de faixas/álbuns, favoritos, escutas e listas escolhido em 05/10/2026; detalhes do MVP em revisão. | PROD-01 |
-| Compartilhamento | Política v1 aprovada em 05/10/2026; implementação de perfil privado, convites e visibilidade pendente. | SEC-04, COUPLE-03/04 |
+| Compartilhamento | Política v1 aprovada em 05/10/2026; perfil privado separado localmente em SEC-04, implantação remota e implementação de convites/visibilidade pendentes. | SEC-06, COUPLE-03/04 |
 | Experiência conjunta | Sem concluir automaticamente o progresso alheio. | COUPLE-05 |
 | Séries | Separar “em dia”/“concluída” e definir spoilers. | SERIES-01 |
 | Bíblia | Preservar progresso; leitor de texto como ideia opcional. | BIBLE-03 |

@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {initializeTestEnvironment, assertSucceeds, assertFails} = require('@firebase/rules-unit-testing');
-const {doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch, collection, query, where, getDocs, serverTimestamp, Timestamp, setLogLevel} = require('firebase/firestore');
+const {doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch, runTransaction, onSnapshot, collection, query, where, getDocs, serverTimestamp, Timestamp, setLogLevel} = require('firebase/firestore');
 setLogLevel('silent');
 const projectId = 'demo-bookself';
 const firestoreHost = process.env.FIRESTORE_EMULATOR_HOST;
@@ -52,6 +52,7 @@ beforeEach(async () => {
     const batch = writeBatch(database);
     for (const uid of ['a', 'b', 'c', 'd']) {
       batch.set(doc(database, 'users', uid), profile(uid));
+      batch.set(doc(database, 'partner_profiles', uid), {name: profile(uid).name, photoUrl: null});
       batch.set(doc(database, 'books', `${uid}-book`), book(uid));
       batch.set(doc(database, 'bible_progress', `${uid}_gênesis`), progress(uid));
     }
@@ -98,12 +99,14 @@ test('metadados legados de perfil permanecem em edição e vínculo', async () =
   await assertSucceeds(pair(db('a'), 'a', 'b'));
   assert.equal((await getDoc(doc(db('a'), 'users', 'a'))).data().legacy, 'preservado');
 });
-test('parceiro recíproco lê perfil/estante/Bíblia e não escreve nos dados pessoais', async () => {
+test('parceiro recíproco lê perfil mínimo/estante/Bíblia sem ler o documento privado', async () => {
   await assertSucceeds(pair(db('a'), 'a', 'b'));
-  for (const [group, id] of [['users','b'], ['books','b-book'], ['bible_progress','b_gênesis']]) {
+  for (const [group, id] of [['partner_profiles','b'], ['books','b-book'], ['bible_progress','b_gênesis']]) {
     await assertSucceeds(getDoc(doc(db('a'), group, id)));
     await assertFails(deleteDoc(doc(db('a'), group, id)));
   }
+  await assertFails(getDoc(doc(db('a'), 'users', 'b')));
+  assert.deepEqual((await getDoc(doc(db('a'), 'partner_profiles', 'b'))).data(), {name: 'Pessoa fictícia', photoUrl: null});
   await assertFails(updateDoc(doc(db('a'), 'users', 'b'), {photoUrl: 'fake'}));
   await assertFails(updateDoc(doc(db('a'), 'books', 'b-book'), {status: 'Lido'}));
   await assertFails(updateDoc(doc(db('a'), 'bible_progress', 'b_gênesis'), progress('b', 'Gênesis', [2])));
@@ -248,11 +251,117 @@ test('desvínculo antigo não afeta novo parceiro nem par antigo já refeito', a
 test('desvincular revoga leituras/queries do ex-parceiro e preserva registros pessoais', async () => {
   await pair(db('a'), 'a', 'b');
   await pair(db('b'), 'a', 'b', false);
-  for (const [group, id] of [['users','b'], ['books','b-book'], ['bible_progress','b_gênesis']]) {
+  for (const [group, id] of [['users','b'], ['partner_profiles','b'], ['books','b-book'], ['bible_progress','b_gênesis']]) {
     await assertFails(getDoc(doc(db('a'), group, id)));
     await assertSucceeds(getDoc(doc(db('b'), group, id)));
   }
   await assertFails(getDocs(query(collection(db('a'), 'books'), where('userId','in',['a','b']))));
   await pair(db('a'), 'a', 'c');
   await assertFails(getDoc(doc(db('c'), 'books', 'b-book')));
+  await assertFails(getDoc(doc(db('c'), 'partner_profiles', 'b')));
+  await assertFails(getDoc(doc(db('c'), 'users', 'a')));
+  await assertSucceeds(getDoc(doc(db('c'), 'partner_profiles', 'a')));
+});
+
+test('perfil mínimo não é público nem listável e só o dono escreve', async () => {
+  const unauthenticated = env.unauthenticatedContext().firestore();
+  await assertFails(getDoc(doc(unauthenticated, 'partner_profiles', 'a')));
+  await assertFails(getDoc(doc(db('c'), 'partner_profiles', 'a')));
+  await assertFails(getDocs(collection(db('a'), 'partner_profiles')));
+  await pair(db('a'), 'a', 'b');
+  await assertFails(updateDoc(doc(db('b'), 'partner_profiles', 'a'), {name: 'Alteração alheia'}));
+  await assertFails(deleteDoc(doc(db('a'), 'partner_profiles', 'a')));
+});
+
+test('perfil mínimo rejeita campos privados e exige apresentação do próprio perfil', async () => {
+  const reference = doc(db('a'), 'partner_profiles', 'a');
+  for (const patch of [{email:'a@example.com'}, {uid:'a'}, {partnerUid:'b'}, {createdAt:stamp}, {favorites:[]}, {name:'Inventado'}, {photoUrl:3}, {name:''}]) {
+    await assertFails(setDoc(reference, {name: 'Pessoa fictícia', photoUrl: null, ...patch}));
+  }
+  await assertFails(setDoc(doc(db('missing'), 'partner_profiles', 'missing'), {name:'Sem perfil', photoUrl:null}));
+  await assertSucceeds(setDoc(reference, {name: 'Pessoa fictícia', photoUrl: null}));
+});
+
+test('cadastro e nome/foto são publicados atomicamente; rejeição não deixa escrita parcial', async () => {
+  const database = db('new');
+  const batch = writeBatch(database);
+  batch.set(doc(database, 'users', 'new'), profile('new'));
+  batch.set(doc(database, 'partner_profiles', 'new'), {name: 'Pessoa fictícia', photoUrl:null});
+  await assertSucceeds(batch.commit());
+  const own = doc(database, 'users', 'new');
+  const shared = doc(database, 'partner_profiles', 'new');
+  const update = writeBatch(database);
+  update.update(own, {name: 'Nome atualizado', photoUrl:'foto-ficticia'});
+  update.set(shared, {name: 'Nome atualizado', photoUrl:'foto-ficticia'});
+  await assertSucceeds(update.commit());
+  const invalid = writeBatch(database);
+  invalid.update(own, {name:'Não salvar'});
+  invalid.set(shared, {name:'Não salvar', photoUrl:'foto-ficticia', email:'new@example.com'});
+  await assertFails(invalid.commit());
+  assert.equal((await getDoc(own)).data().name, 'Nome atualizado');
+  assert.equal((await getDoc(shared)).data().name, 'Nome atualizado');
+});
+
+test('edições concorrentes de nome/foto preservam campos privados e a projeção atual', async () => {
+  const database = db('a');
+  const own = doc(database, 'users', 'a');
+  const shared = doc(database, 'partner_profiles', 'a');
+  const edit = patch => runTransaction(database, async transaction => {
+    const before = (await transaction.get(own)).data();
+    await transaction.get(shared);
+    transaction.update(own, patch);
+    transaction.update(shared, patch);
+  });
+  await Promise.all([edit({name:'Novo nome'}), edit({photoUrl:'nova-foto'})]);
+  const current = (await getDoc(own)).data();
+  assert.equal(current.name, 'Novo nome');
+  assert.equal(current.photoUrl, 'nova-foto');
+  assert.equal(current.email, 'a@example.com');
+  assert.deepEqual((await getDoc(shared)).data(), {name:current.name, photoUrl:current.photoUrl});
+});
+
+test('perfil mínimo contaminado por campo privado é negado ao parceiro e reparável pelo dono', async () => {
+  await pair(db('a'), 'a', 'b');
+  await env.withSecurityRulesDisabled(context => updateDoc(doc(context.firestore(), 'partner_profiles', 'b'), {email:'b@example.com'}));
+  await assertFails(getDoc(doc(db('a'), 'partner_profiles', 'b')));
+  await assertSucceeds(setDoc(doc(db('b'), 'partner_profiles', 'b'), {name:'Pessoa fictícia', photoUrl:null}));
+  await assertSucceeds(getDoc(doc(db('a'), 'partner_profiles', 'b')));
+});
+
+test('perfil legado sem projeção mantém dados pessoais e não permite fallback privado', async () => {
+  await env.withSecurityRulesDisabled(context => deleteDoc(doc(context.firestore(), 'partner_profiles', 'b')));
+  await pair(db('a'), 'a', 'b');
+  assert.equal((await assertSucceeds(getDoc(doc(db('a'), 'partner_profiles', 'b')))).exists(), false);
+  await assertFails(getDoc(doc(db('a'), 'users', 'b')));
+  const before = (await getDoc(doc(db('b'), 'users', 'b'))).data();
+  await assertSucceeds(setDoc(doc(db('b'), 'partner_profiles', 'b'), {name:before.name, photoUrl:before.photoUrl}));
+  assert.deepEqual((await getDoc(doc(db('b'), 'users', 'b'))).data(), before);
+  await assertSucceeds(getDoc(doc(db('a'), 'books', 'b-book')));
+  await assertSucceeds(getDoc(doc(db('a'), 'bible_progress', 'b_gênesis')));
+});
+
+test('assinatura do perfil mínimo perde autorização depois do desvínculo', async () => {
+  await pair(db('a'), 'a', 'b');
+  let ready;
+  let revoked;
+  const initial = new Promise(resolve => { ready = resolve; });
+  const denied = new Promise(resolve => { revoked = resolve; });
+  const unsubscribe = onSnapshot(doc(db('a'), 'partner_profiles', 'b'), snapshot => {
+    if (!snapshot.metadata.fromCache) ready();
+  }, error => revoked(error.code));
+  let timeout;
+  try {
+    const deadline = new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Assinatura não revogada')), 10000); });
+    await Promise.race([initial, deadline]);
+    await pair(db('b'), 'a', 'b', false);
+    const owner = db('b');
+    const edit = writeBatch(owner);
+    edit.update(doc(owner, 'users', 'b'), {name: 'Nome após término'});
+    edit.update(doc(owner, 'partner_profiles', 'b'), {name: 'Nome após término'});
+    await edit.commit();
+    assert.equal(await Promise.race([denied, deadline]), 'permission-denied');
+  } finally {
+    clearTimeout(timeout);
+    unsubscribe();
+  }
 });

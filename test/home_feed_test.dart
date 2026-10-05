@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bookself_app/data/models/book_model.dart';
 import 'package:bookself_app/data/models/user_model.dart';
+import 'package:bookself_app/data/models/partner_profile.dart';
 import 'package:bookself_app/services/auth_service.dart';
 import 'package:bookself_app/services/book_service.dart';
 import 'package:bookself_app/ui/screens/home_screen.dart';
@@ -26,15 +27,8 @@ class FeedAuth extends ChangeNotifier implements AuthService {
   );
 
   @override
-  UserModel? get partnerUserModel => withPartner
-      ? UserModel(
-          uid: 'partner',
-          name: 'Companhia',
-          email: 'partner@example.com',
-          createdAt: DateTime(2020),
-          partnerUid: 'owner',
-        )
-      : null;
+  PartnerProfile? get partnerUserModel =>
+      withPartner ? PartnerProfile(uid: 'partner', name: 'Companhia') : null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

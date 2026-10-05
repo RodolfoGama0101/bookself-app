@@ -49,7 +49,11 @@ void main() {
     final result = await service.createIfMissing(candidate);
     expect(result, same(candidate));
     expect(database.documents['user'], candidate.toMap());
-    expect(database.writes, 1);
+    expect(database.writes, 2);
+    expect(database.documents['partner_profiles/user'], {
+      'name': candidate.name,
+      'photoUrl': candidate.photoUrl,
+    });
   });
 
   test(
@@ -66,7 +70,11 @@ void main() {
       expect(result.photoUrl, 'foto-preservada');
       expect(result.createdAt, DateTime(2020));
       expect(database.documents['user'], existing);
-      expect(database.writes, 0);
+      expect(database.writes, 1);
+      expect(database.documents['partner_profiles/user'], {
+        'name': 'Nome preservado',
+        'photoUrl': 'foto-preservada',
+      });
     },
   );
 
@@ -82,7 +90,7 @@ void main() {
       expect(result.name, 'Nome preservado');
       expect(database.documents['user'], existing);
       expect(database.reads, 2);
-      expect(database.writes, 0);
+      expect(database.writes, 1);
     },
   );
 

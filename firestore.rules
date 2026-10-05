@@ -28,7 +28,8 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow get: if canRead(uid);
+      // O documento legado continua privado, inclusive para o parceiro.
+      allow get: if isOwner(uid);
       allow list, delete: if false;
       allow create: if isOwner(uid)
         && request.resource.data.keys().hasAll(['uid', 'name', 'email', 'createdAt'])
@@ -51,6 +52,23 @@ service cloud.firestore {
           && (linkPair(uid, resource.data.get('partnerUid', null), request.resource.data.get('partnerUid', null))
             || unlinkPair(uid, resource.data.get('partnerUid', null), request.resource.data.get('partnerUid', null))))
       );
+    }
+
+    function validPartnerProfile(data) {
+      return data.keys().hasAll(['name'])
+        && data.keys().hasOnly(['name', 'photoUrl'])
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && nullableString(data.get('photoUrl', null));
+    }
+    match /partner_profiles/{uid} {
+      allow get: if isOwner(uid) || (isPartner(uid)
+        && (!exists(/databases/$(database)/documents/partner_profiles/$(uid))
+          || validPartnerProfile(resource.data)));
+      allow list, delete: if false;
+      allow create, update: if isOwner(uid)
+        && validPartnerProfile(request.resource.data)
+        && request.resource.data.name == getAfter(userPath(uid)).data.name
+        && request.resource.data.get('photoUrl', null) == getAfter(userPath(uid)).data.get('photoUrl', null);
     }
 
     function validAuthors(authors) {

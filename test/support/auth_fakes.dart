@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bookself_app/data/models/user_model.dart';
+import 'package:bookself_app/data/models/partner_profile.dart';
 import 'package:bookself_app/services/user_profile_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -77,6 +78,27 @@ class FakeUserProfiles extends UserProfileService {
   Future<UserModel> Function(UserModel)? onCreate;
   int createCalls = 0;
   final watchCalls = <String, int>{};
+  final partnerWatchCalls = <String, int>{};
+  Future<void> Function(String)? onPublish;
+
+  @override
+  Future<void> ensurePartnerProfile(String uid) async {
+    if (onPublish != null) await onPublish!(uid);
+  }
+
+  @override
+  Stream<PartnerProfile?> watchPartnerProfile(String uid) {
+    partnerWatchCalls.update(uid, (count) => count + 1, ifAbsent: () => 1);
+    return controller(uid).stream.map(
+      (profile) => profile == null
+          ? null
+          : PartnerProfile(
+              uid: uid,
+              name: profile.name,
+              photoUrl: profile.photoUrl,
+            ),
+    );
+  }
 
   StreamController<UserModel?> controller(String uid) {
     return streams.putIfAbsent(

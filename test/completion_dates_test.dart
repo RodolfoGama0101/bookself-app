@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bookself_app/data/models/book_model.dart';
 import 'package:bookself_app/data/models/user_model.dart';
+import 'package:bookself_app/data/models/partner_profile.dart';
 import 'package:bookself_app/services/auth_service.dart';
 import 'package:bookself_app/services/book_service.dart';
 import 'package:bookself_app/data/models/book_search_page.dart';
@@ -26,13 +27,8 @@ class DateAuth extends ChangeNotifier implements AuthService {
     partnerUid: 'partner',
   );
   @override
-  UserModel get partnerUserModel => UserModel(
-    uid: 'partner',
-    name: 'Companhia',
-    email: 'partner@example.com',
-    createdAt: DateTime(2020),
-    partnerUid: 'owner',
-  );
+  PartnerProfile get partnerUserModel =>
+      PartnerProfile(uid: 'partner', name: 'Companhia');
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

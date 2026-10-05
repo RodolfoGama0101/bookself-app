@@ -1,6 +1,6 @@
 # Autorização e vínculo atuais
 
-Revisão: 03/10/2026. Auditoria remota somente de regras/índices; validação das novas regras exclusivamente em emuladores. Nenhuma escrita, migração ou implantação remota foi executada.
+Revisão: 05/10/2026. Auditoria remota de 03/10 somente de regras/índices; validação das novas regras exclusivamente em emuladores. Nenhuma escrita, migração ou implantação remota foi executada pelo agente.
 
 ## Resultado da auditoria remota
 
@@ -22,7 +22,9 @@ SHA-256 do conteúdo retornado para a regra ativa: `67e516d2c05f980cfb40f5eba63c
 
 | Dados/operação | Controle local validado |
 | --- | --- |
-| Perfil | Dono lê seu documento, inclusive ausência; parceiro recíproco lê o perfil existente. Terceiros e listagem de usuários são negados. |
+| Perfil privado (`users`) | Só o dono lê seu documento, inclusive ausência. Parceiro, terceiro e listagem de usuários são negados. Campos privados/legados são preservados. |
+| Perfil consultável (`partner_profiles`) | Dono/parceiro recíproco consultam por ID; não é público nem listável. Conteúdo permite somente nome/foto. Documento contaminado com campos privados é negado ao parceiro. |
+| Escrita do perfil consultável | Só o dono cria/atualiza; nome/foto devem coincidir com `getAfter` do perfil privado. Campos desconhecidos, autoria forjada e exclusão são negados. |
 | Criação de perfil | UID/caminho/e-mail correspondem à sessão; nome não vazio, até 200 caracteres e data de criação válida. Vínculo e foto iniciam ausentes/nulos. Campos desconhecidos são rejeitados na criação. |
 | Edição de perfil | Só o dono altera nome/foto; UID, e-mail e criação não podem ser alterados. Campos legados não afetados são preservados. Exclusão de perfil pelo cliente é negada enquanto SEC-05 não definir exclusão de conta. |
 | Livros | Dono cria/edita/exclui. Autoria não pode ser transferida. Parceiro recíproco apenas lê; terceiro não acessa. Campos/estados/tipos conhecidos são exigidos; até 50 autores, todos strings. |
@@ -32,7 +34,11 @@ SHA-256 do conteúdo retornado para a regra ativa: `67e516d2c05f980cfb40f5eba63c
 
 As queries de estante/Bíblia devem filtrar `userId`. O feed pode consultar `in` com os dois participantes de vínculo recíproco. Queries globais e filtros para terceiros são negados. A autorização depende de ambos os perfis persistidos apontarem um para o outro, não apenas de um ponteiro local.
 
-Firestore autoriza documentos inteiros. O perfil atual contém e-mail/foto, então o parceiro recíproco ainda recebe esses campos. Separar perfil consultável e dados privados permanece em SEC-04. **Atualização de 05/10/2026:** COUPLE-01 foi concluída como decisão com a [política v1 aprovada](COUPLE_POLICY.md), que permite nome/foto e mantém e-mail e demais dados privados restritos ao dono. Convites com aceite e visibilidade opcional continuam pendentes de implementação; código e regras atuais não foram alterados pela decisão.
+Firestore autoriza documentos inteiros; esconder um campo na tela não restringe sua leitura. [Limites oficiais de acesso por campo](https://firebase.google.com/docs/firestore/security/rules-fields). Em 05/10/2026, SEC-04 separou o modelo e as regras locais: `users` conserva os dados privados/legados e `partner_profiles` contém apenas nome/foto. O cliente não consulta `users` do parceiro, mesmo quando sua apresentação está ausente. O perfil do casal deixou de exibir e-mail alheio. A proteção do banco remoto permanece dependente de SEC-06, pois a regra permissiva auditada não foi substituída.
+
+Cadastro/recuperação e edição de nome/foto escrevem os dois documentos em transação. Edições simultâneas aplicam somente o campo alterado quando a projeção está atual, preservando a outra intenção; falha não deixa escrita parcial. Contas existentes publicam somente a própria apresentação quando esta versão recebe o perfil válido; a transação relê dados atuais e preserva integralmente o documento privado. Falha/timeout de publicação não impede uso individual; o perfil indisponível tem apresentação neutra, sem fallback privado. Detalhes e repetição em [ARCHITECTURE.md](ARCHITECTURE.md).
+
+A [política v1 aprovada](COUPLE_POLICY.md) permite nome/foto e mantém e-mail e demais dados privados restritos ao dono. Nesta etapa, leitura da apresentação exige o vínculo recíproco atual. Convites com aceite, bloqueio e ocultação por item continuam em COUPLE-03/04; a separação não os implementa nem transforma vínculos legados em consentimento.
 
 ## Consistência do vínculo
 
@@ -48,17 +54,23 @@ Desvincular exige o par recíproco persistido. Um lote criado com um parceiro an
 
 ## Evidências locais e limites
 
-`npm --prefix tool/firebase test` executa 25 testes em Auth/Firestore reais dos emuladores, somente no projeto demo. Cobrem: ausência de autenticação, dono/parceiro/terceiro, autoria e campos inválidos, queries usadas pelo app, dados legados, capítulos dos 66 livros, vínculos unilaterais/ausentes/ocupados, disputa simultânea, desvínculo antigo, revogação de leituras/queries do ex-parceiro e isolamento de novo parceiro. Os dados são fictícios e o runner encerra os emuladores.
+`npm --prefix tool/firebase test` executou **32 testes aprovados** em Auth/Firestore reais dos emuladores em 05/10/2026, somente no projeto demo. Cobrem: ausência de autenticação, dono/parceiro/terceiro, autoria e campos inválidos, queries usadas pelo app, dados legados, capítulos dos 66 livros, vínculos unilaterais/ausentes/ocupados, disputa simultânea, desvínculo antigo, revogação de leituras/queries do ex-parceiro e isolamento de novo parceiro. Sete novas regressões incluem perfil mínimo não público/listável, negação de campos privados, escrita atômica/rejeição sem estado parcial, nome/foto concorrentes, projeção contaminada, legado sem projeção e negação de nova atualização em assinatura do ex-parceiro. Os dados são fictícios e o runner encerra os emuladores.
 
 Os testes Dart complementam confirmação das escritas, configuração demo, bloqueio de ações concorrentes, falhas/nova tentativa e isolamento de retornos após troca de sessão. O SDK JS faz uma jornada de cadastro/login/logout em Auth e criação/leitura de perfil em Firestore local. Isso não equivale a uma jornada Flutter em dispositivo, nem comprova autorização remota aplicada.
 
 A revogação foi verificada no servidor para novas leituras/queries. Dados já entregues ao dispositivo não podem ser recuperados do destinatário; limpeza/visibilidade de cache e evolução do compartilhamento permanecem em COUPLE-04/DATA-05. Admin SDKs/credenciais administrativas não usam estas regras; permissões IAM são uma verificação separada.
+
+No teste da assinatura, após o desvínculo o dono atualiza nome no perfil privado/consultável; o ex-parceiro recebe `permission-denied`, sem receber o novo nome. Isso não demonstra notificação imediata do emulador só pela alteração da dependência de vínculo. No cliente, a emissão do próprio perfil sem parceiro cancela o ouvinte e limpa a apresentação; regressões Dart cobrem logout, troca, falha e descarte.
 
 ## Implantação pendente
 
 **SEC-06 aguarda aprovação do usuário desde 03/10/2026.** O usuário pediu para deixar a decisão anotada e continuar atividades independentes. Retomar esta pendência quando ele estiver disponível; não publicar regras, migrar dados nem alterar produção automaticamente. O lembrete está no [backlog](../BACKLOG.md#pendência-de-aprovação-do-usuário), sem agendamento ou data definida.
 
 Antes de publicar, revisar a release atual, backup/recuperação, compatibilidade dos documentos legados e dos clientes distribuídos, além de validar a jornada em desenvolvimento. A auditoria não inventariou dados pessoais reais; perfis com tipos/campos divergentes e vínculos antigos inconsistentes precisam de revisão controlada. Regras mais estritas podem rejeitar operações que antes eram permitidas; essa mudança deve acompanhar a versão compatível do app.
+
+**Compatibilidade de SEC-04:** clientes antigos, inclusive a pré-release 1.1.0, ainda consultam `users` do parceiro e terão essa leitura negada pelas novas regras. A implantação exige planejar a atualização dos clientes e a disponibilidade das projeções. Contas que ainda não abriram esta versão podem não ter `partner_profiles`; o cliente novo mantém estante/Bíblia/desvínculo com apresentação neutra até a publicação pelo dono. Não ler perfis privados para preencher apresentação de outro usuário nem executar preenchimento em massa sem plano separado. Alterações de nome/foto por cliente antigo podem deixar a projeção desatualizada até nova sincronização pelo cliente atualizado.
+
+Caches persistentes de versões antigas podem conter documentos privados já recebidos. O app novo não os consulta como perfil do parceiro, mas esta entrega não faz limpeza/migração do cache inteiro; esse tratamento permanece em COUPLE-04/DATA-05. A separação não recolhe dados já entregues nem comprova autorização em produção.
 
 A implantação das regras deve ser uma ação explícita posterior. Não execute migração, correção de vínculos ou deploy como parte de testes. As tarefas de consentimento, privacidade e migração continuam no [backlog](../BACKLOG.md).
 

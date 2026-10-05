@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../data/models/user_model.dart';
+import '../data/models/partner_profile.dart';
 import 'user_profile_service.dart';
 import 'partner_service.dart';
 import 'firebase_environment.dart';
@@ -26,7 +27,7 @@ class AuthService extends ChangeNotifier {
 
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<UserModel?>? _currentUserSubscription;
-  StreamSubscription<UserModel?>? _partnerSubscription;
+  StreamSubscription<PartnerProfile?>? _partnerSubscription;
   Timer? _sessionTimer;
   int _authRevision = 0;
   int _profileRevision = 0;
@@ -45,8 +46,8 @@ class AuthService extends ChangeNotifier {
   UserModel? _currentUserModel;
   UserModel? get currentUserModel => _currentUserModel;
 
-  UserModel? _partnerUserModel;
-  UserModel? get partnerUserModel => _partnerUserModel;
+  PartnerProfile? _partnerUserModel;
+  PartnerProfile? get partnerUserModel => _partnerUserModel;
 
   bool _isLoading = false;
   bool _partnerOperationPending = false;
@@ -207,11 +208,21 @@ class AuthService extends ChangeNotifier {
     _sessionState = profile == null
         ? AuthSessionState.missingProfile
         : AuthSessionState.ready;
+    if (profile != null) unawaited(_publishOwnPresentation(profile.uid));
     if (profile?.partnerUid != _partnerUid) {
       _cancelPartner();
       if (profile?.partnerUid != null) _listenToPartner(profile!.partnerUid!);
     }
     notifyListeners();
+  }
+
+  Future<void> _publishOwnPresentation(String uid) async {
+    try {
+      await _profiles.ensurePartnerProfile(uid).timeout(sessionTimeout);
+    } catch (error) {
+      // Falha da apresentação não impede acesso ao próprio perfil/biblioteca.
+      ErrorHandler.report(error, operation: ErrorOperation.saveProfile);
+    }
   }
 
   void retryProfile() {
@@ -232,14 +243,16 @@ class AuthService extends ChangeNotifier {
   // Escuta o parceiro em tempo real
   void _listenToPartner(String partnerUid) {
     _partnerUid = partnerUid;
+    _partnerUserModel = PartnerProfile.unavailable(partnerUid);
     final revision = ++_partnerRevision;
     try {
       _partnerSubscription = _profiles
-          .watchProfile(partnerUid)
+          .watchPartnerProfile(partnerUid)
           .listen(
             (profile) {
               if (_disposed || revision != _partnerRevision) return;
-              _partnerUserModel = profile;
+              _partnerUserModel =
+                  profile ?? PartnerProfile.unavailable(partnerUid);
               notifyListeners();
             },
             onError: (Object error) {
@@ -248,13 +261,13 @@ class AuthService extends ChangeNotifier {
                 error,
                 operation: ErrorOperation.loadPartnerProfile,
               );
-              _partnerUserModel = null;
+              _partnerUserModel = PartnerProfile.unavailable(partnerUid);
               notifyListeners();
             },
           );
     } catch (error) {
       ErrorHandler.report(error, operation: ErrorOperation.loadPartnerProfile);
-      _partnerUserModel = null;
+      _partnerUserModel = PartnerProfile.unavailable(partnerUid);
     }
   }
 

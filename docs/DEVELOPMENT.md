@@ -1,6 +1,6 @@
 # Desenvolvimento com emuladores
 
-Revisão: 03/10/2026. Ambiente local para Auth/Firestore, separado do projeto distribuído. A implantação de regras é uma etapa distinta; os comandos abaixo não executam deploy.
+Revisão: 05/10/2026. Ambiente local para Auth/Firestore, separado do projeto distribuído. A implantação de regras é uma etapa distinta; os comandos abaixo não executam deploy.
 
 ## Pré-requisitos
 
@@ -82,6 +82,14 @@ Jobs usam Ubuntu 24.04, timeouts e `contents: read`, sem credenciais persistidas
 Comandos dos jobs foram verificados localmente no Windows; isso não comprova execução no runner Ubuntu. Build Android e avisos/limites estão em [ANDROID_BUILD.md](ANDROID_BUILD.md). Registro de alternativas/motivos: [decisões técnicas](decisions/README.md).
 
 ## Cobertura de regressões e validação Dart
+
+Atualização de **SEC-04 em 05/10/2026:** formatação dos arquivos Dart afetados, `flutter analyze --no-pub` limpa, **295 testes Flutter aprovados**, **32 integrações Auth/Firestore aprovadas** e `flutter build web --no-pub --dart-define=USE_FIREBASE_EMULATORS=true` aprovado, incluindo verificação preliminar Wasm. SDK e lockfiles preservados. Emuladores usaram portas alternativas 18080/19099 e somente dados fictícios do projeto demo, sem consulta/escrita remota ou publicação.
+
+Doze regressões Flutter novas cobrem modelo mínimo (dois), serviço de apresentação/transações (sete), sessão com publicação pendente/falha sem bloqueio privado (um) e perfil do casal disponível/ausente em 320 × 480 (dois). `test/partner_profile_test.dart`, `test/partner_profile_service_test.dart`, `test/partner_profile_ui_test.dart` e `test/auth_service_test.dart` verificam formato restrito, campos privados rejeitados, ausência/falha/cache sem leitura alternativa de `users`, confirmação de escrita, rejeição sem parcial, preservação legada, repetição após conflito e cancelamento de ouvintes. Testes existentes de Início, estante, Bíblia, datas e perfil continuam passando com o modelo mínimo separado.
+
+Sete novas integrações em `tool/firebase/test/security.test.cjs` verificam perfil mínimo não público/listável, escrita só pelo dono, campos privados/identidade forjada rejeitados, cadastro/edição atômicos, nome/foto concorrentes, documento contaminado, perfil legado sem projeção e negação de nova atualização em assinatura do ex-parceiro após desvínculo. As regressões anteriores foram adaptadas para negar `users` ao parceiro e consultar `partner_profiles`; preservam disputas de vínculo e isolamento do novo parceiro. A assinatura recebe `permission-denied` quando o dono publica novo nome após o término; isso não comprova notificação imediata só pela mudança do vínculo.
+
+Sem nova execução da jornada Flutter em navegador/dispositivo ou build nativo nesta tarefa. A inspeção da interface foi feita por testes de widgets; fontes desses testes são substitutas locais. Build web confirma compilação. Clientes antigos consultam `users` do parceiro e perdem essa leitura após novas regras; a implantação e a disponibilidade das projeções exigem revisão de SEC-06. Contas antigas publicam somente a própria apresentação ao abrir o cliente atualizado; não houve migração em lote. Caches privados já recebidos, convites e ocultação continuam em COUPLE-03/04 e DATA-05. [Detalhes da transição](SECURITY.md#implantação-pendente).
 
 Revisão de QA-01, BIBLE-02 e QA-04 em 03/10/2026: **244 testes Dart passaram** e `flutter analyze --no-pub` encerrou com código zero, sem apontamentos. Os 47 infos do baseline original foram eliminados incrementalmente; os 37 restantes eram usos de APIs obsoletas. Não foram adicionadas supressões para o app.
 

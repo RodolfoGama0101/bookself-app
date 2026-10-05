@@ -256,6 +256,42 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'apresentação pendente/falha não bloqueia sessão; parceiro ausente preserva vínculo sem ler perfil privado',
+    (tester) async {
+      final publication = Completer<void>();
+      service.dispose();
+      service = AuthService(auth: auth, profiles: profiles);
+      profiles.onPublish = (_) => publication.future;
+      auth.emit(FakeUser('user'));
+      await tester.pump();
+      profiles.controller('user').add(profile('user', partnerUid: 'partner'));
+      await tester.pump();
+      expect(service.sessionState, AuthSessionState.ready);
+      expect(service.partnerUserModel?.uid, 'partner');
+      expect(service.partnerUserModel?.isAvailable, isFalse);
+      profiles.controller('partner').add(null);
+      await tester.pump();
+      expect(service.currentUserModel?.partnerUid, 'partner');
+      expect(profiles.watchCalls['partner'], isNull);
+      publication.completeError(StateError('fixture'));
+      await tester.pump();
+      expect(service.sessionState, AuthSessionState.ready);
+      profiles.controller('partner').add(profile('partner', name: 'Companhia'));
+      await tester.pump();
+      expect(service.partnerUserModel?.isAvailable, isTrue);
+      profiles.controller('partner').addError(StateError('fixture'));
+      await tester.pump();
+      expect(service.partnerUserModel?.isAvailable, isFalse);
+      expect(service.partnerUserModel?.photoUrl, isNull);
+      await service.signOut();
+      await tester.pump();
+      expect(service.partnerUserModel, isNull);
+      expect(profiles.controller('partner').hasListener, isFalse);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('login sem resposta libera o formulário após limite de espera', (
     tester,
   ) async {
@@ -318,7 +354,8 @@ void main() {
           .controller('user')
           .add(profile('user', name: 'Novo nome', partnerUid: 'first-partner'));
       await tester.pump();
-      expect(profiles.watchCalls['first-partner'], 1);
+      expect(profiles.partnerWatchCalls['first-partner'], 1);
+      expect(profiles.watchCalls['first-partner'], isNull);
 
       profiles.controller('user').add(profile('user'));
       await tester.pump();
