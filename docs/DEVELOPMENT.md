@@ -119,6 +119,16 @@ flutter run -d chrome --dart-define=USE_FIREBASE_EMULATORS=true
 
 O app cria a instância Firebase nomeada `demo-bookself`, com opções fictícias, e conecta Auth e Firestore antes de criar os serviços. Todos os serviços selecionam essa mesma instância. Isso evita reutilizar o Firebase padrão criado pela configuração nativa Android/iOS. O cache persistente do Firestore fica desabilitado nesse modo. Uma falha de configuração/conexão não troca automaticamente para o projeto real.
 
+No web demo, o bootstrap conecta Auth antes de `Firebase.initializeApp` aguardar a sessão persistida. Sem essa antecipação, FlutterFire 6.2.1 podia consultar Auth remoto com as opções fictícias durante a recarga. O helper usa a versão JavaScript suportada por `firebase_core_web`, agora dependência direta sem upgrade. `web/firebase_emulator.js` é carregado antes do Flutter, mas só importa/inicializa SDKs quando o opt-in Dart o chama. Core/Auth/Firestore são os três módulos atuais; ao adicionar outro serviço Firebase ou atualizar os plugins, revise os módulos e as dependências de `initializeAuth` e repita login/recarga/logout no navegador. A conexão precisa ser síncrona após `initializeAuth`, conforme a [referência oficial](https://firebase.google.com/docs/reference/js/auth#connectauthemulator).
+
+Os testes do bootstrap não usam rede ou emuladores e também estão no job Firebase da CI:
+
+```sh
+npm --prefix tool/firebase run test:web-bootstrap
+```
+
+Seis testes verificam carregamento inerte, rejeição de projeto/URLs remotos e versões incompatíveis, conexão antes da restauração e nova tentativa sem trocar o destino. O runner usa módulos sintéticos do Node, com aviso de API experimental; a jornada Chrome real continua sendo uma verificação separada em [WEB_VALIDATION.md](WEB_VALIDATION.md).
+
 Cadastre duas contas fictícias pela interface; cada cadastro cria seu perfil. O código exibido no perfil ainda é o UID. O vínculo direto atual exige as duas contas livres; convites/aceite são uma evolução pendente. A busca Google Books e as capas continuam externas; o catálogo exige define explícito conforme [CONFIGURATION.md](CONFIGURATION.md). Cadastro manual permite testar as escritas sem catálogo externo. CI/build demo sem define não consultam o Google Books; usar chave junto do modo demo faz chamadas externas. Não use contas reais no emulador.
 
 | Cliente | Host e comando | Limite de validação |

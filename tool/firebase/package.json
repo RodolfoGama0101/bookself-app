@@ -4,7 +4,8 @@
   "engines": { "node": ">=20" },
   "scripts": {
     "emulators": "firebase emulators:start --config ../../firebase.emulators.json --project demo-bookself --only auth,firestore",
-    "test": "node run-tests.cjs"
+    "test": "node run-tests.cjs",
+    "test:web-bootstrap": "node --experimental-vm-modules --test web-emulator.test.cjs"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "5.0.2",

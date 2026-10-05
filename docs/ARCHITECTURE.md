@@ -1,12 +1,14 @@
 # Arquitetura
 
-Revisão: 03/10/2026. As seções iniciais descrevem o código atual; a evolução ao final é uma proposta.
+Revisão: 05/10/2026. As seções iniciais descrevem o código atual; a evolução ao final é uma proposta.
 
 ## Inicialização e interface atuais
 
 `lib/main.dart` inicia a interface imediatamente com `BookselfBootstrap`. Ele cria e mantém `ThemeService` na raiz, iniciando a leitura da preferência antes de registrar os ouvintes do Provider. `AppStartup` (`lib/ui/screens/app_startup.dart`) mostra carregamento enquanto aguarda essa leitura e a inicialização Firebase. Apenas após sucesso do Firebase, seu `readyBuilder` registra `AuthService` e cria `BookselfApp`. `SessionGate` decide entre login, carregamento, recuperação de perfil e `MainNavigation` conforme o estado explícito de sessão.
 
 `MainNavigation` usa `IndexedStack` com Início, Estante, Bíblia e Perfil. Busca é acessada pela estante. Serviços de livros e Bíblia são instanciados nas telas; não há backend próprio versionado. `FirebaseEnvironment` seleciona a instância para todos os serviços: padrão no modo distribuído e nomeada `demo-bookself` no modo explícito de emuladores. Auth/Firestore locais são configurados antes dos providers; o cache persistente do Firestore fica desabilitado no demo. Configuração inválida não faz fallback para o projeto real. Comandos/limites por plataforma estão em [DEVELOPMENT.md](DEVELOPMENT.md).
+
+No demo web, `prepareWebEmulator` (`lib/services/firebase_web_emulator*.dart`) chama `web/firebase_emulator.js` antes de `Firebase.initializeApp`. O helper carrega Core/Auth/Firestore na versão suportada pelo FlutterFire e conecta Auth imediatamente após `initializeAuth`, antes da restauração persistida. Isso corrige o retorno ao login e a tentativa de consulta Auth remota após recarga. O opt-in e a identidade/host locais são validados antes de inicializar; o modo padrão e os clientes nativos mantêm a inicialização anterior. Dependências de persistência acompanham `firebase_auth_web` 6.2.1; upgrades dos plugins ou adição de serviços Firebase exigem revisão desse bootstrap e nova validação de recarga. Evidências em [WEB_VALIDATION.md](WEB_VALIDATION.md).
 
 Falhas assíncronas e erros síncronos de configuração mantêm o app em uma tela recuperável com “Tentar novamente”, sem criar os serviços dependentes de Firebase. Há somente uma tentativa ativa; o resultado de uma operação após descarte não usa estado/contexto antigo. As telas iniciais usam fontes locais e não exibem o erro técnico. Não há modo local completo: inicializar o SDK não comprova acesso aos serviços remotos.
 

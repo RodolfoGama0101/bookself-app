@@ -68,3 +68,5 @@ jobs:
         run: npm --prefix tool/firebase ci --no-audit --no-fund
       - name: Testar Auth e Firestore em demo-bookself
         run: npm --prefix tool/firebase test
+      - name: Testar inicialização web isolada
+        run: npm --prefix tool/firebase run test:web-bootstrap

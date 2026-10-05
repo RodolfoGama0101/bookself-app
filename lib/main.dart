@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
 import 'services/firebase_environment.dart';
+import 'services/firebase_web_emulator.dart';
 import 'ui/theme.dart';
 import 'ui/screens/login_screen.dart';
 import 'ui/screens/main_navigation.dart';
@@ -71,6 +72,7 @@ class BookselfBootstrap extends StatelessWidget {
 Future<void> _initializeFirebase() async {
   const environment = FirebaseEnvironment.fromDefines;
   environment.validate();
+  final webAuthConfigured = await prepareWebEmulator(environment);
   final app = await Firebase.initializeApp(
     name: environment.useEmulators ? FirebaseEnvironment.demoProjectId : null,
     options: environment.useEmulators
@@ -81,9 +83,11 @@ Future<void> _initializeFirebase() async {
     final firestore = FirebaseFirestore.instanceFor(app: app);
     firestore.settings = const Settings(persistenceEnabled: false);
     firestore.useFirestoreEmulator(environment.host, environment.firestorePort);
-    await FirebaseAuth.instanceFor(
-      app: app,
-    ).useAuthEmulator(environment.host, environment.authPort);
+    if (!webAuthConfigured) {
+      await FirebaseAuth.instanceFor(
+        app: app,
+      ).useAuthEmulator(environment.host, environment.authPort);
+    }
   }
 }
 
