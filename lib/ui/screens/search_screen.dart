@@ -63,8 +63,10 @@ class _SearchScreenState extends State<SearchScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${ErrorHandler.getFriendlyErrorMessage(e, operation: ErrorOperation.searchBooks)} '
-              'Você também pode cadastrar o livro manualmente.',
+              ErrorHandler.getFriendlyErrorMessage(
+                e,
+                operation: ErrorOperation.searchBooks,
+              ),
             ),
             duration: const Duration(seconds: 7),
             backgroundColor: Colors.orange[800],
