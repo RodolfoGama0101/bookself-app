@@ -18,6 +18,7 @@ Use o SDK já instalado se `dart tool/check_sdk.dart` confirmar versão, canal e
 ```sh
 git clone --depth 1 --branch 3.44.0 https://github.com/flutter/flutter.git ../flutter-sdk-3.44.0
 git -C ../flutter-sdk-3.44.0 rev-parse HEAD
+git -C ../flutter-sdk-3.44.0 checkout -B stable 559ffa3f75e7402d65a8def9c28389a9b2e6fe42
 ```
 
 A revisão deve ser `559ffa3f75e7402d65a8def9c28389a9b2e6fe42`. Adicione o caminho absoluto de `../flutter-sdk-3.44.0/bin` ao PATH da sessão e, na raiz deste projeto, execute:
@@ -28,6 +29,8 @@ flutter pub get --enforce-lockfile
 ```
 
 O verificador é executado diretamente, sem `dart run`/resolução automática de dependências. SDK divergente encerra com código 1. O SDK fica fora dos arquivos versionados do app; não é obrigatório instalar FVM ou outro gerenciador. Não troque versão nem execute `pub upgrade` como efeito colateral de configurar a máquina. Mudanças intencionais de SDK/dependências exigem revisão dos lockfiles e nova validação. A tag/revisão pública foi conferida com `git ls-remote` em 03/10/2026.
+
+Em 05/10/2026, a [execução no GitHub](https://github.com/RodolfoGama0101/bookself-app/actions/runs/37344069051) confirmou uma falha de seleção do canal: clonar a tag deixa HEAD destacado, e `check_sdk.dart` exige stable. O workflow e o exemplo acima agora criam a branch local stable na revisão já conferida, antes da primeira chamada ao SDK. Não relaxam a verificação nem alteram o commit fixado. O check Firebase dessa execução passou; a nova execução Flutter precisa confirmar a correção no runner.
 
 Node 24.15.0 fica registrado em `.node-version`. `pubspec.lock` e `tool/firebase/package-lock.json` são versionados; caches, artefatos de build, configurações locais, `node_modules` e arquivos de assinatura permanecem ignorados. Não editar `firebase_options.dart` ou registrantes gerados à mão. A dependência `flutter_localizations` já adicionada em CORE-11 permanece a única alteração anterior no lockfile Flutter; esta revisão não atualizou pacotes.
 
