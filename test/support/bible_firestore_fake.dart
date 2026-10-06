@@ -21,8 +21,8 @@ class BibleFirestoreFake extends Fake implements FirebaseFirestore {
 
   @override
   CollectionReference<Map<String, dynamic>> collection(String path) {
-    expect(path, 'bible_progress');
-    return _BibleCollection(this);
+    expect(path, anyOf('bible_progress', 'shared_bible_progress'));
+    return _BibleCollection(this, path);
   }
 
   Future<void> commit(String id, Map<String, dynamic> data) async {
@@ -46,7 +46,16 @@ class BibleFirestoreFake extends Fake implements FirebaseFirestore {
       transaction = _BibleTransaction(this);
       result = await handler(transaction);
     }
-    await commit(transaction.id!, transaction.pending!);
+    if (transaction.id != null) {
+      await commit(transaction.id!, transaction.pending!);
+    }
+    for (final entry in transaction.shared.entries) {
+      if (entry.value == null) {
+        documents.remove(entry.key);
+      } else {
+        documents[entry.key] = entry.value!;
+      }
+    }
     return result;
   }
 
@@ -60,11 +69,13 @@ class BibleFirestoreFake extends Fake implements FirebaseFirestore {
 // ignore: subtype_of_sealed_class
 class _BibleCollection extends Fake
     implements CollectionReference<Map<String, dynamic>> {
-  _BibleCollection(this.database);
+  _BibleCollection(this.database, this.path);
   final BibleFirestoreFake database;
   @override
+  final String path;
+  @override
   DocumentReference<Map<String, dynamic>> doc([String? path]) =>
-      _BibleReference(database, path!);
+      _BibleReference(database, path!, this.path);
   @override
   Query<Map<String, dynamic>> where(
     Object field, {
@@ -89,8 +100,11 @@ class _BibleCollection extends Fake
 // ignore: subtype_of_sealed_class
 class _BibleReference extends Fake
     implements DocumentReference<Map<String, dynamic>> {
-  _BibleReference(this.database, this.id);
+  _BibleReference(this.database, this.id, this.collectionPath);
   final BibleFirestoreFake database;
+  final String collectionPath;
+  @override
+  String get path => '$collectionPath/$id';
   @override
   final String id;
   @override
@@ -126,11 +140,18 @@ class _BibleTransaction extends Fake implements Transaction {
   final BibleFirestoreFake database;
   String? id;
   Map<String, dynamic>? pending;
+  final shared = <String, Map<String, dynamic>?>{};
   @override
   Future<DocumentSnapshot<T>> get<T extends Object?>(
     DocumentReference<T> reference,
   ) async {
-    return ProfileSnapshot(reference.id, database.documents[reference.id])
+    final ref = reference as _BibleReference;
+    return ProfileSnapshot(
+          reference.id,
+          database.documents[ref.collectionPath == 'bible_progress'
+              ? ref.id
+              : ref.path],
+        )
         as DocumentSnapshot<T>;
   }
 
@@ -140,8 +161,19 @@ class _BibleTransaction extends Fake implements Transaction {
     T data, [
     SetOptions? options,
   ]) {
-    id = reference.id;
-    pending = Map.from(data as Map<String, dynamic>);
+    final ref = reference as _BibleReference;
+    if (ref.collectionPath == 'bible_progress') {
+      id = reference.id;
+      pending = Map.from(data as Map<String, dynamic>);
+    } else {
+      shared[ref.path] = Map.from(data as Map<String, dynamic>);
+    }
+    return this;
+  }
+
+  @override
+  Transaction delete(DocumentReference reference) {
+    shared[reference.path] = null;
     return this;
   }
 }

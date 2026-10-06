@@ -153,7 +153,7 @@ void main() {
         reason: 'Repetição em ${book.name}',
       );
     }
-    expect(database.documents.length, 66);
+    expect(database.documents.keys.where((id) => !id.contains('/')).length, 66);
   });
 
   test('capítulos fora dos limites não escrevem em nenhum livro', () async {
@@ -203,7 +203,10 @@ void main() {
         expect(database.documents[partnerId], partnerProgress);
       }
     }
-    expect(database.documents.length, 132);
+    expect(
+      database.documents.keys.where((id) => !id.contains('/')).length,
+      132,
+    );
   });
 
   test(

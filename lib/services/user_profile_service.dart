@@ -58,8 +58,9 @@ class UserProfileService {
                 (snapshot.exists || !snapshot.metadata.isFromCache),
           )
           .map(
-            (snapshot) =>
-                snapshot.exists ? PartnerProfile.fromFirestore(snapshot) : null,
+            (snapshot) => snapshot.exists && !snapshot.metadata.isFromCache
+                ? PartnerProfile.fromFirestore(snapshot)
+                : null,
           );
 
   /// Publica somente a apresentação do próprio dono, usando dados atuais.

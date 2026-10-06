@@ -439,6 +439,20 @@ class AuthService extends ChangeNotifier {
     )).error;
   }
 
+  Stream<Map<String, String>> watchBlocks() =>
+      _partners.watchBlocks(_currentUserModel!.uid);
+  Future<String?> unblockPartner(String other) async =>
+      (await _operatePartner((uid) => _partners.unblock(uid, other))).error;
+  Future<String?> blockPartner() async {
+    final own = _currentUserModel;
+    if (own?.partnerUid == null) return 'Você não possui nenhum vínculo ativo.';
+    final name = _partnerUserModel?.name ?? 'Seu parceiro';
+    return (await _operatePartner(
+      (uid) => _partners.block(uid, own!.partnerUid!, name, own.relationshipId),
+      unlinking: true,
+    )).error;
+  }
+
   Future<InvitationResult<T>> _operatePartner<T>(
     Future<T> Function(String uid) operation, {
     bool unlinking = false,

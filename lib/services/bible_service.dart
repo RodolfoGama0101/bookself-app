@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'sharing_service.dart';
 import 'firebase_environment.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../data/bible_data.dart';
@@ -9,6 +11,47 @@ class BibleService {
   final FirebaseFirestore? _database;
   FirebaseFirestore get _firestore =>
       _database ?? FirebaseEnvironment.firestore;
+
+  Future<void> setVisibility(String uid, String bookName, bool value) async {
+    _validateBook(uid, bookName);
+    final id = '${uid}_${bookName.replaceAll(' ', '_').toLowerCase()}';
+    final ref = _firestore.collection('bible_progress').doc(id);
+    await _firestore.runTransaction((tx) async {
+      final current = (await tx.get(ref)).data();
+      final data = {
+        ...?current,
+        'userId': uid,
+        'bookName': bookName,
+        'readChapters': current?['readChapters'] ?? <int>[],
+        'updatedAt': FieldValue.serverTimestamp(),
+        'isShared': value,
+      };
+      tx.set(ref, data);
+      SharingService(
+        firestore: _firestore,
+      ).mirror(tx, 'bible_progress', id, data);
+    });
+  }
+
+  Stream<Map<String, BibleProgressModel>> streamSharedProgress(String uid) =>
+      _firestore
+          .collection('shared_bible_progress')
+          .where('userId', isEqualTo: uid)
+          .snapshots(includeMetadataChanges: true)
+          .map(
+            (s) => s.metadata.isFromCache || s.metadata.hasPendingWrites
+                ? <String, BibleProgressModel>{}
+                : {
+                    for (final d in s.docs)
+                      d.data()['bookName'] as String:
+                          BibleProgressModel.fromFirestore(d),
+                  },
+          );
+
+  Stream<BibleProgressModel?> streamSharedBookProgress(
+    String uid,
+    String name,
+  ) => streamSharedProgress(uid).map((all) => all[name]);
 
   BibleBook _validateBook(String userId, String bookName) {
     if (userId.trim().isEmpty || userId.contains('/')) {
@@ -53,6 +96,11 @@ class BibleService {
             final progress = BibleProgressModel.fromFirestore(doc);
             progressMap[progress.bookName] = progress;
           }
+          unawaited(
+            SharingService(firestore: _firestore)
+                .publishOwn('bible_progress', snapshot.docs.map((d) => d.id))
+                .catchError((Object _) {}),
+          );
           return progressMap;
         });
   }
@@ -74,6 +122,7 @@ class BibleService {
     return _firestore.runTransaction((transaction) async {
       DocumentSnapshot snapshot = await transaction.get(docRef);
 
+      final current = snapshot.data() as Map<String, dynamic>?;
       List<int> readChapters = [];
       if (snapshot.exists) {
         final data = snapshot.data() as Map<String, dynamic>;
@@ -91,12 +140,17 @@ class BibleService {
       // Ordena os capítulos para consistência no banco
       readChapters.sort();
 
-      transaction.set(docRef, {
+      final data = {
+        ...?current,
         'userId': userId,
         'bookName': bookName,
         'readChapters': readChapters,
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      };
+      transaction.set(docRef, data);
+      SharingService(
+        firestore: _firestore,
+      ).mirror(transaction, 'bible_progress', docId, data);
       return readChapters;
     });
   }
@@ -125,11 +179,19 @@ class BibleService {
       readChapters = List<int>.generate(totalChapters, (index) => index + 1);
     }
 
-    await docRef.set({
-      'userId': userId,
-      'bookName': bookName,
-      'readChapters': readChapters,
-      'updatedAt': FieldValue.serverTimestamp(),
+    await _firestore.runTransaction((tx) async {
+      final current = (await tx.get(docRef)).data();
+      final data = {
+        ...?current,
+        'userId': userId,
+        'bookName': bookName,
+        'readChapters': readChapters,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+      tx.set(docRef, data);
+      SharingService(
+        firestore: _firestore,
+      ).mirror(tx, 'bible_progress', docId, data);
     });
     return readChapters;
   }

@@ -1,3 +1,5 @@
+import 'package:provider/provider.dart';
+import '../../services/auth_service.dart';
 import 'book_cover.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -560,15 +562,52 @@ void showBookDetailsSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (sheetContext) => BookDetailsSheet(
+    builder: (sheetContext) => _SharedDetailsGuard(
       book: book,
-      isEditable: isEditable,
-      bookService: bookService,
-      onDeletionFeedback: (snackBar) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        }
-      },
+      editable: isEditable,
+      service: bookService ?? BookService(),
+      child: BookDetailsSheet(
+        book: book,
+        isEditable: isEditable,
+        bookService: bookService,
+        onDeletionFeedback: (snackBar) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          }
+        },
+      ),
     ),
   );
+}
+
+class _SharedDetailsGuard extends StatelessWidget {
+  const _SharedDetailsGuard({
+    required this.book,
+    required this.editable,
+    required this.service,
+    required this.child,
+  });
+  final BookModel book;
+  final bool editable;
+  final BookService service;
+  final Widget child;
+  @override
+  Widget build(BuildContext context) {
+    if (editable) return child;
+    final auth = context.watch<AuthService?>();
+    final profile = auth?.currentUserModel;
+    const unavailable = SafeArea(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Text('Este livro não está disponível para consulta.'),
+      ),
+    );
+    if (auth != null && profile?.partnerUid != book.userId) return unavailable;
+    return StreamBuilder<BookModel?>(
+      key: ValueKey(profile?.relationshipId),
+      stream: service.watchSharedBook(book.id),
+      builder: (context, snapshot) =>
+          snapshot.hasError || snapshot.data == null ? unavailable : child,
+    );
+  }
 }

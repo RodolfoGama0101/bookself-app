@@ -62,6 +62,7 @@ class _BibleScreenState extends State<BibleScreen>
           ),
         ),
         body: StreamBuilder<Map<String, BibleProgressModel>>(
+          key: ValueKey(user.uid),
           stream: _bibleService.streamAllProgress(user.uid),
           builder: (context, userProgressSnapshot) {
             if (userProgressSnapshot.hasError) {
@@ -82,8 +83,11 @@ class _BibleScreenState extends State<BibleScreen>
             final userProgress = userProgressSnapshot.data ?? {};
 
             return StreamBuilder<Map<String, BibleProgressModel>>(
+              key: ValueKey(
+                '${user.uid}/${user.partnerUid}/${user.relationshipId}',
+              ),
               stream: partner != null
-                  ? _bibleService.streamAllProgress(partner.uid)
+                  ? _bibleService.streamSharedProgress(partner.uid)
                   : Stream.value({}),
               builder: (context, partnerProgressSnapshot) {
                 if (partnerProgressSnapshot.hasError) {
@@ -217,7 +221,7 @@ class _BibleScreenState extends State<BibleScreen>
                   ),
 
                   // Barra de Progresso - Parceiro (se houver parceiro vinculado)
-                  if (partnerId != null) ...[
+                  if (partnerId != null && pProg != null) ...[
                     const SizedBox(height: 10),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,6 +315,25 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
   VoidCallback? _retryWrite;
   int _revision = 0;
   int _partnerRevision = 0;
+  bool _partnerVisible = false;
+  String? _activePartner;
+  String? _activeRelationship;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = context.watch<AuthService?>();
+    final profile = auth?.currentUserModel;
+    final next = auth == null
+        ? widget.partnerId
+        : (profile?.uid == widget.userId ? profile?.partnerUid : null);
+    if (_activePartner != next ||
+        _activeRelationship != profile?.relationshipId) {
+      _activePartner = next;
+      _activeRelationship = profile?.relationshipId;
+      _bindPartnerProgress();
+    }
+  }
 
   @override
   void initState() {
@@ -326,6 +349,9 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
         oldWidget.bibleService != widget.bibleService) {
       _bindProgress();
     } else if (oldWidget.partnerId != widget.partnerId) {
+      if (context.read<AuthService?>() == null) {
+        _activePartner = widget.partnerId;
+      }
       _bindPartnerProgress();
     }
   }
@@ -336,6 +362,7 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
     _service = widget.bibleService ?? BibleService();
     _readChapters = [];
     _partnerReadChapters = [];
+    _partnerVisible = false;
     _isLoading = true;
     _isSaving = false;
     _savingChapter = null;
@@ -372,9 +399,9 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
     _partnerSubscription?.cancel();
     _partnerReadChapters = [];
     _partnerError = null;
-    if (widget.partnerId != null) {
+    if (_activePartner != null) {
       _partnerSubscription = _service
-          .streamBookProgress(widget.partnerId!, widget.book.name)
+          .streamSharedBookProgress(_activePartner!, widget.book.name)
           .listen(
             (progress) {
               if (!mounted ||
@@ -384,6 +411,7 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
               }
               setState(() {
                 _partnerReadChapters = List.of(progress?.readChapters ?? []);
+                _partnerVisible = progress != null;
                 _partnerError = null;
               });
             },
@@ -393,12 +421,14 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
                   partnerRevision != _partnerRevision) {
                 return;
               }
-              setState(
-                () => _partnerError = ErrorHandler.getFriendlyErrorMessage(
+              setState(() {
+                _partnerReadChapters = [];
+                _partnerVisible = false;
+                _partnerError = ErrorHandler.getFriendlyErrorMessage(
                   error,
                   operation: ErrorOperation.loadPartnerBibleProgress,
-                ),
-              );
+                );
+              });
             },
           );
     }
@@ -666,7 +696,7 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
             }, childCount: widget.book.chapters),
           ),
         ),
-        if (widget.partnerId != null)
+        if (_activePartner != null && _partnerVisible)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),

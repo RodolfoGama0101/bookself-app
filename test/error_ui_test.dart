@@ -44,6 +44,9 @@ class SummaryFailureBible extends BibleService {
   final String failedUid;
 
   @override
+  Stream<Map<String, BibleProgressModel>> streamSharedProgress(String uid) =>
+      streamAllProgress(uid);
+  @override
   Stream<Map<String, BibleProgressModel>> streamAllProgress(String uid) =>
       uid == failedUid
       ? Stream.error(

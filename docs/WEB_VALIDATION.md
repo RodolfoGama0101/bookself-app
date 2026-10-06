@@ -88,3 +88,15 @@ Análise limpa, 308 testes Flutter, 43 Auth/Firestore e build demo final aprovad
 A acessibilidade do canvas foi ativada para interação. Os refs mudam com os campos Flutter; preencher um campo de cada vez e obter nova árvore evita escrever no campo anterior. O contêiner acessível de rolagem foi usado para conferir o convite completo; a espera por texto DOM não encontra alguns rótulos do canvas, mesmo quando já renderizados. A cópia produziu feedback confirmado; leitura do clipboard pelo navegador foi negada, portanto o código foi conferido visualmente. Processos/sessões desta validação foram encerrados, sem importação/exportação de dados.
 
 A correção da mensagem web foi recompilada e conferida também no navegador: uma conta fictícia e um convite terminal preparados somente nos emuladores produziram **“Este convite expirou ou já foi encerrado. Peça um novo convite.”**. O vínculo continuou ausente. Essa regressão adicional usa fixture local, sem alegar uma nova jornada completa de biblioteca. Não foram observados erros no console das sessões verificadas; isso não é auditoria de todas as requisições/plataformas.
+
+## Visibilidade e revogação — COUPLE-04
+
+Em 05/10/2026, build web demo foi servido somente em 127.0.0.1:17359, com Auth 19099/Firestore 18080 e projeto demo-bookself. Duas sessões Chrome isoladas usaram duas contas fictícias; fixture local de relação consentida/biblioteca, sem consulta ou escrita remota.
+
+1. Perfil → Compartilhamento exibiu controle por livro e pelos 66 livros bíblicos, no design atual; captura local inspecionada.
+2. Parceiro abriu detalhes de livro visível; dona ocultou. Folha já aberta retirou título/conteúdo e mostrou indisponibilidade. Preferência passou a Somente você.
+3. Dona ocultou Gênesis. Após recarga da segunda sessão, a comparação não mostrou progresso alheio; capítulos próprios continuaram 2/50.
+4. Bloqueio do parceiro ativo mostrou confirmação, encerrou vínculo e ofereceu Desbloquear ao dono. A conta do ex permaneceu com progresso próprio e voltou a oferecer Convites do casal. Desbloquear não restaurou vínculo.
+5. Nenhum erro de console observado nas duas sessões nas consultas realizadas. Processos/navegadores próprios foram encerrados e credenciais fictícias removidas; capturas permaneceram ignoradas.
+
+Análise limpa, 321 testes Flutter e 53 Auth/Firestore demo aprovados. Controle 320 × 480/texto 2× verificado em widgets; não foi uma jornada Chrome móvel. Marcador final que impede retroatividade ao mostrar item novamente foi validado por regras/unidades; jornada de duas sessões antecedeu esse ajuste final. Build final recompilado. Sem Android/iOS, produção, migração ou distribuição; cache nativo e clientes remotos permanecem verificações separadas. [Contrato e limitações](COUPLE_VISIBILITY.md).

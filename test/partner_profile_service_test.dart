@@ -152,6 +152,11 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(events.single?.name, 'Companhia');
       stream.add(
+        ProfileSnapshot('partner', {'name': 'Companhia'}, fromCache: true),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(events.last, isNull);
+      stream.add(
         ProfileSnapshot('partner', {
           'name': 'Companhia',
           'email': 'fixture@example.com',

@@ -341,7 +341,12 @@ class _BookshelfScreenState extends State<BookshelfScreen>
         ? _myInnerTabController
         : _partnerInnerTabController;
     return StreamBuilder<List<BookModel>>(
-      stream: _bookService.streamUserBooks(userId),
+      key: ValueKey(
+        '$userId/$isEditable/${context.read<AuthService>().currentUserModel?.relationshipId}',
+      ),
+      stream: isEditable
+          ? _bookService.streamUserBooks(userId)
+          : _bookService.streamSharedBooks(userId),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(

@@ -67,6 +67,11 @@ async function pair(database, a, b, linking = true) {
   batch.update(doc(database, 'users', b), {partnerUid:null, relationshipId:null});
   return batch.commit();
 }
+async function publish(database, group, id) {
+   const data = (await getDoc(doc(database, group, id))).data();
+   delete data.isShared;
+   return setDoc(doc(database, 'shared_'+group, id), data);
+}
 async function state() {
   const result = {};
   await env.withSecurityRulesDisabled(async context => {
@@ -145,7 +150,8 @@ test('metadados legados de perfil permanecem em edição e vínculo', async () =
 });
 test('parceiro recíproco lê perfil mínimo/estante/Bíblia sem ler o documento privado', async () => {
   await assertSucceeds(pair(db('a'), 'a', 'b'));
-  for (const [group, id] of [['partner_profiles','b'], ['books','b-book'], ['bible_progress','b_gênesis']]) {
+  await publish(db('b'),'books','b-book'); await publish(db('b'),'bible_progress','b_gênesis');
+  for (const [group, id] of [['partner_profiles','b'], ['shared_books','b-book'], ['shared_bible_progress','b_gênesis']]) {
     await assertSucceeds(getDoc(doc(db('a'), group, id)));
     await assertFails(deleteDoc(doc(db('a'), group, id)));
   }
@@ -166,7 +172,10 @@ test('queries filtradas pessoais/casal funcionam; globais e terceiros são negad
   const database = db('a');
   for (const group of ['books', 'bible_progress']) {
     await assertSucceeds(getDocs(query(collection(database, group), where('userId', '==', 'a'))));
-    await assertSucceeds(getDocs(query(collection(database, group), where('userId', 'in', ['a','b']))));
+    await assertFails(getDocs(query(collection(database, group), where('userId', 'in', ['a','b']))));
+    await publish(db('b'),group,group==='books'?'b-book':'b_gênesis');
+    await assertSucceeds(getDocs(query(collection(database, 'shared_'+group), where('userId', '==', 'b'))));
+    await assertFails(getDocs(collection(database,'shared_'+group)));
     await assertFails(getDocs(query(collection(database, group), where('userId', '==', 'c'))));
     await assertFails(getDocs(collection(database, group)));
   }
@@ -382,8 +391,9 @@ test('perfil legado sem projeção mantém dados pessoais e não permite fallbac
   const before = (await getDoc(doc(db('b'), 'users', 'b'))).data();
   await assertSucceeds(setDoc(doc(db('b'), 'partner_profiles', 'b'), {name:before.name, photoUrl:before.photoUrl}));
   assert.deepEqual((await getDoc(doc(db('b'), 'users', 'b'))).data(), before);
-  await assertSucceeds(getDoc(doc(db('a'), 'books', 'b-book')));
-  await assertSucceeds(getDoc(doc(db('a'), 'bible_progress', 'b_gênesis')));
+  await publish(db('b'),'books','b-book'); await publish(db('b'),'bible_progress','b_gênesis');
+  await assertSucceeds(getDoc(doc(db('a'), 'shared_books', 'b-book')));
+  await assertSucceeds(getDoc(doc(db('a'), 'shared_bible_progress', 'b_gênesis')));
 });
 
 test('assinatura do perfil mínimo perde autorização depois do desvínculo', async () => {
@@ -544,4 +554,133 @@ test('duas reservas simultâneas fixam somente um destinatário e não ativam v�
   assert.deepEqual(await state(),{a:null,b:null,c:null,d:null});
   const loser=invitation.recipientUid==='b'?'c':'b';
   await assertFails(accept(db(loser),code,'a',invitation.recipientUid));
+});
+
+async function hide(database, group, id, value = false) {
+  const batch = writeBatch(database);
+  const ref = doc(database, group, id);
+  if (group === 'bible_progress') batch.update(ref, {isShared:value,updatedAt:serverTimestamp()});
+  else batch.update(ref, {isShared:value,activityAt:null});
+  if (value) {
+    const data = (await getDoc(ref)).data(); delete data.isShared;
+    if (group === 'bible_progress') data.updatedAt = serverTimestamp(); else data.activityAt=null;
+    batch.set(doc(database, 'shared_'+group, id),data);
+  } else batch.delete(doc(database, 'shared_'+group, id));
+  return batch.commit();
+}
+
+test('ocultar livro retira consulta, detalhes e contagens sem apagar registro pessoal', async () => {
+  await pair(db('a'),'a','b'); await publish(db('a'),'books','a-book');
+  await assertSucceeds(getDoc(doc(db('b'),'shared_books','a-book')));
+  await assertFails(getDoc(doc(db('b'),'books','a-book')));
+  await assertFails(updateDoc(doc(db('a'),'books','a-book'),{isShared:false}));
+  await assertSucceeds(hide(db('a'),'books','a-book'));
+  await assertFails(getDoc(doc(db('b'),'shared_books','a-book')));
+  assert.equal((await getDocs(query(collection(db('b'),'shared_books'),where('userId','==','a')))).size,0);
+  const own=(await getDoc(doc(db('a'),'books','a-book'))).data();
+  assert.equal(own.title,'Livro fictício'); assert.equal(own.isShared,false);
+  await assertFails(publish(db('a'),'books','a-book'));
+  await assertSucceeds(hide(db('a'),'books','a-book',true));
+  assert.equal((await getDoc(doc(db('b'),'shared_books','a-book'))).data().activityAt,null);
+});
+
+test('ocultação bíblica preserva capítulos e sobrevive ao ex e ao novo parceiro', async () => {
+  await pair(db('a'),'a','b'); await publish(db('a'),'bible_progress','a_gênesis');
+  await assertSucceeds(hide(db('a'),'bible_progress','a_gênesis'));
+  assert.deepEqual((await getDoc(doc(db('a'),'bible_progress','a_gênesis'))).data().readChapters,[1]);
+  await pair(db('a'),'a','b',false); await pair(db('a'),'a','c');
+  await assertFails(getDoc(doc(db('b'),'shared_bible_progress','a_gênesis')));
+  await assertFails(getDoc(doc(db('c'),'bible_progress','a_gênesis')));
+  assert.equal((await getDocs(query(collection(db('c'),'shared_bible_progress'),where('userId','==','a')))).size,0);
+  await assertSucceeds(hide(db('a'),'bible_progress','a_gênesis',true));
+  await assertSucceeds(getDoc(doc(db('c'),'shared_bible_progress','a_gênesis')));
+  await assertFails(getDoc(doc(db('b'),'shared_bible_progress','a_gênesis')));
+});
+
+test('projeção não aceita campos privados, visibilidade forjada ou edição alheia', async () => {
+  await pair(db('a'),'a','b'); const own=book('a');
+  await assertFails(setDoc(doc(db('a'),'shared_books','a-book'), {...own,opinion:'Privada'}));
+  await assertFails(setDoc(doc(db('a'),'shared_books','a-book'), {...own,favorite:true}));
+  await assertFails(setDoc(doc(db('a'),'shared_books','a-book'), {...own,title:'Forjado'}));
+  await assertFails(setDoc(doc(db('c'),'shared_books','a-book'), own));
+  await publish(db('a'),'books','a-book');
+  await assertFails(updateDoc(doc(db('b'),'shared_books','a-book'),{title:'Alheio'}));
+  await assertFails(getDoc(doc(db('c'),'shared_books','a-book')));
+  await assertFails(deleteDoc(doc(db('a'),'books','a-book')));
+});
+
+test('publicação concorrente com ocultação não reexpõe o registro', async () => {
+  await pair(db('a'),'a','b'); await publish(db('a'),'books','a-book');
+  await Promise.allSettled([publish(db('a'),'books','a-book'),hide(db('a'),'books','a-book')]);
+  assert.equal((await getDoc(doc(db('a'),'books','a-book'))).data().isShared,false);
+  assert.equal((await getDocs(query(collection(db('b'),'shared_books'),where('userId','==','a')))).size,0);
+});
+
+test('desvínculo revoga projeções compartilhadas e não transfere acesso a outra relação', async () => {
+  await pair(db('a'),'a','b'); await publish(db('b'),'books','b-book'); await publish(db('b'),'bible_progress','b_gênesis');
+  await pair(db('a'),'a','b',false); await pair(db('a'),'a','c');
+  for (const uid of ['a','c','d']) {
+    await assertFails(getDoc(doc(db(uid),'shared_books','b-book')));
+    await assertFails(getDoc(doc(db(uid),'shared_bible_progress','b_gênesis')));
+    await assertFails(getDocs(query(collection(db(uid),'shared_books'),where('userId','==','b'))));
+  }
+  assert.equal((await getDoc(doc(db('b'),'books','b-book'))).exists(),true);
+  assert.deepEqual((await getDoc(doc(db('b'),'bible_progress','b_gênesis'))).data().readChapters,[1]);
+});
+
+async function block(database,a,b) {
+  const own=(await getDoc(doc(database,'users',a))).data();
+  const batch=writeBatch(database);
+  batch.set(doc(database,'partner_blocks',a,'targets',b),{name:'Pessoa fictícia',createdAt:serverTimestamp()});
+  batch.update(doc(database,'users',a),{partnerUid:null,relationshipId:null,coupleEpoch:(own.coupleEpoch??0)+1});
+  batch.update(doc(database,'users',b),{partnerUid:null,relationshipId:null});
+  return batch.commit();
+}
+
+test('bloquear encerra vínculo, revoga conteúdo e impede convites em ambas as direções', async () => {
+  await pair(db('a'),'a','b'); await publish(db('b'),'books','b-book');
+  await assertSucceeds(block(db('a'),'a','b'));
+  assert.equal((await state()).a,null); assert.equal((await state()).b,null);
+  await assertFails(getDoc(doc(db('a'),'shared_books','b-book')));
+  await assertFails(getDocs(collection(db('b'),'partner_blocks','a','targets')));
+  await assertFails(deleteDoc(doc(db('b'),'partner_blocks','a','targets','b')));
+  const code=await issue(db('b'),'b');
+  await assertFails(claim(db('a'),code,'a'));
+  await assertFails(getDoc(doc(db('a'),'partner_invites',code)));
+  await assertSucceeds(deleteDoc(doc(db('a'),'partner_blocks','a','targets','b')));
+  assert.equal((await state()).a,null);
+});
+
+test('bloqueio unilateral sem término e bloqueio por terceiro são negados', async () => {
+  await pair(db('a'),'a','b');
+  await assertFails(setDoc(doc(db('a'),'partner_blocks','a','targets','b'),{name:'Pessoa',createdAt:serverTimestamp()}));
+  await assertFails(block(db('c'),'a','b'));
+  assert.deepEqual(await state(),{a:'b',b:'a',c:null,d:null});
+});
+
+test('novo livro transacional publica atividade do servidor sem consulta privada alheia', async () => {
+  const database=db('a');const id='new-transactional';
+  await assertSucceeds(runTransaction(database,async tx=>{
+    const own=doc(database,'books',id);assert.equal((await tx.get(own)).exists(),false);
+    const data={...book('a'),isShared:true,activityAt:serverTimestamp()};tx.set(own,data);
+    const shared={...data};delete shared.isShared;tx.set(doc(database,'shared_books',id),shared);
+  }));
+  assert.ok((await getDoc(doc(database,'books',id))).data().activityAt instanceof Timestamp);
+});
+
+test('campos privados legados sobrevivem à ocultação sem contaminar projeção', async () => {
+  await env.withSecurityRulesDisabled(context=>updateDoc(doc(context.firestore(),'books','a-book'),{opinion:'Privada',favorite:true}));
+  const database=db('a');
+  await assertSucceeds(setDoc(doc(database,'shared_books','a-book'),book('a')));
+  await assertSucceeds(hide(database,'books','a-book'));
+  const data=(await getDoc(doc(database,'books','a-book'))).data();
+  assert.equal(data.opinion,'Privada');assert.equal(data.favorite,true);
+  await assertFails(updateDoc(doc(database,'books','a-book'),{opinion:'Alteração fora do contrato'}));
+});
+
+test('bloqueio e término concorrentes não deixam vínculo unilateral', async () => {
+  await pair(db('a'),'a','b');
+  await Promise.allSettled([block(db('a'),'a','b'),pair(db('b'),'a','b',false)]);
+  assert.deepEqual(await state(),{a:null,b:null,c:null,d:null});
+  assert.equal((await getDoc(doc(db('a'),'books','a-book'))).exists(),true);
 });

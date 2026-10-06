@@ -39,7 +39,7 @@ Firestore autoriza documentos inteiros; esconder um campo na tela não restringe
 
 Cadastro/recuperação e edição de nome/foto escrevem os dois documentos em transação. Edições simultâneas aplicam somente o campo alterado quando a projeção está atual, preservando a outra intenção; falha não deixa escrita parcial. Contas existentes publicam somente a própria apresentação quando esta versão recebe o perfil válido; a transação relê dados atuais e preserva integralmente o documento privado. Falha/timeout de publicação não impede uso individual; o perfil indisponível tem apresentação neutra, sem fallback privado. Detalhes e repetição em [ARCHITECTURE.md](ARCHITECTURE.md).
 
-A [política v1 aprovada](COUPLE_POLICY.md) permite nome/foto e mantém e-mail e demais dados privados restritos ao dono. Nesta etapa, leitura da apresentação exige o vínculo recíproco atual. COUPLE-03 implementou convites consentidos localmente; bloqueio e ocultação permanecem em COUPLE-04. Vínculos legados não foram transformados em consentimento.
+A [política v1 aprovada](COUPLE_POLICY.md) permite nome/foto e mantém e-mail e demais dados privados restritos ao dono. Nesta etapa, leitura da apresentação exige o vínculo recíproco atual. COUPLE-03 implementou convites consentidos localmente; ocultação e bloqueio do parceiro ativo foram validados localmente em COUPLE-04; extensão de bloqueio fora do vínculo em COUPLE-09. Vínculos legados não foram transformados em consentimento.
 
 ## Consistência do vínculo
 
@@ -57,7 +57,7 @@ Desvínculo mantém compatibilidade com pares legados recíprocos. O serviço co
 
 Os testes Dart complementam confirmação das escritas, configuração demo, bloqueio de ações concorrentes, falhas/nova tentativa e isolamento de retornos após troca de sessão. O SDK JS faz uma jornada de cadastro/login/logout em Auth e criação/leitura de perfil em Firestore local. COUPLE-03 também validou a jornada Flutter web em dois Chromes isolados; isso não comprova plataformas nativas nem autorização remota aplicada.
 
-A revogação foi verificada no servidor para novas leituras/queries. Dados já entregues ao dispositivo não podem ser recuperados do destinatário; limpeza/visibilidade de cache e evolução do compartilhamento permanecem em COUPLE-04/DATA-05. Admin SDKs/credenciais administrativas não usam estas regras; permissões IAM são uma verificação separada.
+A revogação foi verificada no servidor para novas leituras/queries. Dados já entregues ao dispositivo não podem ser recuperados do destinatário. COUPLE-04 acrescenta revogação das projeções e limpeza de estado/cache descritas abaixo; estratégia geral de sincronização permanece em DATA-05. Admin SDKs/credenciais administrativas não usam estas regras; permissões IAM são uma verificação separada.
 
 No teste da assinatura, após o desvínculo o dono atualiza nome no perfil privado/consultável; o ex-parceiro recebe `permission-denied`, sem receber o novo nome. Isso não demonstra notificação imediata do emulador só pela alteração da dependência de vínculo. No cliente, a emissão do próprio perfil sem parceiro cancela o ouvinte e limpa a apresentação; regressões Dart cobrem logout, troca, falha e descarte.
 
@@ -71,7 +71,7 @@ Antes de publicar, revisar a release atual, backup/recuperação, compatibilidad
 
 **Compatibilidade de SEC-04:** clientes antigos, inclusive a pré-release 1.1.0, ainda consultam `users` do parceiro e terão essa leitura negada pelas novas regras. A implantação exige planejar a atualização dos clientes e a disponibilidade das projeções. Contas que ainda não abriram esta versão podem não ter `partner_profiles`; o cliente novo mantém estante/Bíblia/desvínculo com apresentação neutra até a publicação pelo dono. Não ler perfis privados para preencher apresentação de outro usuário nem executar preenchimento em massa sem plano separado. Alterações de nome/foto por cliente antigo podem deixar a projeção desatualizada até nova sincronização pelo cliente atualizado.
 
-Caches persistentes de versões antigas podem conter documentos privados já recebidos. O app novo não os consulta como perfil do parceiro, mas esta entrega não faz limpeza/migração do cache inteiro; esse tratamento permanece em COUPLE-04/DATA-05. A separação não recolhe dados já entregues nem comprova autorização em produção.
+Caches persistentes de versões antigas podem conter documentos privados já recebidos. O app novo não os consulta como perfil do parceiro, e COUPLE-04 limpa a persistência antiga antes dos serviços e desabilita persistência Firestore. Limpeza nativa depende da execução em Android/iOS; sincronização geral permanece em DATA-05. A separação não recolhe dados já entregues nem comprova autorização em produção.
 
 A implantação das regras deve ser uma ação explícita posterior. Não execute migração, correção de vínculos ou deploy como parte de testes. As tarefas de consentimento, privacidade e migração continuam no [backlog](../BACKLOG.md).
 
@@ -82,3 +82,11 @@ Execução local reproduzível: [DEVELOPMENT.md](DEVELOPMENT.md).
 Em 03/10/2026, a regra candidata passou a aceitar `googleBooksId` ausente/null ou string de 1 a 200 caracteres. A referência não autoriza leitura/escrita: dono/parceiro/terceiro continuam seguindo as mesmas regras, e pessoas distintas podem salvar a mesma referência em documentos próprios. O teste novo de referência, legado e negação passou junto das 25 integrações em Auth/Firestore emulados. Rever compatibilidade do campo na release ao implantar; nenhuma regra foi publicada.
 
 O literal de chave Google Books saiu do serviço e foi preservado somente em configuração local ignorada; exemplo versionado é vazio. Inventário, separação de ambiente, limites de defines, histórico Git e avaliação de rotação estão em [CONFIGURATION.md](CONFIGURATION.md). A consulta remota de restrições/quotas foi rejeitada pela revisão automática porque enviaria a chave para um endpoint Google sem autorização explícita para esse destino. Ela não foi executada; SEC-03 permanece pendente de autorização/revisão manual, independente da implantação adiada em SEC-06.
+
+## Visibilidade local — COUPLE-04
+
+A suíte atual passou com **53 testes Auth/Firestore demo** e **321 Flutter**, análise limpa e build web demo. Originais `books`/`bible_progress` são privados; projeções mínimas só permitem dono/parceiro recíproco. Ocultar exige remoção atômica; terceiros, campos privados/forjados, edição alheia e republicação de ocultos são negados. Preservação de legado, novos documentos transacionais, ocultação/publicação concorrentes, ex/novo parceiro e bloqueio/término concorrentes foram verificados.
+
+A consulta do parceiro não usa cache/offline. Inicialização limpa persistência anterior antes dos serviços; builders/rotas abertas limpam conteúdo ao perder vínculo/projeção. Duas sessões Chrome fictícias confirmaram revogação em detalhes já abertos, comparação bíblica após recarga, bloqueio/desbloqueio e preservação própria. Isso não recolhe cópias externas nem valida limpeza nativa. [Contrato, projeções e limitações](COUPLE_VISIBILITY.md).
+
+**Compatibilidade adicional:** clientes antigos consultam registros pessoais do parceiro e passam a ser negados. Edições em originais com projeção existente exigem sincronização/remoção atômica. O dono publica seu próprio legado ao abrir esta versão; outra conta não preenche sua projeção. Não implantar antes de planejar atualização, disponibilidade, backup/recuperação e ensaio com clientes/documentos reais. SEC-06 permanece adiada; regras remotas não alteradas.

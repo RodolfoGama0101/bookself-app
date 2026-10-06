@@ -11,6 +11,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'support/test_fonts.dart';
 
 class ChapterServiceFake extends BibleService {
+  @override
+  Stream<BibleProgressModel?> streamSharedBookProgress(
+    String uid,
+    String name,
+  ) => streamBookProgress(uid, name);
   ChapterServiceFake(this.initial);
   final List<int> initial;
   Completer<List<int>> pending = Completer<List<int>>();

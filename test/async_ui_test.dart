@@ -75,6 +75,8 @@ class UiBooks extends BookService {
   }
 
   @override
+  Stream<List<BookModel>> streamSharedBooks(String uid) => streamUserBooks(uid);
+  @override
   Stream<List<BookModel>> streamUserBooks(String uid) async* {
     yield [];
     yield* books.stream;

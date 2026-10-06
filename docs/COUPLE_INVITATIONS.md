@@ -10,7 +10,7 @@ Ao consultar um código, a conta destinatária concorda em apresentar nome/foto 
 
 Aceite é uma transação que confirma o convite e os dois perfis recíprocos, somente com ambas as contas livres. O SDK não consulta o documento privado do remetente. O perfil e a apresentação do parceiro continuam vindo dos streams. Sucesso só aparece depois da escrita aceita; sessão trocada/descarte invalidam o feedback antigo. O próprio convite enviado pelo destinatário é cancelado no mesmo aceite.
 
-A tela atual informa expressamente o alcance existente: toda a estante e progresso bíblico, inclusive registros anteriores. **Ocultação por item, feed sem retroatividade, bloqueio, limpeza de cache e demais controles da política permanecem em COUPLE-04/DATA-05.** Não distribuir como implementação completa da política v1 antes dessa etapa. Esta tarefa não adiciona categorias, listas, histórico conjunto ou migração.
+A tela atual informa o compartilhamento de estante e progresso bíblico permitidos, inclusive registros anteriores, e orienta escolher ocultação em Perfil → Compartilhamento. **Complemento de COUPLE-04:** ocultação, revogação, feed sem retroatividade e cache foram validados localmente nas categorias atuais; [contrato](COUPLE_VISIBILITY.md). Bloqueio fora de vínculo permanece em COUPLE-09 e sincronização geral em DATA-05. Histórico conjunto e novas mídias ainda exigem implementações próprias; distribuição/implantação continuam pendentes.
 
 ## Contrato local aditivo
 
@@ -47,3 +47,7 @@ Build web demo aprovado com verificação preliminar Wasm; jornada Flutter real 
 As regras candidatas não foram implantadas. Clientes antigos ainda tentam vincular por UID e não terão autorização para criar novos vínculos após a implantação; também terão a leitura privada do parceiro negada, conforme SEC-04. Desvínculo legado recíproco continua permitido. Revisar versão compatível, projeções, backup/recuperação, campos divergentes e COUPLE-04 antes da distribuição. A regra remota permissiva auditada permanece uma pendência; estes testes não comprovam proteção em produção.
 
 A validação usa a [autorização de operações atômicas](https://firebase.google.com/docs/firestore/security/rules-conditions) e [transações do Firestore](https://firebase.google.com/docs/firestore/manage-data/transactions), sem ler documentos pessoais remotos.
+
+## Complemento de COUPLE-04
+
+[Visibilidade/revogação](COUPLE_VISIBILITY.md) acrescenta projeções mínimas, ocultação de livros/Bíblia, feed sem retroatividade e tratamento de cache nas categorias atuais. Convites respeitam bloqueios privados em ambos os sentidos; bloquear parceiro ativo encerra o vínculo/incrementa versão do bloqueador. Desbloquear não restaura códigos ou relação. COUPLE-09 estende bloqueio fora do vínculo. A proteção remota continua em SEC-06.

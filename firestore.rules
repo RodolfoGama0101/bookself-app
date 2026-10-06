@@ -11,6 +11,8 @@ service cloud.firestore {
     }
     function canRead(uid) { return isOwner(uid) || isPartner(uid); }
     function nullableString(value) { return value == null || value is string; }
+    function blockPath(uid, other) { return /databases/$(database)/documents/partner_blocks/$(uid)/targets/$(other); }
+    function notBlocked(a, b) { return !exists(blockPath(a, b)) && !exists(blockPath(b, a)); }
 
     function invitePath(code) { return /databases/$(database)/documents/partner_invites/$(code); }
     function slotPath(uid) { return /databases/$(database)/documents/partner_invite_slots/$(uid); }
@@ -21,6 +23,7 @@ service cloud.firestore {
     function epoch(uid) { return get(userPath(uid)).data.get('coupleEpoch', 0); }
     function usable(data) {
       return pending(data) && data.senderEpoch == epoch(data.senderUid)
+        && (data.recipientUid == null || notBlocked(data.senderUid, data.recipientUid))
         && (data.recipientUid == null || data.recipientEpoch == epoch(data.recipientUid));
     }
     function currentInvite(code, sender) { return get(slotPath(sender)).data.code == code; }
@@ -54,6 +57,18 @@ service cloud.firestore {
         && getAfter(userPath(before)).data.get('partnerUid', null) == null;
     }
 
+    match /partner_blocks/{uid}/targets/{other} {
+      allow read, delete: if isOwner(uid);
+      allow create: if isOwner(uid) && other != uid
+        && get(userPath(uid)).data.get('partnerUid', null) == other
+        && getAfter(userPath(uid)).data.get('partnerUid', null) == null
+        && getAfter(userPath(other)).data.get('partnerUid', null) == null
+        && request.resource.data.keys().hasOnly(['name', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+    }
+
     match /users/{uid} {
       // O documento legado continua privado, inclusive para o parceiro.
       allow get: if isOwner(uid);
@@ -78,7 +93,9 @@ service cloud.firestore {
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['partnerUid', 'relationshipId', 'coupleEpoch'])
           && (linkPair(uid, resource.data.get('partnerUid', null), request.resource.data.get('partnerUid', null))
             || (request.resource.data.get('relationshipId', null) == null
-              && request.resource.data.get('coupleEpoch', 0) == resource.data.get('coupleEpoch', 0)
+              && (request.resource.data.get('coupleEpoch', 0) == resource.data.get('coupleEpoch', 0)
+                || (isOwner(uid) && request.resource.data.coupleEpoch == epoch(uid) + 1
+                  && existsAfter(blockPath(uid, resource.data.partnerUid))))
               && unlinkPair(uid, resource.data.get('partnerUid', null), request.resource.data.get('partnerUid', null)))))
       );
     }
@@ -111,7 +128,8 @@ service cloud.firestore {
       // Capacidade aleatória para descoberta pontual, sem listagem pública.
       allow get: if signedIn() && (resource.data.senderUid == request.auth.uid
         || resource.data.recipientUid == request.auth.uid
-        || (resource.data.recipientUid == null && pending(resource.data) && lookedUp(code)));
+        || (resource.data.recipientUid == null && pending(resource.data) && lookedUp(code)
+          && notBlocked(request.auth.uid, resource.data.senderUid)));
       allow list, delete: if false;
       allow create: if signedIn() && code.matches('^[a-f0-9]{32}$')
         && validInvitation(request.resource.data) && free(request.auth.uid)
@@ -128,6 +146,7 @@ service cloud.firestore {
         (usable(resource.data) && resource.data.recipientUid == null
           && lookedUp(code)
           && request.auth.uid != resource.data.senderUid && free(request.auth.uid) && free(resource.data.senderUid)
+          && notBlocked(request.auth.uid, resource.data.senderUid)
           && currentInvite(code, resource.data.senderUid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['recipientUid', 'recipientEpoch', 'recipientName', 'recipientPhotoUrl'])
           && request.resource.data.recipientUid == request.auth.uid
@@ -230,7 +249,8 @@ service cloud.firestore {
     }
     function validBook(data) {
       return data.keys().hasAll(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt'])
-        && data.keys().hasOnly(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt', 'finishedDate', 'googleBooksId'])
+        && data.get('isShared', true) is bool
+        && (data.get('activityAt', null) == null || data.activityAt is timestamp)
         && data.userId is string && data.title is string && data.title.size() > 0
         && validAuthors(data.authors)
         && data.coverUrl is string && data.publishedDate is string
@@ -245,15 +265,50 @@ service cloud.firestore {
         && (data.get('finishedDate', null) == null || data.finishedDate <= request.time);
     }
     match /books/{id} {
-      allow read: if canRead(resource.data.userId);
+      allow get: if signedIn() && (!exists(/databases/$(database)/documents/books/$(id)) || isOwner(resource.data.userId));
+      allow list: if isOwner(resource.data.userId);
       allow create: if isOwner(request.resource.data.userId)
-        && validBook(request.resource.data) && validNewCompletion(request.resource.data);
+        && request.resource.data.keys().hasOnly(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt', 'finishedDate', 'googleBooksId', 'isShared', 'activityAt'])
+        && validBook(request.resource.data) && validNewCompletion(request.resource.data)
+        && (request.resource.data.get('activityAt', null) == null || request.resource.data.activityAt == request.time);
       allow update: if isOwner(resource.data.userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt', 'finishedDate', 'googleBooksId', 'isShared', 'activityAt'])
         && request.resource.data.userId == resource.data.userId
         && validBook(request.resource.data)
+        && (request.resource.data.get('isShared', true) || !existsAfter(/databases/$(database)/documents/shared_books/$(id)))
+        && (!existsAfter(/databases/$(database)/documents/shared_books/$(id))
+          || sharedBookMatches(getAfter(/databases/$(database)/documents/shared_books/$(id)).data, request.resource.data))
+        && (request.resource.data.get('activityAt', null) == resource.data.get('activityAt', null)
+          || request.resource.data.activityAt == request.time
+          || (request.resource.data.get('activityAt', null) == null
+            && request.resource.data.get('isShared', true) != resource.data.get('isShared', true)))
         && (validNewCompletion(request.resource.data)
           || request.resource.data.get('finishedDate', null) == resource.data.get('finishedDate', null));
-      allow delete: if isOwner(resource.data.userId);
+      allow delete: if isOwner(resource.data.userId)
+        && !existsAfter(/databases/$(database)/documents/shared_books/$(id));
+    }
+
+    function sharedBookMatches(data, own) {
+      return data.userId == own.userId && data.title == own.title
+        && data.authors == own.authors && data.coverUrl == own.coverUrl
+        && data.status == own.status && data.publishedDate == own.publishedDate
+        && data.addedAt == own.addedAt
+        && data.get('finishedDate', null) == own.get('finishedDate', null)
+        && data.get('googleBooksId', null) == own.get('googleBooksId', null)
+        && data.get('activityAt', null) == own.get('activityAt', null);
+    }
+    function minimalBook(data) {
+      return data.keys().hasOnly(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt', 'finishedDate', 'googleBooksId', 'activityAt']);
+    }
+    match /shared_books/{id} {
+      allow get: if signedIn() && ((!exists(/databases/$(database)/documents/shared_books/$(id))
+        && isOwner(get(/databases/$(database)/documents/books/$(id)).data.userId)) || canRead(resource.data.userId));
+      allow list: if canRead(resource.data.userId);
+      allow create, update: if isOwner(request.resource.data.userId)
+        && minimalBook(request.resource.data)
+        && getAfter(/databases/$(database)/documents/books/$(id)).data.get('isShared', true)
+        && sharedBookMatches(request.resource.data, getAfter(/databases/$(database)/documents/books/$(id)).data);
+      allow delete: if signedIn() && (!exists(/databases/$(database)/documents/shared_books/$(id)) || isOwner(resource.data.userId));
     }
 
     function bibleBooks() {
@@ -363,7 +418,7 @@ service cloud.firestore {
     function validProgress(id, data) {
       let book = bibleBooks()[data.bookName];
       return data.keys().hasAll(['userId', 'bookName', 'readChapters', 'updatedAt'])
-        && data.keys().hasOnly(['userId', 'bookName', 'readChapters', 'updatedAt'])
+        && data.get('isShared', true) is bool
         && id == data.userId + '_' + book.id
         && data.readChapters is list
         && data.readChapters.size() == data.readChapters.toSet().size()
@@ -373,14 +428,33 @@ service cloud.firestore {
     match /bible_progress/{id} {
       allow get: if signedIn() && (
         !exists(/databases/$(database)/documents/bible_progress/$(id))
-        || canRead(resource.data.userId));
-      allow list: if canRead(resource.data.userId);
-      allow create: if isOwner(request.resource.data.userId) && validProgress(id, request.resource.data);
+        || isOwner(resource.data.userId));
+      allow list: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId) && validProgress(id, request.resource.data)
+        && request.resource.data.keys().hasOnly(['userId', 'bookName', 'readChapters', 'updatedAt', 'isShared']);
       allow update: if isOwner(resource.data.userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['userId', 'bookName', 'readChapters', 'updatedAt', 'isShared'])
         && request.resource.data.userId == resource.data.userId
         && request.resource.data.bookName == resource.data.bookName
-        && validProgress(id, request.resource.data);
-      allow delete: if isOwner(resource.data.userId);
+        && validProgress(id, request.resource.data)
+        && (request.resource.data.get('isShared', true) || !existsAfter(/databases/$(database)/documents/shared_bible_progress/$(id)))
+        && (!existsAfter(/databases/$(database)/documents/shared_bible_progress/$(id))
+          || getAfter(/databases/$(database)/documents/shared_bible_progress/$(id)).data.readChapters == request.resource.data.readChapters);
+      allow delete: if isOwner(resource.data.userId)
+        && !existsAfter(/databases/$(database)/documents/shared_bible_progress/$(id));
+    }
+    match /shared_bible_progress/{id} {
+      allow get: if signedIn() && ((!exists(/databases/$(database)/documents/shared_bible_progress/$(id))
+        && isOwner(get(/databases/$(database)/documents/bible_progress/$(id)).data.userId)) || canRead(resource.data.userId));
+      allow list: if canRead(resource.data.userId);
+      allow create, update: if isOwner(request.resource.data.userId)
+        && request.resource.data.keys().hasOnly(['userId', 'bookName', 'readChapters', 'updatedAt'])
+        && getAfter(/databases/$(database)/documents/bible_progress/$(id)).data.get('isShared', true)
+        && request.resource.data.userId == getAfter(/databases/$(database)/documents/bible_progress/$(id)).data.userId
+        && request.resource.data.bookName == getAfter(/databases/$(database)/documents/bible_progress/$(id)).data.bookName
+        && request.resource.data.readChapters == getAfter(/databases/$(database)/documents/bible_progress/$(id)).data.readChapters
+        && request.resource.data.updatedAt == getAfter(/databases/$(database)/documents/bible_progress/$(id)).data.updatedAt;
+      allow delete: if signedIn() && (!exists(/databases/$(database)/documents/shared_bible_progress/$(id)) || isOwner(resource.data.userId));
     }
     match /{document=**} { allow read, write: if false; }
   }

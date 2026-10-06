@@ -34,6 +34,9 @@ class DateAuth extends ChangeNotifier implements AuthService {
 }
 
 class DateBooks extends BookService {
+  @override
+  Stream<BookModel?> watchSharedBook(String id) =>
+      Stream.value(library.firstWhere((b) => b.id == id));
   final saved = <BookModel>[];
   List<BookModel> library = [];
   Future<void> Function()? write;
@@ -50,6 +53,8 @@ class DateBooks extends BookService {
     if (write != null) await write!();
   }
 
+  @override
+  Stream<List<BookModel>> streamSharedBooks(String uid) => streamUserBooks(uid);
   @override
   Stream<List<BookModel>> streamUserBooks(String userId) =>
       Stream.value(library.where((book) => book.userId == userId).toList());

@@ -57,6 +57,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final authService = Provider.of<AuthService>(context);
     final user = authService.currentUserModel;
     final partner = authService.partnerUserModel;
+    if (partner == null || !partner.isAvailable) {
+      _cachedPartnerPhotoUrl = null;
+      _cachedPartnerAvatarImage = null;
+    }
     final theme = Theme.of(context);
 
     if (user == null) {
@@ -68,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Início')),
       body: StreamBuilder<List<BookModel>>(
+        key: ValueKey('${user.uid}/${user.partnerUid}/${user.relationshipId}'),
         stream: bookService.streamCoupleFeed(user.uid, user.partnerUid),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -88,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
 
           final books = snapshot.data ?? [];
+          final activities = books.where((b) => b.feedVisible).toList();
 
           // Estatísticas do mês e ano atual
           final now = DateTime.now();
@@ -290,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               // Lista de Atividades do Feed
-              if (books.isEmpty)
+              if (activities.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
@@ -324,7 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
               else
                 SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
-                    final book = books[index];
+                    final book = activities[index];
                     final isMe = book.userId == user.uid;
                     final authorName = isMe
                         ? 'Você'
@@ -407,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     );
-                  }, childCount: books.length),
+                  }, childCount: activities.length),
                 ),
             ],
           );

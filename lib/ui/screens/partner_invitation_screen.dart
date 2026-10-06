@@ -288,7 +288,7 @@ class _PartnerInvitationScreenState extends State<PartnerInvitationScreen> {
         ),
         const SizedBox(height: 12),
         const Text(
-          'A ocultação por item será disponibilizada em uma próxima etapa. Nesta versão, o aceite compartilha toda a estante e o progresso da Bíblia.',
+          'Você pode ocultar livros e progresso por livro bíblico em Perfil → Compartilhamento, antes ou depois do aceite. Itens ocultos permanecem privados; atividades anteriores ao vínculo não entram no feed.',
         ),
         Material(
           type: MaterialType.transparency,

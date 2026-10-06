@@ -13,6 +13,9 @@ class BookModel {
   final DateTime? finishedDate; // Data personalizada selecionada pelo usuário
   final DateTime addedAt;
   final String? googleBooksId;
+  final bool isShared;
+  final DateTime? activityAt;
+  final bool feedVisible;
 
   BookModel({
     required this.id,
@@ -25,6 +28,9 @@ class BookModel {
     this.finishedDate,
     required this.addedAt,
     this.googleBooksId,
+    this.isShared = true,
+    this.activityAt,
+    this.feedVisible = true,
   }) : coverUrl = coverUrl.startsWith('http://')
            ? coverUrl.replaceFirst('http://', 'https://')
            : coverUrl;
@@ -42,6 +48,8 @@ class BookModel {
       finishedDate: (data['finishedDate'] as Timestamp?)?.toDate(),
       addedAt: (data['addedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       googleBooksId: data['googleBooksId'] as String?,
+      isShared: data['isShared'] != false,
+      activityAt: (data['activityAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -58,6 +66,8 @@ class BookModel {
           : null,
       'addedAt': Timestamp.fromDate(addedAt),
       if (googleBooksId != null) 'googleBooksId': googleBooksId,
+      'isShared': isShared,
+      if (activityAt != null) 'activityAt': Timestamp.fromDate(activityAt!),
     };
   }
 
@@ -70,6 +80,8 @@ class BookModel {
     String? coverUrl,
     String? status,
     String? publishedDate,
+    bool? isShared,
+    bool? feedVisible,
     Object? finishedDate = _CopyWithValue.unchanged,
     DateTime? addedAt,
     Object? googleBooksId = _CopyWithValue.unchanged,
@@ -82,6 +94,9 @@ class BookModel {
       coverUrl: coverUrl ?? this.coverUrl,
       status: status ?? this.status,
       publishedDate: publishedDate ?? this.publishedDate,
+      isShared: isShared ?? this.isShared,
+      activityAt: activityAt,
+      feedVisible: feedVisible ?? this.feedVisible,
       finishedDate: identical(finishedDate, _CopyWithValue.unchanged)
           ? this.finishedDate
           : finishedDate as DateTime?,

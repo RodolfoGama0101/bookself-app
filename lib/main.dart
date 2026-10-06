@@ -79,9 +79,11 @@ Future<void> _initializeFirebase() async {
         ? environment.demoOptions
         : DefaultFirebaseOptions.currentPlatform,
   );
+  final firestore = FirebaseFirestore.instanceFor(app: app);
+  // Dados alheios não devem persistir entre sessões/relações.
+  firestore.settings = const Settings(persistenceEnabled: false);
+  await firestore.clearPersistence();
   if (environment.useEmulators) {
-    final firestore = FirebaseFirestore.instanceFor(app: app);
-    firestore.settings = const Settings(persistenceEnabled: false);
     firestore.useFirestoreEmulator(environment.host, environment.firestorePort);
     if (!webAuthConfigured) {
       await FirebaseAuth.instanceFor(

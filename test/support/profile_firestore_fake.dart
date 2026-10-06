@@ -25,13 +25,17 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
   CollectionReference<Map<String, dynamic>> collection(String collectionPath) {
     expect(
       collectionPath,
-      anyOf(
+      isIn([
         'users',
         'partner_profiles',
         'partner_invites',
         'partner_invite_slots',
         'partner_invite_lookups',
-      ),
+        'books',
+        'bible_progress',
+        'shared_books',
+        'shared_bible_progress',
+      ]),
     );
     return _ProfileCollection(this, collectionPath);
   }
@@ -60,6 +64,9 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
       result = await transactionHandler(transaction);
     }
     if (commitGate != null) await commitGate!.future;
+    for (final key in transaction.deleted) {
+      documents.remove(key);
+    }
     for (final entry in transaction.pending.entries) {
       documents[entry.key] = entry.value.map(
         (key, value) => MapEntry(
@@ -119,6 +126,13 @@ class _ProfileTransaction extends Fake implements Transaction {
   _ProfileTransaction(this.database);
   final ProfileFirestoreFake database;
   final pending = <String, Map<String, dynamic>>{};
+  final deleted = <String>{};
+
+  @override
+  Transaction delete(DocumentReference reference) {
+    deleted.add((reference as _ProfileReference).key);
+    return this;
+  }
 
   @override
   Future<DocumentSnapshot<T>> get<T extends Object?>(

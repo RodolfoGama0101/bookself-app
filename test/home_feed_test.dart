@@ -81,6 +81,24 @@ Future<void> openFeed(
 }
 
 void main() {
+  testWidgets(
+    'atividade anterior ao vínculo fica fora do feed mas conta no período permitido',
+    (tester) async {
+      final books = FeedBooks();
+      addTearDown(books.updates.close);
+      await openFeed(tester, books, withPartner: true);
+      books.updates.add([
+        reading(
+          'Leitura histórica',
+          owner: 'partner',
+        ).copyWith(feedVisible: false),
+      ]);
+      await tester.pumpAndSettle();
+      expect(find.text('Leitura histórica'), findsNothing);
+      expect(find.text('1 livro lido'), findsNWidgets(2));
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(useBundledTestFonts);
 

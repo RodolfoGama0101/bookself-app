@@ -1,3 +1,4 @@
+import 'sharing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -682,6 +683,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 24),
 
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.visibility_outlined),
+                  title: const Text('Compartilhamento'),
+                  subtitle: const Text(
+                    'Ocultar livros, progresso bíblico e gerenciar bloqueios',
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SharingScreen()),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               // Card Segurança
               Text(
                 'Segurança',

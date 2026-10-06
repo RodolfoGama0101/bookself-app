@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'sharing_service.dart';
 import 'firebase_environment.dart';
 import 'dart:convert';
 import '../data/models/book_search_page.dart';
@@ -146,13 +148,58 @@ class BookService {
 
     final finalBook = book.id.isEmpty ? book.copyWith(id: docRef.id) : book;
 
-    await docRef.set(finalBook.toMap());
+    await _firestore.runTransaction((tx) async {
+      final current = (await tx.get(docRef)).data();
+      final data = {
+        ...?current,
+        ...finalBook.toMap(),
+        'isShared': current?['isShared'] ?? finalBook.isShared,
+      };
+      if (finalBook.googleBooksId == null) data.remove('googleBooksId');
+      if (current == null || current['status'] != book.status) {
+        data['activityAt'] = FieldValue.serverTimestamp();
+      } else {
+        data['activityAt'] = current['activityAt'];
+      }
+      tx.set(docRef, data);
+      SharingService(
+        firestore: _firestore,
+      ).mirror(tx, 'books', docRef.id, data);
+    });
   }
 
   // Remove um livro da estante
   Future<void> deleteBook(String bookId) async {
-    await _firestore.collection('books').doc(bookId).delete();
+    final batch = _firestore.batch();
+    batch.delete(_firestore.collection('books').doc(bookId));
+    batch.delete(_firestore.collection('shared_books').doc(bookId));
+    await batch.commit();
   }
+
+  Future<void> setVisibility(String id, bool value) => SharingService(
+    firestore: _firestore,
+  ).publish('books', id, isShared: value);
+
+  Stream<List<BookModel>> streamSharedBooks(String uid) => _firestore
+      .collection('shared_books')
+      .where('userId', isEqualTo: uid)
+      .snapshots(includeMetadataChanges: true)
+      .map(
+        (s) => s.metadata.isFromCache || s.metadata.hasPendingWrites
+            ? <BookModel>[]
+            : s.docs.map(BookModel.fromFirestore).toList(),
+      );
+
+  Stream<BookModel?> watchSharedBook(String id) => _firestore
+      .collection('shared_books')
+      .doc(id)
+      .snapshots(includeMetadataChanges: true)
+      .map(
+        (s) =>
+            s.metadata.isFromCache || s.metadata.hasPendingWrites || !s.exists
+            ? null
+            : BookModel.fromFirestore(s),
+      );
 
   // Stream que retorna os livros de um usuário específico
   Stream<List<BookModel>> streamUserBooks(String userId) {
@@ -164,30 +211,90 @@ class BookService {
           final books = snapshot.docs
               .map((doc) => BookModel.fromFirestore(doc))
               .toList();
+          unawaited(
+            SharingService(firestore: _firestore)
+                .publishOwn('books', snapshot.docs.map((d) => d.id))
+                .catchError((Object _) {}),
+          );
           books.sort((a, b) => b.addedAt.compareTo(a.addedAt));
           return books;
         });
   }
 
-  // Stream unificada de atividades recentes do casal (Feed)
-  // Como o Firestore limita queries com 'in' em múltiplos ids a 30 elementos, e queremos tempo real,
-  // podemos combinar streams ou fazer uma query direta caso tenhamos os ids
+  // Consultas pessoais e compartilhadas separadas, com cancelamento conjunto.
   Stream<List<BookModel>> streamCoupleFeed(String userId, String? partnerId) {
-    List<String> ids = [userId];
-    if (partnerId != null && partnerId.isNotEmpty) {
-      ids.add(partnerId);
+    late StreamController<List<BookModel>> controller;
+    StreamSubscription? mineSubscription;
+    StreamSubscription? partnerSubscription;
+    var mine = <BookModel>[];
+    var theirs = <BookModel>[];
+    DateTime? started;
+    var cancelled = false;
+    void emit() {
+      if (cancelled) return;
+      final books =
+          [...mine, ...theirs]
+              .map(
+                (b) => b.copyWith(
+                  feedVisible:
+                      partnerId == null ||
+                      (started != null &&
+                          b.activityAt != null &&
+                          !b.activityAt!.isBefore(started!)),
+                ),
+              )
+              .toList()
+            ..sort((a, b) => b.addedAt.compareTo(a.addedAt));
+      controller.add(books);
     }
 
-    return _firestore
-        .collection('books')
-        .where('userId', whereIn: ids)
-        .snapshots()
-        .map((snapshot) {
-          final books = snapshot.docs
-              .map((doc) => BookModel.fromFirestore(doc))
-              .toList();
-          books.sort((a, b) => b.addedAt.compareTo(a.addedAt));
-          return books;
-        });
+    controller = StreamController<List<BookModel>>(
+      onListen: () async {
+        try {
+          if (partnerId != null) {
+            final own = await _firestore
+                .collection('users')
+                .doc(userId)
+                .get(const GetOptions(source: Source.server));
+            final code = own.data()?['relationshipId'];
+            if (code is String) {
+              final invite = await _firestore
+                  .collection('partner_invites')
+                  .doc(code)
+                  .get(const GetOptions(source: Source.server));
+              started = (invite.data()?['decidedAt'] as Timestamp?)?.toDate();
+            }
+          }
+          if (cancelled) return;
+          mineSubscription = streamUserBooks(userId).listen((b) {
+            mine = b;
+            emit();
+          }, onError: controller.addError);
+          if (partnerId != null) {
+            partnerSubscription = streamSharedBooks(partnerId).listen(
+              (b) {
+                theirs = b;
+                emit();
+              },
+              onError: (Object e) {
+                theirs = [];
+                emit();
+                controller.addError(e);
+              },
+            );
+          }
+        } catch (e, stack) {
+          if (!cancelled) controller.addError(e, stack);
+        }
+      },
+      onCancel: () async {
+        cancelled = true;
+        mine.clear();
+        theirs.clear();
+        await mineSubscription?.cancel();
+        await partnerSubscription?.cancel();
+      },
+    );
+    return controller.stream;
   }
 }

@@ -302,4 +302,49 @@ class PartnerService {
       });
     });
   }
+
+  Stream<Map<String, String>> watchBlocks(String uid) => _firestore
+      .collection('partner_blocks')
+      .doc(uid)
+      .collection('targets')
+      .snapshots()
+      .map((s) => {for (final d in s.docs) d.id: d.data()['name'] as String});
+
+  Future<void> unblock(String uid, String other) => _firestore
+      .collection('partner_blocks')
+      .doc(uid)
+      .collection('targets')
+      .doc(other)
+      .delete();
+
+  Future<void> block(
+    String uid,
+    String other,
+    String name,
+    String? relationshipId,
+  ) async {
+    await _transaction((tx) async {
+      final own = (await tx.get(_user(uid))).data();
+      if (own?['partnerUid'] != other ||
+          own?['relationshipId'] != relationshipId) {
+        throw const PartnerInvitationException(
+          'O vínculo mudou. Confira seu perfil novamente.',
+        );
+      }
+      tx.set(
+        _firestore
+            .collection('partner_blocks')
+            .doc(uid)
+            .collection('targets')
+            .doc(other),
+        {'name': name, 'createdAt': FieldValue.serverTimestamp()},
+      );
+      tx.update(_user(uid), {
+        'partnerUid': null,
+        'relationshipId': null,
+        'coupleEpoch': (own?['coupleEpoch'] as int? ?? 0) + 1,
+      });
+      tx.update(_user(other), {'partnerUid': null, 'relationshipId': null});
+    });
+  }
 }
