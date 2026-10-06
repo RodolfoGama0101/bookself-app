@@ -4,6 +4,8 @@ Aplicativo de organização de leituras para uso individual e em casal, desenvol
 
 O produto está em fase de MVP. A evolução planejada inclui filmes, séries e músicas. **Entrelace** é a proposta inicial de novo nome; a escolha e a aplicação da marca ainda estão pendentes. O aplicativo continua se chamando Bookself App no código.
 
+O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/10/2026: preserva livros/Bíblia e define filmes, séries, faixas/álbuns, cadastro manual e experiências do casal. Essa é uma decisão de produto; as novas categorias ainda precisam ser implementadas.
+
 ## Documentação
 
 | Arquivo | Conteúdo |
