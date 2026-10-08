@@ -16,7 +16,7 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
 | [docs/NAVIGATION.md](docs/NAVIGATION.md) | Mapa da navegação definido em PROD-02, fluxos por mídia/casal e critérios para UI-01; ainda sem implementação. |
-| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Proposta versionada de DATA-01, identidade, estados pessoais, experiências e exemplos; ainda sem implementação/migração. |
+| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Modelo v1: base privada implementada localmente em DATA-02; episódios, escutas, experiências e migração pendentes. |
 | [docs/COUPLE_INVITATIONS.md](docs/COUPLE_INVITATIONS.md) | Jornada, contrato local e limites de convites consentidos. |
 | [docs/COUPLE_POLICY.md](docs/COUPLE_POLICY.md) | Política de consentimento aprovada para a evolução e critérios de implementação. |
 | [docs/DESIGN.md](docs/DESIGN.md) | Sistema visual, layouts responsivos e validação do redesign das telas atuais. |

@@ -11,6 +11,7 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
   Completer<void>? commitGate;
   int writes = 0;
   int reads = 0;
+  int generatedIds = 0;
   final readPaths = <String>[];
   bool includeMetadataChanges = false;
   bool wrapTransactionErrors = false;
@@ -27,6 +28,7 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
       collectionPath,
       isIn([
         'users',
+        'libraries',
         'partner_profiles',
         'partner_invites',
         'partner_invite_slots',
@@ -98,7 +100,11 @@ class _ProfileCollection extends Fake
 
   @override
   DocumentReference<Map<String, dynamic>> doc([String? path]) {
-    return _ProfileReference(database, path!, collectionPath);
+    return _ProfileReference(
+      database,
+      path ?? 'generated-${++database.generatedIds}',
+      collectionPath,
+    );
   }
 }
 
@@ -113,6 +119,15 @@ class _ProfileReference extends Fake
   String get key => collectionPath == 'users' ? id : path;
   @override
   final String id;
+
+  @override
+  Future<DocumentSnapshot<Map<String, dynamic>>> get([
+    GetOptions? options,
+  ]) async {
+    database.reads++;
+    database.readPaths.add(path);
+    return ProfileSnapshot(id, database.documents[key]);
+  }
 
   @override
   CollectionReference<Map<String, dynamic>> collection(String collectionPath) =>

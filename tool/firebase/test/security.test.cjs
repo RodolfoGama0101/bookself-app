@@ -17,6 +17,144 @@ const book = uid => ({userId: uid, title: 'Livro fictício', authors: ['Autor'],
 const progress = (uid, bookName = 'Gênesis', readChapters = [1]) => ({userId: uid, bookName, readChapters, updatedAt: serverTimestamp()});
 const db = uid => env.authenticatedContext(uid, {email: `${uid}@example.com`}).firestore();
 
+test('DATA-02: biblioteca privada isolada inclusive do parceiro, ex e terceiro', async()=>{
+  await assertSucceeds(mediaSave(db('a'),'a','c1','e1'));
+  await pair(db('a'),'a','b');
+  for(const database of [db('b'),db('c'),env.unauthenticatedContext().firestore()]) {
+    for(const path of [['catalog','c1'],['entries','e1'],['reference_slots',mediaKey('book',mediaIdentity)]]) {
+      await assertFails(getDoc(doc(database,'libraries','a',...path)));
+      await assertFails(getDocs(collection(database,'libraries','a',path[0])));
+    }
+    await assertFails(updateDoc(doc(database,'libraries','a','entries','e1'),{state:{status:'reading',finishedOn:null},updatedAt:serverTimestamp(),revision:2}));
+    await assertFails(mediaBatch(database,'a','other','other','movie').commit());
+  }
+  await pair(db('a'),'a','b',false);
+  await assertFails(getDoc(doc(db('b'),'libraries','a','entries','e1')));
+  await assertSucceeds(getDocs(collection(db('a'),'libraries','a','entries')));
+});
+
+test('DATA-02: mesma obra em duas contas mantém estado e datas independentes', async()=>{
+  await assertSucceeds(mediaSave(db('a'),'a','c1','e1'));
+  await assertSucceeds(mediaSave(db('b'),'b','c2','e2'));
+  const original=(await getDoc(doc(db('a'),'libraries','a','entries','e1'))).data();
+  await assertSucceeds(updateDoc(doc(db('a'),'libraries','a','entries','e1'),{
+    state:{status:'completed',finishedOn:'2026-10-08'},updatedAt:serverTimestamp(),revision:2}));
+  assert.equal((await getDoc(doc(db('b'),'libraries','b','entries','e2'))).data().state.status,'planned');
+  assert((await getDoc(doc(db('a'),'libraries','a','entries','e1'))).data().createdAt.isEqual(original.createdAt));
+  assert.equal(await mediaSave(db('a'),'a','retry','retry'),'e1');
+  assert.equal((await getDoc(doc(db('a'),'libraries','a','entries','e1'))).data().revision,2);
+});
+
+test('DATA-02: concorrência resolve um slot, catálogo e entrada', async()=>{
+  const [first,second]=await Promise.all([mediaSave(db('a'),'a','c1','e1'),mediaSave(db('a'),'a','c2','e2')]);
+  assert.equal(first,second);
+  for(const path of ['catalog','entries','reference_slots']) {
+    assert.equal((await getDocs(collection(db('a'),'libraries','a',path))).size,1);
+  }
+  const database=db('a'), ref=doc(database,'libraries','a','entries',first);
+  const change=status=>runTransaction(database,async tx=>{
+    const saved=(await tx.get(ref)).data();
+    if(saved.revision!==1) throw new Error('revision-conflict');
+    tx.update(ref,{state:{status,finishedOn:null},revision:2,updatedAt:serverTimestamp()});
+  });
+  const results=await Promise.allSettled([change('reading'),change('completed')]);
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  assert.equal((await getDoc(ref)).data().revision,2);
+});
+
+test('DATA-02: cinco mídias, fornecedores, edições e manuais sem colisão', async()=>{
+  let counter=0;
+  for(const type of ['book','movie','series','track','album']) {
+    for(const identity of [mediaIdentity,{...mediaIdentity,provider:'example_video'},
+      {...mediaIdentity,externalId:'edition'}, {kind:'manual',ownerId:'a',manualId:`m-${type}`}]) {
+      const id=String(++counter);
+      await assertSucceeds(mediaBatch(db('a'),'a',`c${id}`,`e${id}`,type,identity).commit());
+    }
+  }
+  assert.equal((await getDocs(collection(db('a'),'libraries','a','entries'))).size,20);
+  await assertSucceeds(updateDoc(doc(db('a'),'libraries','a','entries','e13'),{favorite:true,revision:2,updatedAt:serverTimestamp()}));
+  await assertFails(getDocs(collection(db('b'),'libraries','a','listens')));
+});
+
+test('DATA-02: versões, autoria, referência atômica e campos incompatíveis são rejeitados', async()=>{
+  for(const changes of [
+    {catalog:{schemaVersion:2}}, {entry:{schemaVersion:2}}, {slot:{schemaVersion:2}},
+    {catalog:{ownerId:'b'}}, {entry:{ownerId:'b'}}, {slot:{catalogId:'absent'}},
+    {entry:{catalogId:'absent'}}, {entry:{mediaType:'movie'}}, {entry:{isShared:true}},
+    {entry:{favorite:true}}, {entry:{legacyRef:{id:'legacy'}}}, {entry:{privateExtra:'secret'}},
+    {entry:{createdAt:stamp}}, {entry:{revision:2}}, {entry:{state:{status:'planned',finishedOn:'2020-01-01'}}},
+    {catalog:{metadata:{title:'Obra',authors:[],unknown:'secret'}}},
+    {catalog:{identity:{kind:'manual',ownerId:'b',manualId:'m'}}},
+  ]) {
+    await assertFails(mediaBatch(db('a'),'a','c1','e1','book',mediaIdentity,changes).commit());
+  }
+  await assertFails(setDoc(doc(db('a'),'libraries','a','catalog','c1'),mediaDocuments('a','c1').catalog));
+  await assertFails(setDoc(doc(db('a'),'libraries','a','entries','e1'),mediaDocuments('a','c1').entry));
+  await assertFails(setDoc(doc(db('a'),'libraries','a','reference_slots',mediaKey('book',mediaIdentity)),{schemaVersion:1,catalogId:'c1',entryId:'e1'}));
+  assert.equal((await getDocs(collection(db('a'),'libraries','a','entries'))).size,0);
+});
+
+test('DATA-02: imutabilidade, revisão e datas/estados impedem perda de autoria', async()=>{
+  await mediaSave(db('a'),'a','c1','e1');
+  const ref=doc(db('a'),'libraries','a','entries','e1');
+  for(const fields of [{ownerId:'b'}, {catalogId:'other'}, {createdAt:stamp}, {schemaVersion:2},
+    {revision:1}, {isShared:true}, {state:{status:'Lido'}}, {favorite:true},
+    {state:{status:'planned',finishedOn:'2020-01-01'}}, {state:{status:'completed',finishedOn:'2020-13-01'}}]) {
+    await assertFails(updateDoc(ref,{revision:2,updatedAt:serverTimestamp(),...fields}));
+  }
+  await assertSucceeds(updateDoc(ref,{state:{status:'completed',finishedOn:null},revision:2,updatedAt:serverTimestamp()}));
+  await assertFails(updateDoc(ref,{state:{status:'reading',finishedOn:null},revision:2,updatedAt:serverTimestamp()}));
+  await assertFails(deleteDoc(ref));
+  await assertFails(updateDoc(doc(db('a'),'libraries','a','catalog','c1'),{metadata:{title:'Other',authors:[]}}));
+  await assertFails(deleteDoc(doc(db('a'),'libraries','a','reference_slots',mediaKey('book',mediaIdentity))));
+  await assertFails(mediaBatch(db('a'),'a','c2','e2').commit());
+});
+
+// Contraparte de persistência do repositório DATA-02, somente dados fictícios.
+const mediaKey = (type, identity) => Buffer.from(JSON.stringify(identity.kind === 'manual'
+  ? [1,type,'manual',identity.ownerId,identity.manualId]
+  : [1,type,'external',identity.provider,identity.externalId])).toString('base64url');
+const mediaIdentity = {kind:'external', provider:'google_books', externalId:'work'};
+const mediaInitial = type => type === 'book' ? {status:'planned',finishedOn:null}
+  : type === 'movie' ? {status:'planned',watchedOn:null}
+  : type === 'series' ? {status:'in_progress'} : null;
+function mediaDocuments(owner, catalogId, type='book', identity=mediaIdentity) {
+  return {
+    catalog:{schemaVersion:1,ownerId:owner,mediaType:type,identity,catalogKey:mediaKey(type,identity),fetchedAt:null,
+      metadata:{title:'Obra fictícia',coverUrl:null,...(type==='book'?{authors:[],publishedDate:null}
+        : type==='track'?{artists:['Artista'],albumTitle:null,version:null,durationMs:null}
+        : type==='album'?{artists:['Artista'],releaseYear:null,edition:null}
+        : type==='series'?{releaseYear:null,productionStatus:null}:{releaseYear:null})}},
+    entry:{schemaVersion:1,ownerId:owner,catalogId,mediaType:type,state:mediaInitial(type),favorite:false,
+      isShared:false,legacyRef:null,createdAt:serverTimestamp(),updatedAt:serverTimestamp(),revision:1},
+  };
+}
+function mediaBatch(database, owner, catalogId, entryId, type='book', identity=mediaIdentity, changes={}) {
+  const data=mediaDocuments(owner,catalogId,type,identity), batch=writeBatch(database);
+  batch.set(doc(database,'libraries',owner,'catalog',catalogId),{...data.catalog,...changes.catalog});
+  batch.set(doc(database,'libraries',owner,'entries',entryId),{...data.entry,...changes.entry});
+  batch.set(doc(database,'libraries',owner,'reference_slots',data.catalog.catalogKey),{schemaVersion:1,catalogId,entryId,...changes.slot});
+  return batch;
+}
+async function mediaSave(database, owner, catalogId, entryId) {
+  const data=mediaDocuments(owner,catalogId), slot=doc(database,'libraries',owner,'reference_slots',data.catalog.catalogKey);
+  return runTransaction(database,async tx=>{
+    const existing=await tx.get(slot);
+    if(existing.exists()) {
+      const saved=await tx.get(doc(database,'libraries',owner,'entries',existing.data().entryId));
+      const source=await tx.get(doc(database,'libraries',owner,'catalog',existing.data().catalogId));
+      assert.equal(source.data().catalogKey,data.catalog.catalogKey);
+      assert.equal(saved.data().catalogId,source.id);
+      return saved.id;
+    }
+    const catalog=doc(database,'libraries',owner,'catalog',catalogId), entry=doc(database,'libraries',owner,'entries',entryId);
+    assert.equal((await tx.get(catalog)).exists(),false);
+    assert.equal((await tx.get(entry)).exists(),false);
+    tx.set(catalog,data.catalog);tx.set(entry,data.entry);tx.set(slot,{schemaVersion:1,catalogId,entryId});
+    return entryId;
+  });
+}
+
 const {randomBytes} = require('node:crypto');
 async function issue(database, sender, code = randomBytes(16).toString('hex')) {
   const own=(await getDoc(doc(database,'users',sender))).data();

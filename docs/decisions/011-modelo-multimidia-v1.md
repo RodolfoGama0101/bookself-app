@@ -2,6 +2,8 @@
 
 ## Estado
 
+**Atualização DATA-02:** a próxima solicitação do usuário implementou e validou localmente o subconjunto privado de catálogo/entrada/slot. Contrato incremental, limites e evidências em [DATA_MODEL.md](../DATA_MODEL.md#subconjunto-local-implementado--data-02). Não adota as demais entidades nem substitui legado; sem implantação ou migração.
+
 Proposta consolidada e validada documentalmente em **08/10/2026** para DATA-01, a pedido do usuário para executar a próxima tarefa. [Especificação](../DATA_MODEL.md) e [exemplos fictícios](../data-model/v1.examples.json). Não representa aprovação específica do esquema pelo usuário, implementação de DATA-02 ou contrato ativo no Firestore.
 
 ## Alternativas e escolha proposta

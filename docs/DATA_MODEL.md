@@ -4,11 +4,25 @@
 
 **Proposta técnica v1 consolidada em 08/10/2026**, com revisão contra o [MVP aprovado](PRODUCT.md#mvp-aprovado--prod-01), a [política do casal](COUPLE_POLICY.md), o [mapa de navegação](NAVIGATION.md) e os modelos/serviços atuais. Exemplos fictícios estruturados estão em [data-model/v1.examples.json](data-model/v1.examples.json). A validação documental e de invariantes dos exemplos não é implementação, teste de regras nem aprovação específica do esquema pelo usuário.
 
-Esta é a base de DATA-02, não o contrato ativo do Firestore. Coleções/campos abaixo são propostos; adoção exige modelos/repositórios, regras e testes de autorização correspondentes. `users`, `books`, `bible_progress`, convites, projeções, contatos e bloqueios atuais continuam funcionando com seus contratos. Substituição de dados legados depende do ensaio recuperável de DATA-03; implantação remota permanece em SEC-06.
+DATA-02 implementou localmente o subconjunto privado de catálogo, entrada e referência única, descrito abaixo. O restante continua proposto; não há contrato novo implantado em produção. `users`, `books`, `bible_progress`, convites, projeções, contatos e bloqueios atuais continuam funcionando com seus contratos. Substituição de dados legados depende do ensaio recuperável de DATA-03; implantação remota permanece em SEC-06.
 
 Não escolhe marca, fornecedor audiovisual/musical, cache/licença de fornecedor, spoilers/reassistir/especiais, retenção ou exportação. Esses assuntos continuam em NAME, API-02/03/04, SERIES-01 e SEC-05. Os fornecedores `example_video` e `example_music` dos exemplos são fictícios; Google Books é a integração já existente.
 
 ## Entidades e fronteiras
+
+### Subconjunto local implementado — DATA-02
+
+`lib/data/models/media_model.dart` implementa as cinco mídias, identidade externa/manual, metadados, estado pessoal, catálogo e entrada. `MediaLibraryRepository` é substituível; `FirestoreMediaLibraryRepository` recebe Firestore injetado e usa exclusivamente `libraries/{ownerId}/{catalog|entries|reference_slots}`. A interface atual ainda usa `BookService`/`BibleService`: nenhuma nova categoria ou migração foi ativada.
+
+`newCatalog` prepara ID opaco e, sem referência externa, identidade manual sem leitura/escrita. Conservar esse objeto ao repetir `save`; preparar outro significa nova inclusão manual deliberada. `save` cria os três documentos em transação ou devolve a entrada do slot existente, sem substituir catálogo/progresso. IDs de entrada são gerados fora do callback transacional. `readEntry`/`readCatalog` consultam o servidor; `save`/`updatePersonal` aguardam commit e leitura confirmada. Erros de rede/autorização são propagados; se a leitura falhar após commit, repetir `save` reencontra a entrada. Não anuncia sucesso com estado pendente do cache.
+
+`updatePersonal` recebe estado completo, favorito e revisão esperada: rejeita `MediaRevisionConflict` quando a revisão mudou, sem sobrescrever o concorrente. Uma alteração efetiva incrementa revisão e timestamp; operação sem mudança preserva ambos. Conclusão/sessão sem data é válida; mudar para estado incompleto exige data nula. Favorito é exclusivo de música e não cria escuta. O cliente preserva erros de domínio mesmo quando o SDK web os reempacota.
+
+O catálogo persiste também `catalogKey` derivado para cruzar catálogo/slot nas regras. Limite de **1.000 caracteres ASCII** na chave reversível, rejeitado antes de qualquer acesso; nunca truncado. IDs de documentos usados pelo repositório têm até 128 bytes UTF-8 e rejeitam caminhos/reservados. Metadados são snapshots imutáveis; `MediaMetadata.patch` omite para preservar e usa null para limpar. Leitura de opcional ausente equivale a null; escrita completa o explicita. Edição persistente de metadados/exclusão exige uma operação posterior coerente com slots, em BOOK-02 e fluxos por mídia; não há edição parcial genérica do banco.
+
+As regras candidatas permitem somente o dono, inclusive consultas, e exigem criação atômica das referências. Catálogo/slot são imutáveis nesta etapa; entrada preserva dono/tipo/referência/criação e exige revisão +1. Campos desconhecidos, esquema futuro, autoria divergente e projeção nova são rejeitados. `isShared` é **false** e `legacyRef` null no subconjunto: compartilhar exige implementar projeções/transações/autorização antes de habilitar o padrão do produto nas novas telas. Episódios, escutas, relações/listas/experiências e eventos permanecem negados nas coleções propostas. As regras validam a estrutura de datas/listas; validação de calendário, elementos de autores/artistas, HTTPS e derivação Base64 completa ocorre no modelo. O dono pode forjar dados próprios usando outro cliente, mas isso nunca concede acesso à biblioteca alheia; a unicidade por identidade canônica é garantida pelas operações do repositório, não uma normalização de fornecedores feita no servidor.
+
+Validação e limites em [DEVELOPMENT.md](DEVELOPMENT.md#base-privada-multimídia--data-02). Não cria cache global, fornecedor novo, dual-write, migração, projeção ou evento retroativo.
 
 Separar entidades mesmo quando participam da mesma transação. Catálogo descreve a obra; entrada pessoal pertence a uma pessoa; progresso pertence à entrada; experiências e listas pertencem a uma relação identificada. Não há biblioteca pública nem coleção global de itens manuais.
 

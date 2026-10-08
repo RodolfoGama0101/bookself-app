@@ -493,6 +493,98 @@ service cloud.firestore {
         && request.resource.data.updatedAt == getAfter(/databases/$(database)/documents/bible_progress/$(id)).data.updatedAt;
       allow delete: if signedIn() && (!exists(/databases/$(database)/documents/shared_bible_progress/$(id)) || isOwner(resource.data.userId));
     }
+    // Base DATA-02 privada e aditiva. Sem compartilhamento, importação ou exclusão.
+    function mediaText(value) { return value is string && value.size() > 0; }
+    function mediaNullableText(value) { return value == null || mediaText(value); }
+    function mediaDate(value) {
+      return value == null || (value is string
+        && value.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'));
+    }
+    function mediaYear(value) { return value == null || (value is int && value >= 1 && value <= 9999); }
+    function mediaMetadata(type, data) {
+      let cover = data.get('coverUrl', null);
+      return data is map && mediaText(data.title)
+        && (cover == null || (cover is string && cover.matches('^https://[^/]+.*$')))
+        && ((type == 'book'
+          && data.keys().hasOnly(['title', 'authors', 'coverUrl', 'publishedDate'])
+          && data.authors is list
+          && (data.get('publishedDate', null) == null || (data.publishedDate is string
+            && data.publishedDate.matches('^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$'))))
+        || (type == 'movie' && data.keys().hasOnly(['title', 'releaseYear', 'coverUrl'])
+          && mediaYear(data.get('releaseYear', null)))
+        || (type == 'series' && data.keys().hasOnly(['title', 'releaseYear', 'coverUrl', 'productionStatus'])
+          && mediaYear(data.get('releaseYear', null)) && mediaNullableText(data.get('productionStatus', null)))
+        || (type == 'track' && data.keys().hasOnly(['title', 'artists', 'albumTitle', 'version', 'durationMs', 'coverUrl'])
+          && data.artists is list && data.artists.size() > 0
+          && mediaNullableText(data.get('albumTitle', null)) && mediaNullableText(data.get('version', null))
+          && (data.get('durationMs', null) == null || (data.durationMs is int && data.durationMs >= 0)))
+        || (type == 'album' && data.keys().hasOnly(['title', 'artists', 'releaseYear', 'edition', 'coverUrl'])
+          && data.artists is list && data.artists.size() > 0
+          && mediaYear(data.get('releaseYear', null)) && mediaNullableText(data.get('edition', null))));
+    }
+    function mediaIdentity(owner, identity) {
+      return identity is map && ((identity.kind == 'external'
+        && identity.keys().hasAll(['kind', 'provider', 'externalId'])
+        && identity.keys().hasOnly(['kind', 'provider', 'externalId'])
+        && identity.provider is string && identity.provider.matches('^[a-z][a-z0-9_]{0,63}$')
+        && mediaText(identity.externalId))
+        || (identity.kind == 'manual' && identity.keys().hasOnly(['kind', 'ownerId', 'manualId'])
+          && identity.ownerId == owner && mediaText(identity.manualId)));
+    }
+    function mediaState(type, state, favorite) {
+      return favorite is bool && (((type == 'track' || type == 'album') && state == null)
+        || (!favorite && state is map && (
+          (type == 'book' && state.keys().hasOnly(['status', 'finishedOn'])
+            && state.status in ['planned', 'reading', 'completed']
+            && mediaDate(state.get('finishedOn', null))
+            && (state.status == 'completed' || state.get('finishedOn', null) == null))
+          || (type == 'movie' && state.keys().hasOnly(['status', 'watchedOn'])
+            && state.status in ['planned', 'watched'] && mediaDate(state.get('watchedOn', null))
+            && (state.status == 'watched' || state.get('watchedOn', null) == null))
+          || (type == 'series' && state.keys().hasOnly(['status'])
+            && state.status in ['in_progress', 'up_to_date', 'completed', 'paused']))));
+    }
+    match /libraries/{owner}/catalog/{id} {
+      allow read: if isOwner(owner);
+      allow create: if isOwner(owner)
+        && request.resource.data.keys().hasAll(['schemaVersion', 'ownerId', 'identity', 'mediaType', 'metadata', 'catalogKey', 'fetchedAt'])
+        && request.resource.data.keys().hasOnly(['schemaVersion', 'ownerId', 'identity', 'mediaType', 'metadata', 'catalogKey', 'fetchedAt'])
+        && request.resource.data.schemaVersion == 1 && request.resource.data.ownerId == owner
+        && mediaIdentity(owner, request.resource.data.identity)
+        && mediaMetadata(request.resource.data.mediaType, request.resource.data.metadata)
+        && (request.resource.data.fetchedAt == null || request.resource.data.fetchedAt is timestamp)
+        && request.resource.data.catalogKey is string && request.resource.data.catalogKey.size() <= 1000
+        && request.resource.data.catalogKey.matches('^[A-Za-z0-9_-]+$')
+        && getAfter(/databases/$(database)/documents/libraries/$(owner)/reference_slots/$(request.resource.data.catalogKey)).data.catalogId == id;
+    }
+    match /libraries/{owner}/reference_slots/{key} {
+      allow read: if isOwner(owner);
+      allow create: if isOwner(owner) && request.resource.data.schemaVersion == 1
+        && request.resource.data.keys().hasAll(['schemaVersion', 'entryId', 'catalogId'])
+        && request.resource.data.keys().hasOnly(['schemaVersion', 'entryId', 'catalogId'])
+        && mediaText(request.resource.data.entryId) && mediaText(request.resource.data.catalogId)
+        && getAfter(/databases/$(database)/documents/libraries/$(owner)/catalog/$(request.resource.data.catalogId)).data.catalogKey == key
+        && getAfter(/databases/$(database)/documents/libraries/$(owner)/entries/$(request.resource.data.entryId)).data.catalogId == request.resource.data.catalogId;
+    }
+    match /libraries/{owner}/entries/{id} {
+      function validEntry(data) {
+        return data.keys().hasAll(['schemaVersion', 'ownerId', 'catalogId', 'mediaType', 'state', 'favorite', 'isShared', 'legacyRef', 'createdAt', 'updatedAt', 'revision'])
+          && data.keys().hasOnly(['schemaVersion', 'ownerId', 'catalogId', 'mediaType', 'state', 'favorite', 'isShared', 'legacyRef', 'createdAt', 'updatedAt', 'revision'])
+          && data.schemaVersion == 1 && data.ownerId == owner
+          && data.isShared == false && data.legacyRef == null
+          && data.revision is int && data.revision >= 1
+          && data.createdAt is timestamp && data.updatedAt == request.time
+          && mediaState(data.mediaType, data.state, data.favorite);
+      }
+      allow read: if isOwner(owner);
+      allow create: if isOwner(owner) && validEntry(request.resource.data)
+        && request.resource.data.revision == 1 && request.resource.data.createdAt == request.time
+        && getAfter(/databases/$(database)/documents/libraries/$(owner)/catalog/$(request.resource.data.catalogId)).data.mediaType == request.resource.data.mediaType
+        && getAfter(/databases/$(database)/documents/libraries/$(owner)/reference_slots/$(getAfter(/databases/$(database)/documents/libraries/$(owner)/catalog/$(request.resource.data.catalogId)).data.catalogKey)).data.entryId == id;
+      allow update: if isOwner(owner) && validEntry(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['state', 'favorite', 'updatedAt', 'revision'])
+        && request.resource.data.revision == resource.data.revision + 1;
+    }
     match /{document=**} { allow read, write: if false; }
   }
 }

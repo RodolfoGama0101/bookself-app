@@ -1,5 +1,21 @@
 # Desenvolvimento com emuladores
 
+## Base privada multimídia — DATA-02
+
+Em 08/10/2026: quatro arquivos Dart afetados formatados, `flutter analyze --no-pub` sem apontamentos e **352 testes Flutter** aprovados. `test/media_library_test.dart` acrescenta 20 casos: identidade reversível/limites, cinco mídias, opcionais/patch/null, datas civis, IDs manuais preparados sem banco, duas contas/progresso próprio, fornecedores/edições/retry, confirmação/falha, favorito sem escuta, revisão/imutabilidade e versões futuras/incompletas. Firestore é injetado no repositório; o fake cobre o encadeamento Dart e simula erros de callback reempacotados no web, sem pretender simular disputa real.
+
+**69 integrações Auth/Firestore** aprovadas pelo runner isolado (seis casos DATA-02 novos). Comando, somente em projeto demo e loopback:
+
+```powershell
+$env:BOOKSELF_TEST_AUTH_PORT='29099'
+$env:BOOKSELF_TEST_FIRESTORE_PORT='28080'
+node tool/firebase/run-tests.cjs
+```
+
+Casos novos verificam acesso próprio e rejeição de parceiro/ex/terceiro/sem sessão, consultas privadas, duas contas, disputa real de slot e atualização por revisão, cinco mídias/referências distintas, referências atômicas, autoria/esquema/estado/campos e preservação de datas/IDs. A contraparte JavaScript usa a mesma sequência transacional para testar regras/concorrência; execução do repositório Dart contra SDK/emulador em navegador/dispositivo não ocorreu. Regressões existentes preservam livros, Bíblia, convites, revogação e bloqueios.
+
+Nenhuma nova tela consome o repositório; não houve build novo, inspeção visual, execução Android/iOS, chamada a fornecedor, migração, publicação ou deploy. Regras novas permanecem candidatas locais; a proteção remota depende de SEC-06, e a auditoria anterior encontrou regras amplas (ver [SECURITY.md](SECURITY.md)). Não ativar essa persistência em clientes distribuídos antes da implantação e validação remota. Compartilhamento nas novas mídias será habilitado somente com projeções próprias validadas. [Contrato e limites](DATA_MODEL.md#subconjunto-local-implementado--data-02).
+
 ## Bloqueios independentes — COUPLE-09
 
 Em 08/10/2026, formatação dos oito arquivos Dart afetados, `flutter analyze --no-pub` sem apontamentos, **332 testes Flutter**, **63 testes Auth/Firestore** e `flutter build web --no-pub --dart-define=USE_FIREBASE_EMULATORS=true` aprovados. Testes emulados executados por `node tool/firebase/run-tests.cjs`, equivalente ao script npm test, com Auth 29099/Firestore 28080 somente no projeto demo-bookself. Portas alternativas evitaram conflito com outras sessões; não houve instalação/upgrade de dependências.

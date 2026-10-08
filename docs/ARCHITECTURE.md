@@ -2,6 +2,12 @@
 
 Revisão: 08/10/2026. As seções iniciais descrevem o código atual; a evolução ao final é uma proposta.
 
+## Base privada multimídia — DATA-02
+
+Implementação aditiva local em `lib/data/models/media_model.dart` e `lib/services/media_library_repository.dart`: tipos/identidade/metadados/estado por mídia, interface substituível e persistência Firestore injetável em catálogo, entradas e slots privados por dono. Inclusão transacional deduplica a referência sem redefinir progresso; edição pessoal exige revisão, mantém inclusão e usa timestamp confirmado. Regras candidatas isolam terceiros/parceiro/ex e preservam referências/autoria. Compartilhamento novo permanece desabilitado até suas projeções serem implementadas.
+
+Nenhum widget usa essa base ainda; livros/Bíblia/contas/vínculos continuam nas coleções atuais. O contrato implementado é o [subconjunto de DATA_MODEL.md](DATA_MODEL.md#subconjunto-local-implementado--data-02), não a adoção de toda a proposta. Migração, episódios, escutas, eventos, listas e experiências continuam em seus itens do backlog; validação em [DEVELOPMENT.md](DEVELOPMENT.md#base-privada-multimídia--data-02). Sem dependência nova nem implantação remota.
+
 ## Inicialização e interface atuais
 
 `lib/main.dart` inicia a interface imediatamente com `BookselfBootstrap`. Ele cria e mantém `ThemeService` na raiz, iniciando a leitura da preferência antes de registrar os ouvintes do Provider. `AppStartup` (`lib/ui/screens/app_startup.dart`) mostra carregamento enquanto aguarda essa leitura e a inicialização Firebase. Apenas após sucesso do Firebase, seu `readyBuilder` registra `AuthService` e cria `BookselfApp`. `SessionGate` decide entre login, carregamento, recuperação de perfil e `MainNavigation` conforme o estado explícito de sessão.
@@ -161,7 +167,7 @@ COUPLE-09 acrescentou identificação mínima e bloqueios independentes em 08/10
 
 ## Proposta para múltiplas mídias
 
-**DATA-01 consolidada em 08/10/2026:** [especificação proposta v1](DATA_MODEL.md), [exemplos fictícios estruturados](data-model/v1.examples.json) e [registro 011](decisions/011-modelo-multimidia-v1.md) detalham identidade, metadados, estado/progresso próprios, relação, listas/experiências e eventos. Proposta revisada contra MVP/política/modelos e validada por invariantes dos exemplos, sem aprovação específica do esquema pelo usuário. A tabela abaixo resume a separação; não é o contrato ativo nem uma migração autorizada. Implementação incremental em DATA-02 e ensaio recuperável em DATA-03 continuam necessários.
+**DATA-01 consolidada em 08/10/2026:** [especificação proposta v1](DATA_MODEL.md), [exemplos fictícios estruturados](data-model/v1.examples.json) e [registro 011](decisions/011-modelo-multimidia-v1.md) detalham identidade, metadados, estado/progresso próprios, relação, listas/experiências e eventos. Proposta revisada contra MVP/política/modelos e validada por invariantes dos exemplos, sem aprovação específica do esquema pelo usuário. A tabela abaixo resume a separação; não é o contrato ativo nem uma migração autorizada. DATA-02 entregou o subconjunto privado descrito no início; adoção das demais entidades e ensaio recuperável em DATA-03 continuam necessários.
 
 | Entidade proposta | Dados | Motivo da separação |
 | --- | --- | --- |
