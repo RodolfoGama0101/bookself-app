@@ -35,6 +35,14 @@ class DateAuth extends ChangeNotifier implements AuthService {
 
 class DateBooks extends BookService {
   @override
+  Future<({BookModel book, bool created})> addCatalogBook(
+    BookModel book,
+  ) async {
+    await saveBook(book);
+    return (book: book, created: true);
+  }
+
+  @override
   Stream<BookModel?> watchSharedBook(String id) =>
       Stream.value(library.firstWhere((b) => b.id == id));
   final saved = <BookModel>[];

@@ -96,3 +96,9 @@ A suíte atual passou com **53 testes Auth/Firestore demo** e **321 Flutter**, a
 A consulta do parceiro não usa cache/offline. Inicialização limpa persistência anterior antes dos serviços; builders/rotas abertas limpam conteúdo ao perder vínculo/projeção. Duas sessões Chrome fictícias confirmaram revogação em detalhes já abertos, comparação bíblica após recarga, bloqueio/desbloqueio e preservação própria. Isso não recolhe cópias externas nem valida limpeza nativa. [Contrato, projeções e limitações](COUPLE_VISIBILITY.md).
 
 **Compatibilidade adicional:** clientes antigos consultam registros pessoais do parceiro e passam a ser negados. Edições em originais com projeção existente exigem sincronização/remoção atômica. O dono publica seu próprio legado ao abrir esta versão; outra conta não preenche sua projeção. Não implantar antes de planejar atualização, disponibilidade, backup/recuperação e ensaio com clientes/documentos reais. SEC-06 permanece adiada; regras remotas não alteradas.
+
+## Histórico privado e compatibilidade dos livros — DATA-06
+
+As regras candidatas protegem `books/{id}/activity/{eventId}`: eventos atômicos com o livro, timestamps do servidor, autoria própria e histórico sem alteração/exclusão pelo cliente. Parceiro, ex-parceiro e terceiros não podem consultar o histórico. `addedAt` e criação comprovada são imutáveis; registros modernos exigem evento em mudança de status. As projeções recebem somente o último marcador permitido. Concorrência, consultas e desvínculo foram validados nos emuladores; a implantação remota continua pendente.
+
+SEC-06 deve revisar clientes antigos que mudam `addedAt` ou alteram status sem evento. A compatibilidade com documentos legados não autoriza novos clientes a inventar criação histórica. Exclusão de livro não elimina automaticamente subcoleções; retenção e limpeza integral dependem de SEC-05. [Contrato, evidências e limites](BOOK_LIBRARY.md).

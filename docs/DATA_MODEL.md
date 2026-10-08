@@ -74,7 +74,7 @@ Campos obrigatórios ausentes ou tipos incompatíveis tornam um registro novo in
 
 `createdAt` é instante UTC confirmado pelo servidor e imutável; `updatedAt` e `ActivityEvent.occurredAt` são instantes UTC do servidor da alteração. Datas escolhidas pela pessoa, como `finishedOn`, `watchedOn`, `listenedOn` e `occurredOn`, são datas civis `YYYY-MM-DD`, sem conversão por fuso. As fixtures representam instantes como strings ISO-8601; serialização real em Firestore usará timestamps, não essas strings de exemplo.
 
-Uma data pessoal de conclusão/sessão pode ser desconhecida; isso não inventa evento nem entra em contagem por mês/ano. Escuta e experiência novas exigem data explícita. DATA-03 preserva datas antigas/futuras sem correção automática e guarda a origem: `books.addedAt` é mutável no código atual e não comprova a inclusão original. Quando essa origem não puder ser recuperada, `legacyRef` registra a limitação e a migração deve prever `createdAt` desconhecido, sem atribuir a data do ensaio ou de hoje. Essa exceção é de importação, não do cadastro novo v1.
+Uma data pessoal de conclusão/sessão pode ser desconhecida; isso não inventa evento nem entra em contagem por mês/ano. Escuta e experiência novas exigem data explícita. DATA-03 preserva datas antigas/futuras sem correção automática e guarda a origem: `books.addedAt` foi mutável em clientes antigos e não comprova a inclusão original; DATA-06 agora o preserva e registra criação explícita nos novos livros. Quando essa origem não puder ser recuperada, `legacyRef` registra a limitação e a migração deve prever `createdAt` desconhecido, sem atribuir a data do ensaio ou de hoje. Essa exceção é de importação, não do cadastro novo v1.
 
 | Mídia | `metadata` de catálogo | `state` pessoal e apresentação |
 | --- | --- | --- |
@@ -146,3 +146,7 @@ Os grupos e campos `id`/contexto de caminho do JSON são um envelope didático p
 Exemplos JSON verificados localmente: parse, versão, referências catálogo→entrada→progresso/escuta, estados por mídia, identidade por fornecedor/tipo/dono manual, duas contas salvando a mesma obra com estados distintos, isolamento de campos privados na projeção, escutas intencionais separadas e revisão de dupla confirmação da experiência. A matriz acima foi revisada contra MVP/política/código. Links locais e diff verificados.
 
 Essa validação consolida DATA-01 como especificação proposta; não comprova autorização, transações reais, índices, desempenho ou migração. DATA-02 pode implementar os tipos e serviços incrementais com esses invariantes, mantendo a persistência legada até DATA-03. Regras/coleções novas exigem seus próprios testes em emuladores antes de uso; SEC-06 continua separado. Não houve mudança Dart, dependência, regra ativa, banco remoto, build ou publicação.
+
+## Contrato incremental dos livros atuais — DATA-06
+
+A coleção `books` acrescenta criação/atualização confirmadas e eventos privados de inclusão/status, preservando IDs e datas legadas. Esse contrato não substitui `LibraryEntry` nem migra os livros para o modelo v1. O feed atual usa somente a última atividade explícita por livro; novas categorias e experiências continuam pendentes. [Campos, datas desconhecidas, deduplicação e limites](BOOK_LIBRARY.md).

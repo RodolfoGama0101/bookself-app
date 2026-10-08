@@ -1043,3 +1043,83 @@ test('término conserva contato mínimo mesmo com apresentação do parceiro con
   }));
   await assertSucceeds(blockKnown(db('a'),'a','b'));
 });
+
+function saveActivity(database, id, status, {createOnly=false, external=null}={}) {
+  const own=doc(database,'books',id), event=doc(collection(own,'activity'));
+  return runTransaction(database,async tx=>{
+    const snapshot=await tx.get(own), current=snapshot.exists()?snapshot.data():null;
+    if(createOnly && current) return id;
+    const data={...(current||book('a')),status,createdAt:current?current.createdAt??null:serverTimestamp(),updatedAt:serverTimestamp()};
+    if(external) data.googleBooksId=external;
+    const action=current?'status_changed':'added';
+    Object.assign(data,{activityAt:serverTimestamp(),latestActivityAt:serverTimestamp(),activityEventId:event.id,activityStatus:status,activityAction:action});
+    tx.set(own,data);
+    tx.set(event,{userId:'a',bookId:id,action,beforeStatus:current?.status??null,status,occurredAt:serverTimestamp()});
+    const shared={...data}; for(const key of ['isShared','createdAt','updatedAt','latestActivityAt','activityEventId']) delete shared[key];
+    tx.set(doc(database,'shared_books',id),shared);
+    return id;
+  }).catch(async error=>{
+    if(createOnly) {
+      const existing=await getDoc(own);
+      if(existing.exists() && existing.data().userId==='a' && existing.data().googleBooksId===external) return id;
+    }
+    throw error;
+  });
+}
+
+test('DATA-06: atividades atômicas/imutáveis e inclusão preservada, sem histórico forjado',async()=>{
+  const database=db('a'),id='history';
+  await assertSucceeds(saveActivity(database,id,'Lendo'));
+  const initial=(await getDoc(doc(database,'books',id))).data();
+  await assertSucceeds(saveActivity(database,id,'Quero Ler'));
+  const current=(await getDoc(doc(database,'books',id))).data();
+  assert.deepEqual(current.addedAt,initial.addedAt);
+  assert.deepEqual(current.createdAt,initial.createdAt);
+  const history=await getDocs(collection(database,'books',id,'activity'));
+  assert.equal(history.size,2);
+  for(const row of history.docs) {
+    await assertFails(updateDoc(row.ref,{status:'Lido'}));
+    await assertFails(deleteDoc(row.ref));
+    for(const unauthorized of [db('b'),db('c'),env.unauthenticatedContext().firestore()])
+      await assertFails(getDoc(doc(unauthorized,'books',id,'activity',row.id)));
+  }
+  await assertFails(updateDoc(doc(database,'books',id),{addedAt:serverTimestamp()}));
+  await assertFails(updateDoc(doc(database,'books',id),{createdAt:serverTimestamp()}));
+  await assertFails(updateDoc(doc(database,'books',id),{status:'Lendo'}));
+  await assertFails(setDoc(doc(database,'books',id,'activity','forged'),{userId:'a',bookId:id,action:'status_changed',beforeStatus:'Lendo',status:'Lido',occurredAt:serverTimestamp()}));
+  for(const unauthorized of [db('b'),db('c')])
+    await assertFails(getDocs(collection(unauthorized,'books',id,'activity')));
+});
+
+test('BOOK-01: concorrência na referência canônica conserva uma inclusão e seu progresso',async()=>{
+  const database=db('a'),id='catalog_'+Buffer.from(JSON.stringify([1,'a','book','google_books','volume'])).toString('base64url');
+  await Promise.all([saveActivity(database,id,'Lendo',{createOnly:true,external:'volume'}),saveActivity(database,id,'Quero Ler',{createOnly:true,external:'volume'})]);
+  const initial=(await getDoc(doc(database,'books',id))).data();
+  await assertSucceeds(saveActivity(database,id,'Lido'));
+  await assertSucceeds(saveActivity(database,id,'Quero Ler',{createOnly:true,external:'volume'}));
+  assert.equal((await getDoc(doc(database,'books',id))).data().status,'Lido');
+  assert.equal((await getDocs(query(collection(database,'books'),where('userId','==','a'),where('googleBooksId','==','volume')))).size,1);
+  assert.equal((await getDocs(collection(database,'books',id,'activity'))).size,2);
+  assert.ok(initial.createdAt instanceof Timestamp);
+});
+
+test('DATA-06/BOOK-02: metadados, ocultação e término não alteram histórico nem expõem eventos privados',async()=>{
+  const database=db('a'), id='history';
+  await pair(database,'a','b');
+  await saveActivity(database,id,'Lendo');
+  const old=(await getDoc(doc(database,'books',id))).data();
+  const batch=writeBatch(database), metadata={...old,title:'Título corrigido',updatedAt:serverTimestamp()};
+  batch.set(doc(database,'books',id),metadata);
+  const shared={...metadata}; for(const key of ['isShared','createdAt','updatedAt','latestActivityAt','activityEventId']) delete shared[key];
+  batch.set(doc(database,'shared_books',id),shared);
+  await assertSucceeds(batch.commit());
+  assert.equal((await getDocs(collection(database,'books',id,'activity'))).size,1);
+  await assertSucceeds(getDoc(doc(db('b'),'shared_books',id)));
+  const hidden=writeBatch(database); hidden.update(doc(database,'books',id),{isShared:false,activityAt:null}); hidden.delete(doc(database,'shared_books',id));
+  await assertSucceeds(hidden.commit());
+  assert.equal((await getDocs(collection(database,'books',id,'activity'))).size,1);
+  await assertFails(getDoc(doc(db('b'),'books',id,'activity',old.activityEventId)));
+  await pair(database,'a','b',false);
+  await assertFails(getDoc(doc(db('b'),'books',id,'activity',old.activityEventId)));
+  assert.deepEqual((await getDoc(doc(database,'books',id))).data().latestActivityAt,old.latestActivityAt);
+});

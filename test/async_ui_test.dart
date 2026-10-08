@@ -42,6 +42,14 @@ class UiAuth extends ChangeNotifier implements AuthService {
 }
 
 class UiBooks extends BookService {
+  @override
+  Future<({BookModel book, bool created})> addCatalogBook(
+    BookModel book,
+  ) async {
+    await saveBook(book);
+    return (book: book, created: true);
+  }
+
   Future<List<BookModel>> Function()? search;
   Future<void> Function()? save;
   Future<void> Function()? delete;

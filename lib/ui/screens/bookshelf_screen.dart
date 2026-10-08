@@ -10,6 +10,9 @@ import '../../utils/error_handler.dart';
 import '../widgets/book_details_sheet.dart';
 import '../widgets/completion_date_picker.dart';
 import '../widgets/content_state.dart';
+import '../widgets/dialog_with_controllers.dart';
+import '../../utils/book_library_filter.dart';
+import 'package:intl/intl.dart';
 
 enum BookshelfScope { combined, personal, partner }
 
@@ -40,6 +43,110 @@ class _BookshelfScreenState extends State<BookshelfScreen>
   final Set<String> _pendingCompletions = {};
   final _streams = <String, Stream<List<BookModel>>>{};
   final _retries = <String, int>{};
+  BookLibraryFilter _filter = const BookLibraryFilter();
+  String? _filterOwner;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final owner = context.watch<AuthService>().currentUserModel?.uid;
+    if (_filterOwner != owner) {
+      _filterOwner = owner;
+      _filter = const BookLibraryFilter();
+    }
+  }
+
+  Future<void> _editFilters() async {
+    final query = TextEditingController(text: _filter.query);
+    var field = _filter.dateField;
+    DateTimeRange? period = _filter.from == null || _filter.to == null
+        ? null
+        : DateTimeRange(start: _filter.from!, end: _filter.to!);
+    final result = await showDialogWithControllers<BookLibraryFilter>(
+      context: context,
+      controllers: [query],
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, update) => AlertDialog(
+          scrollable: true,
+          title: const Text('Buscar e filtrar livros'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: query,
+                decoration: const InputDecoration(labelText: 'Título ou autor'),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<BookDateField>(
+                isExpanded: true,
+                initialValue: field,
+                decoration: const InputDecoration(labelText: 'Data do período'),
+                items: const [
+                  DropdownMenuItem(
+                    value: BookDateField.added,
+                    child: Text('Inclusão na biblioteca'),
+                  ),
+                  DropdownMenuItem(
+                    value: BookDateField.finished,
+                    child: Text('Conclusão da leitura'),
+                  ),
+                ],
+                onChanged: (value) => update(() => field = value!),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.date_range),
+                label: Text(
+                  period == null
+                      ? 'Escolher período'
+                      : '${DateFormat('dd/MM/yyyy').format(period!.start)} até ${DateFormat('dd/MM/yyyy').format(period!.end)}',
+                ),
+                onPressed: () async {
+                  final picked = await showDateRangePicker(
+                    context: context,
+                    firstDate: DateTime(1900),
+                    lastDate: DateTime(2100),
+                    initialDateRange: period,
+                  );
+                  if (context.mounted && picked != null) {
+                    update(() => period = picked);
+                  }
+                },
+              ),
+              const Text(
+                'O período inclui os dois dias. Datas não informadas ficam fora do filtro.',
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(context, const BookLibraryFilter()),
+              child: const Text('Limpar filtros'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                context,
+                BookLibraryFilter(
+                  query: query.text,
+                  from: period?.start,
+                  to: period?.end,
+                  dateField: field,
+                ),
+              ),
+              child: const Text('Aplicar'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (mounted && result != null) setState(() => _filter = result);
+  }
 
   void _openSearch() => Navigator.of(context).push(
     MaterialPageRoute<void>(
@@ -122,7 +229,6 @@ class _BookshelfScreenState extends State<BookshelfScreen>
       final updatedBook = book.copyWith(
         status: 'Lido',
         finishedDate: pickedDate,
-        addedAt: DateTime.now(), // Atualiza para subir no feed recente
       );
       try {
         await _bookService.saveBook(updatedBook);
@@ -302,6 +408,19 @@ class _BookshelfScreenState extends State<BookshelfScreen>
               ? null
               : BackButton(onPressed: widget.onClose),
           title: Text(personal ? 'Biblioteca' : 'Biblioteca do parceiro'),
+          actions: personal
+              ? [
+                  IconButton(
+                    onPressed: _editFilters,
+                    tooltip: _filter.isActive
+                        ? 'Buscar e filtrar · filtros ativos'
+                        : 'Buscar e filtrar',
+                    icon: Icon(
+                      _filter.isActive ? Icons.filter_alt : Icons.search,
+                    ),
+                  ),
+                ]
+              : null,
         ),
         body: Column(
           children: [
@@ -454,7 +573,9 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           return const ContentState(title: 'Carregando livros', loading: true);
         }
 
-        final books = snapshot.data ?? [];
+        final books = (snapshot.data ?? [])
+            .where((book) => !isEditable || _filter.matches(book))
+            .toList();
 
         final readingBooks = books.where((b) => b.status == 'Lendo').toList();
         final wishlistBooks = books
@@ -464,6 +585,25 @@ class _BookshelfScreenState extends State<BookshelfScreen>
         // TabController de 3 sub-abas: "Lendo", "Lidos", "Quero Ler"
         return Column(
           children: [
+            if (isEditable && widget.scope == BookshelfScope.combined)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    onPressed: _editFilters,
+                    icon: const Icon(Icons.search),
+                    label: Text(
+                      _filter.isActive
+                          ? 'Buscar e filtrar · filtros ativos'
+                          : 'Buscar e filtrar',
+                    ),
+                  ),
+                ),
+              ),
             Container(
               color: Theme.of(context).appBarTheme.backgroundColor,
               child: TabBar(
@@ -517,12 +657,20 @@ class _BookshelfScreenState extends State<BookshelfScreen>
     final theme = Theme.of(context);
     if (books.isEmpty) {
       return ContentState(
-        title: emptyMessage,
+        title: isEditable && _filter.isActive
+            ? 'Nenhum livro corresponde aos filtros nesta aba.'
+            : emptyMessage,
         message: isEditable
             ? 'Busque um livro ou cadastre manualmente.'
             : 'Aqui aparecem somente os livros compartilhados com você.',
-        actionLabel: isEditable ? 'Adicionar livro' : null,
-        onAction: isEditable ? _openSearch : null,
+        actionLabel: isEditable
+            ? (_filter.isActive ? 'Limpar filtros' : 'Adicionar livro')
+            : null,
+        onAction: isEditable
+            ? (_filter.isActive
+                  ? () => setState(() => _filter = const BookLibraryFilter())
+                  : _openSearch)
+            : null,
       );
     }
 
@@ -596,12 +744,20 @@ class _BookshelfScreenState extends State<BookshelfScreen>
 
     if (groupedData.isEmpty && undatedBooks.isEmpty) {
       return ContentState(
-        title: 'Nenhuma leitura concluída ainda.',
+        title: isEditable && _filter.isActive
+            ? 'Nenhuma leitura corresponde aos filtros.'
+            : 'Nenhuma leitura concluída ainda.',
         message: isEditable
             ? 'Você pode registrar um livro que já leu.'
             : 'Aqui aparecem somente leituras compartilhadas com você.',
-        actionLabel: isEditable ? 'Adicionar livro' : null,
-        onAction: isEditable ? _openSearch : null,
+        actionLabel: isEditable
+            ? (_filter.isActive ? 'Limpar filtros' : 'Adicionar livro')
+            : null,
+        onAction: isEditable
+            ? (_filter.isActive
+                  ? () => setState(() => _filter = const BookLibraryFilter())
+                  : _openSearch)
+            : null,
       );
     }
 

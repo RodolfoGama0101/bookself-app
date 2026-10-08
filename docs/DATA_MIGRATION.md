@@ -44,3 +44,9 @@ O teste de emuladores captura documentos fictícios, grava a preparação com co
 Antes de mudar a leitura das telas ou executar qualquer migração remota: inventário tipado de todos os dados e Auth, backup externo/restauração testada, resolução explícita de conflitos, contrato de origem/data desconhecida, estratégia para escritas durante o corte, compatibilidade de clientes distribuídos, autorização e índices implantados, ensaio com o cliente novo e rollback da ativação. Não remover o legado durante essa transição. O comando desta entrega não efetua nenhuma dessas operações remotas.
 
 DATA-03 encerra a preparação/estratégia repetível ensaiada. A conversão para entradas ativas, eventos históricos e adoção pela interface permanecem nas entregas correspondentes; DATA-06 não pode tratar `addedAt` legado como criação comprovada. [Modelo](DATA_MODEL.md), [autorização](SECURITY.md) e [evidências](DEVELOPMENT.md#preparação-paginação-e-sincronização--data-030405).
+
+## Compatibilidade com as atividades de livros — DATA-06
+
+O ensaio offline conserva um `createdAt` explícito válido; se ausente, a criação continua desconhecida. Não deduz criação pelo `addedAt` legado. Documentos de subcoleções, incluindo `books/{id}/activity/{eventId}`, permanecem no backup e no rollback sem serem classificados como livros. A regressão correspondente passou com os sete testes offline em 08/10/2026.
+
+Recalcule planos anteriores a DATA-06 a partir do backup preservado: o digest é conferido contra o algoritmo atual e planos divergentes não devem ser aplicados. Backup original e formato permanecem preservados. Não houve conversão ativa ou execução em produção. [Contrato incremental de livros](BOOK_LIBRARY.md).

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'sharing_service.dart';
 import 'firebase_environment.dart';
 import 'dart:convert';
+import 'dart:math';
 import '../data/models/book_search_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
@@ -140,6 +141,195 @@ class BookService {
   }
 
   // Salva ou atualiza um livro na estante do usuário no Firestore
+  static String catalogBookId(String ownerId, String externalId) {
+    if (ownerId.isEmpty ||
+        ownerId.length > 128 ||
+        externalId.isEmpty ||
+        externalId.length > 200) {
+      throw ArgumentError('Referência de livro inválida');
+    }
+    final id =
+        'catalog_${base64Url.encode(utf8.encode(jsonEncode([1, ownerId, 'book', 'google_books', externalId]))).replaceAll('=', '')}';
+    if (id.length > 1400) {
+      throw ArgumentError('Referência longa demais');
+    }
+    return id;
+  }
+
+  static String newManualId() =>
+      'manual_${base64Url.encode(List.generate(24, (_) => Random.secure().nextInt(256))).replaceAll('=', '')}';
+
+  Future<BookModel> updateManualMetadata(
+    BookModel expected, {
+    required String title,
+    required List<String> authors,
+    required String coverUrl,
+  }) async {
+    final normalizedTitle = title.trim();
+    final uri = coverUrl.isEmpty ? null : Uri.tryParse(coverUrl);
+    if (normalizedTitle.isEmpty ||
+        normalizedTitle.length > 500 ||
+        authors.length > 50 ||
+        (uri != null && (uri.scheme != 'https' || uri.host.isEmpty)) ||
+        (coverUrl.isNotEmpty && uri == null)) {
+      throw ArgumentError('Metadados inválidos');
+    }
+    final ref = _firestore.collection('books').doc(expected.id);
+    BookMetadataConflict? conflict;
+    try {
+      await _firestore.runTransaction((tx) async {
+        conflict = null;
+        final data = (await tx.get(ref)).data();
+        if (data == null ||
+            data['userId'] != expected.userId ||
+            data['googleBooksId'] != null ||
+            data['publishedDate'] != 'Manual') {
+          throw StateError('Registro manual indisponível');
+        }
+        if (data['title'] != expected.title ||
+            jsonEncode(data['authors']) != jsonEncode(expected.authors) ||
+            data['coverUrl'] != expected.coverUrl) {
+          conflict = const BookMetadataConflict();
+          throw conflict!;
+        }
+        final updated = {
+          ...data,
+          'title': normalizedTitle,
+          'authors': authors,
+          'coverUrl': coverUrl,
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+        tx.set(ref, updated);
+        SharingService(
+          firestore: _firestore,
+        ).mirror(tx, 'books', ref.id, updated);
+      });
+    } catch (_) {
+      if (conflict != null) throw conflict!;
+      rethrow;
+    }
+    return BookModel.fromFirestore(
+      await ref.get(const GetOptions(source: Source.server)),
+    );
+  }
+
+  /// Mesma referência retorna o registro pessoal sem redefinir seu progresso.
+  Future<({BookModel book, bool created})> addCatalogBook(
+    BookModel book,
+  ) async {
+    final external = book.googleBooksId;
+    if (external == null) throw ArgumentError('Referência de catálogo ausente');
+    final id = catalogBookId(book.userId, external);
+    final legacy = await _firestore
+        .collection('books')
+        .where('userId', isEqualTo: book.userId)
+        .where('googleBooksId', isEqualTo: external)
+        .limit(2)
+        .get(const GetOptions(source: Source.server));
+    if (legacy.docs.length > 1) throw const DuplicateBookReferences();
+    final reference = _firestore
+        .collection('books')
+        .doc(legacy.docs.isEmpty ? id : legacy.docs.single.id);
+    final event = reference.collection('activity').doc();
+    bool created;
+    try {
+      created = await _firestore.runTransaction((tx) async {
+        final current = await tx.get(reference);
+        if (current.exists) {
+          if (current.data()?['userId'] != book.userId ||
+              current.data()?['googleBooksId'] != external) {
+            throw StateError('Referência alterada');
+          }
+          return false;
+        }
+        _writeBook(tx, reference, event, book.copyWith(id: reference.id), null);
+        return true;
+      });
+    } on FirebaseException {
+      // Uma disputa pode ser rejeitada pelas regras antes de o SDK repetir o
+      // callback. A intenção já foi cumprida apenas se a referência própria
+      // estiver confirmada; falha de leitura continua sendo propagada.
+      final existing = await reference.get(
+        const GetOptions(source: Source.server),
+      );
+      final data = existing.data();
+      if (data == null ||
+          data['userId'] != book.userId ||
+          data['googleBooksId'] != external ||
+          existing.metadata.hasPendingWrites ||
+          existing.metadata.isFromCache) {
+        rethrow;
+      }
+      created = false;
+    }
+    final confirmed = await reference.get(
+      const GetOptions(source: Source.server),
+    );
+    if (!confirmed.exists ||
+        confirmed.metadata.hasPendingWrites ||
+        confirmed.metadata.isFromCache) {
+      throw const SharedDataUnconfirmed();
+    }
+    return (book: BookModel.fromFirestore(confirmed), created: created);
+  }
+
+  void _writeBook(
+    Transaction tx,
+    DocumentReference<Map<String, dynamic>> ref,
+    DocumentReference<Map<String, dynamic>> event,
+    BookModel book,
+    Map<String, dynamic>? current,
+  ) {
+    if (current != null && current['userId'] != book.userId) {
+      throw StateError('Proprietário divergente');
+    }
+    final data = {
+      ...?current, ...book.toMap(),
+      'isShared': current?['isShared'] ?? book.isShared,
+      'addedAt': current?['addedAt'] ?? Timestamp.fromDate(book.addedAt),
+      // Legado não comprova criação original: nunca atribuir hoje ao passado.
+      'createdAt': current == null
+          ? FieldValue.serverTimestamp()
+          : current['createdAt'],
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+    if (book.googleBooksId == null) data.remove('googleBooksId');
+    if (current == null || current['status'] != book.status) {
+      final action = current == null ? 'added' : 'status_changed';
+      data.addAll({
+        'activityAt': FieldValue.serverTimestamp(),
+        'latestActivityAt': FieldValue.serverTimestamp(),
+        'activityEventId': event.id,
+        'activityStatus': book.status,
+        'activityAction': action,
+      });
+      tx.set(event, {
+        'userId': book.userId,
+        'bookId': ref.id,
+        'action': action,
+        'beforeStatus': current?['status'],
+        'status': book.status,
+        'occurredAt': FieldValue.serverTimestamp(),
+      });
+    } else {
+      for (final key in [
+        'activityAt',
+        'latestActivityAt',
+        'activityEventId',
+        'activityStatus',
+        'activityAction',
+      ]) {
+        if (current.containsKey(key)) {
+          data[key] = current[key];
+        } else {
+          data.remove(key);
+        }
+      }
+    }
+    tx.set(ref, data);
+    SharingService(firestore: _firestore).mirror(tx, 'books', ref.id, data);
+  }
+
   Future<void> saveBook(BookModel book) async {
     // Se o livro já tem ID e existe no banco, atualiza. Caso contrário, gera novo ID.
     final docRef = book.id.isEmpty
@@ -147,26 +337,22 @@ class BookService {
         : _firestore.collection('books').doc(book.id);
 
     final finalBook = book.id.isEmpty ? book.copyWith(id: docRef.id) : book;
+    final event = docRef.collection('activity').doc();
 
     await _firestore.runTransaction((tx) async {
       final current = (await tx.get(docRef)).data();
-      final data = {
-        ...?current,
-        ...finalBook.toMap(),
-        'isShared': current?['isShared'] ?? finalBook.isShared,
-      };
-      if (finalBook.googleBooksId == null) data.remove('googleBooksId');
-      if (current == null || current['status'] != book.status) {
-        data['activityAt'] = FieldValue.serverTimestamp();
-      } else {
-        data['activityAt'] = current['activityAt'];
-      }
-      tx.set(docRef, data);
-      SharingService(
-        firestore: _firestore,
-      ).mirror(tx, 'books', docRef.id, data);
+      _writeBook(tx, docRef, event, finalBook, current);
     });
   }
+
+  Stream<List<Map<String, dynamic>>> streamBookActivity(String id) => _firestore
+      .collection('books')
+      .doc(id)
+      .collection('activity')
+      .orderBy('occurredAt', descending: true)
+      .limit(100)
+      .snapshots()
+      .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
 
   // Remove um livro da estante
   Future<void> deleteBook(String bookId) async {
@@ -238,14 +424,20 @@ class BookService {
               .map(
                 (b) => b.copyWith(
                   feedVisible:
-                      partnerId == null ||
-                      (started != null &&
-                          b.activityAt != null &&
-                          !b.activityAt!.isBefore(started!)),
+                      b.activityAt != null &&
+                      b.activityStatus != null &&
+                      b.activityAction != null &&
+                      (partnerId == null ||
+                          (started != null &&
+                              !b.activityAt!.isBefore(started!))),
                 ),
               )
               .toList()
-            ..sort((a, b) => b.addedAt.compareTo(a.addedAt));
+            ..sort(
+              (a, b) => (b.activityAt ?? DateTime(1970)).compareTo(
+                a.activityAt ?? DateTime(1970),
+              ),
+            );
       controller.add(books);
     }
 

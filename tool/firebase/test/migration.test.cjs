@@ -81,3 +81,17 @@ test('DATA-03: CLI gera arquivo recuperável, não substitui backup nem imprime 
     fs.rmdirSync(directory);
   }
 });
+
+test('DATA-06: preparação conserva criação comprovada e eventos sem converter subcoleção em livro',()=>{
+  const original=snapshot();
+  original['books/first'].createdAt={$timestamp:[1500000000,123]};
+  original['books/first'].updatedAt={$timestamp:[1600000000,234]};
+  original['books/first/activity/event']={userId:'a',bookId:'first',action:'status_changed',beforeStatus:'Lendo',status:'Lido',occurredAt:{$timestamp:[1600000000,234]}};
+  const {saved,prepared,summary}=rehearse(original);
+  assert.equal(summary.books,3);
+  assert.equal(Object.keys(prepared.imports).length,3);
+  const modern=Object.values(prepared.imports).find(value=>value.originalId==='first');
+  assert.deepEqual(modern.createdAt,original['books/first'].createdAt);
+  assert.equal(modern.legacyRef.creationUnknown,false);
+  assert.deepEqual(rollback(saved,prepared,apply(saved,prepared,original)),original);
+});

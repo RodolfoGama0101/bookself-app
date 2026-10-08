@@ -114,3 +114,9 @@ Em 08/10/2026, build final demo aprovado com Auth 19099/Firestore 18080, servido
 | Troca de destino/largura | Novo Testamento permaneceu selecionado ao sair para Nós e voltar pela Biblioteca, incluindo menu lateral em 1.280 × 720. |
 
 Captura desktop em `build/navigation-nos-desktop.jpg`, inspecionada e ignorada pelo Git. Regressões de 320 px/texto 2×, comparação sem apresentação, falha/offline e término são de widgets/fakes; não representam teste físico de rede nem nova jornada real com duas contas. 373 Flutter, análise limpa, seis testes offline de migração e build demo passaram. Produção, migração, publicação, Android/iOS e revisão completa de teclado/leitor de tela não executados.
+
+## Livros e ferramentas pessoais — 08/10/2026
+
+Build web demo com Auth 19099/Firestore 18080 e regras candidatas locais, servido somente em loopback 8737. No navegador integrado foi criada uma conta fictícia e cadastrado um livro manual sem capa. Foram observados: atividade “adicionou à biblioteca”; mudança Quero Ler → Lendo mantendo a data de inclusão; edição de título preservando status; histórico contendo inclusão e mudança de status (sem evento extra de edição); filtro textual combinando título corrigido e autor na aba Lendo. A lista filtrada foi inspecionada visualmente em 1280 × 720; evidência local ignorada em `build/books-tools-demo.jpg`.
+
+Persistência/histórico usaram o SDK FlutterFire real e emuladores. Deduplicação Google Books e disputa entre clientes foram verificadas por testes de serviço/regras, sem chave ou chamada ao fornecedor real nesta jornada. Período, conclusão ausente, edição alheia e layouts pequenos foram cobertos por testes Dart/widgets; não foram todos repetidos manualmente no navegador. Android/iOS, produção e distribuição permanecem fora desta verificação. [Contrato](BOOK_LIBRARY.md), [resultados automatizados](DEVELOPMENT.md#livros-datas-e-ferramentas--data-06book-01book-02).

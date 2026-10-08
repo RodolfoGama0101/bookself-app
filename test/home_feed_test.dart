@@ -57,6 +57,9 @@ BookModel reading(String title, {String owner = 'owner'}) {
     publishedDate: '2020',
     finishedDate: now,
     addedAt: now,
+    activityStatus: 'Lido',
+    activityAction: 'status_changed',
+    activityAt: now,
   );
 }
 
@@ -150,7 +153,11 @@ void main() {
     expect(find.text('1 livro lido'), findsNWidgets(4));
 
     books.updates.add([
-      mine.copyWith(status: 'Lendo', finishedDate: null),
+      mine.copyWith(
+        status: 'Lendo',
+        activityStatus: 'Lendo',
+        finishedDate: null,
+      ),
       partner,
     ]);
     await tester.pumpAndSettle();

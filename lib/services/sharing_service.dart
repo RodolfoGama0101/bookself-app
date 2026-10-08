@@ -24,6 +24,8 @@ class SharingService {
             'finishedDate',
             'googleBooksId',
             'activityAt',
+            'activityStatus',
+            'activityAction',
           ]
         : ['userId', 'bookName', 'readChapters', 'updatedAt'];
     return {

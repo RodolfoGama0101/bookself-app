@@ -272,7 +272,9 @@ class _SearchScreenState extends State<SearchScreen> {
                           );
 
                           try {
-                            await _bookService.saveBook(bookToSave);
+                            final result = await _bookService.addCatalogBook(
+                              bookToSave,
+                            );
                             if (context.mounted &&
                                 ModalRoute.of(context)?.isCurrent == true) {
                               Navigator.pop(context);
@@ -281,7 +283,9 @@ class _SearchScreenState extends State<SearchScreen> {
                               ScaffoldMessenger.of(screenContext).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    '"${book.title}" adicionado com sucesso!',
+                                    result.created
+                                        ? '"${book.title}" adicionado com sucesso!'
+                                        : 'Este livro já está na sua biblioteca. Seu progresso foi preservado.',
                                   ),
                                   backgroundColor: theme.colorScheme.primary,
                                 ),
@@ -321,6 +325,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   // Abre formulário para cadastro de livro manual
   void _showManualAddDialog(BuildContext context, String userId) {
+    final manualId = BookService.newManualId();
     final titleController = TextEditingController();
     final authorController = TextEditingController();
     final coverController = TextEditingController();
@@ -473,7 +478,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           setDialogState(() => isSaving = true);
 
                           final bookToSave = BookModel(
-                            id: '', // Novo ID
+                            id: manualId,
                             userId: userId,
                             title: titleController.text.trim(),
                             authors: [authorController.text.trim()],

@@ -301,16 +301,38 @@ service cloud.firestore {
       return (data.status == 'Lido' || data.get('finishedDate', null) == null)
         && (data.get('finishedDate', null) == null || data.finishedDate <= request.time);
     }
+    function validActivityPointer(id, data, before) {
+      return (!(data.keys().hasAny(['latestActivityAt'])) && !(before.keys().hasAny(['latestActivityAt']))) || (
+        data.get('createdAt', null) == before.get('createdAt', null)
+        && (data.latestActivityAt == before.get('latestActivityAt', null)
+          ? data.get('activityEventId', null) == before.get('activityEventId', null)
+            && data.get('activityStatus', null) == before.get('activityStatus', null)
+            && data.get('activityAction', null) == before.get('activityAction', null)
+            && data.status == before.status
+          : data.latestActivityAt == request.time
+            && data.activityAt == request.time
+            && getAfter(/databases/$(database)/documents/books/$(id)/activity/$(data.activityEventId)).data.occurredAt == request.time
+            && getAfter(/databases/$(database)/documents/books/$(id)/activity/$(data.activityEventId)).data.status == data.status));
+    }
     match /books/{id} {
       allow get: if signedIn() && (!exists(/databases/$(database)/documents/books/$(id)) || isOwner(resource.data.userId));
       allow list: if isOwner(resource.data.userId);
       allow create: if isOwner(request.resource.data.userId)
-        && request.resource.data.keys().hasOnly(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt', 'finishedDate', 'googleBooksId', 'isShared', 'activityAt'])
+        && request.resource.data.keys().hasOnly(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt', 'finishedDate', 'googleBooksId', 'isShared', 'activityAt', 'createdAt', 'updatedAt', 'latestActivityAt', 'activityEventId', 'activityStatus', 'activityAction'])
         && validBook(request.resource.data) && validNewCompletion(request.resource.data)
-        && (request.resource.data.get('activityAt', null) == null || request.resource.data.activityAt == request.time);
+        && (request.resource.data.get('activityAt', null) == null || request.resource.data.activityAt == request.time)
+        && (!request.resource.data.keys().hasAny(['latestActivityAt']) || (
+          request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time
+          && request.resource.data.latestActivityAt == request.time
+          && request.resource.data.activityAction == 'added' && request.resource.data.activityStatus == request.resource.data.status
+          && getAfter(/databases/$(database)/documents/books/$(id)/activity/$(request.resource.data.activityEventId)).data.occurredAt == request.time));
       allow update: if isOwner(resource.data.userId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt', 'finishedDate', 'googleBooksId', 'isShared', 'activityAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt', 'finishedDate', 'googleBooksId', 'isShared', 'activityAt', 'createdAt', 'updatedAt', 'latestActivityAt', 'activityEventId', 'activityStatus', 'activityAction'])
         && request.resource.data.userId == resource.data.userId
+        && request.resource.data.addedAt == resource.data.addedAt
+        && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null)
+        && (request.resource.data.get('updatedAt', null) == resource.data.get('updatedAt', null) || request.resource.data.updatedAt == request.time)
+        && validActivityPointer(id, request.resource.data, resource.data)
         && validBook(request.resource.data)
         && (request.resource.data.get('isShared', true) || !existsAfter(/databases/$(database)/documents/shared_books/$(id)))
         && (!existsAfter(/databases/$(database)/documents/shared_books/$(id))
@@ -325,6 +347,26 @@ service cloud.firestore {
         && !existsAfter(/databases/$(database)/documents/shared_books/$(id));
     }
 
+    match /books/{bookId}/activity/{eventId} {
+      allow get: if isOwner(resource.data.userId);
+      allow list: if isOwner(get(/databases/$(database)/documents/books/$(bookId)).data.userId);
+      allow create: if isOwner(request.resource.data.userId)
+        && request.resource.data.keys().hasAll(['userId', 'bookId', 'action', 'beforeStatus', 'status', 'occurredAt'])
+        && request.resource.data.keys().hasOnly(['userId', 'bookId', 'action', 'beforeStatus', 'status', 'occurredAt'])
+        && request.resource.data.bookId == bookId && request.resource.data.occurredAt == request.time
+        && getAfter(/databases/$(database)/documents/books/$(bookId)).data.userId == request.auth.uid
+        && getAfter(/databases/$(database)/documents/books/$(bookId)).data.activityEventId == eventId
+        && getAfter(/databases/$(database)/documents/books/$(bookId)).data.latestActivityAt == request.time
+        && getAfter(/databases/$(database)/documents/books/$(bookId)).data.activityStatus == request.resource.data.status
+        && getAfter(/databases/$(database)/documents/books/$(bookId)).data.activityAction == request.resource.data.action
+        && ((request.resource.data.action == 'added' && request.resource.data.beforeStatus == null
+            && !exists(/databases/$(database)/documents/books/$(bookId)))
+          || (request.resource.data.action == 'status_changed'
+            && request.resource.data.beforeStatus == get(/databases/$(database)/documents/books/$(bookId)).data.status
+            && request.resource.data.status != request.resource.data.beforeStatus));
+      allow update, delete: if false;
+    }
+
     function sharedBookMatches(data, own) {
       return data.userId == own.userId && data.title == own.title
         && data.authors == own.authors && data.coverUrl == own.coverUrl
@@ -332,10 +374,12 @@ service cloud.firestore {
         && data.addedAt == own.addedAt
         && data.get('finishedDate', null) == own.get('finishedDate', null)
         && data.get('googleBooksId', null) == own.get('googleBooksId', null)
-        && data.get('activityAt', null) == own.get('activityAt', null);
+        && data.get('activityAt', null) == own.get('activityAt', null)
+        && data.get('activityStatus', null) == own.get('activityStatus', null)
+        && data.get('activityAction', null) == own.get('activityAction', null);
     }
     function minimalBook(data) {
-      return data.keys().hasOnly(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt', 'finishedDate', 'googleBooksId', 'activityAt']);
+      return data.keys().hasOnly(['userId', 'title', 'authors', 'coverUrl', 'status', 'publishedDate', 'addedAt', 'finishedDate', 'googleBooksId', 'activityAt', 'activityStatus', 'activityAction']);
     }
     match /shared_books/{id} {
       allow get: if signedIn() && ((!exists(/databases/$(database)/documents/shared_books/$(id))

@@ -54,6 +54,14 @@ class SharedDataUnconfirmed implements Exception {
   const SharedDataUnconfirmed();
 }
 
+class DuplicateBookReferences implements Exception {
+  const DuplicateBookReferences();
+}
+
+class BookMetadataConflict implements Exception {
+  const BookMetadataConflict();
+}
+
 class ErrorHandler {
   static const networkMessage =
       'Não foi possível conectar. Verifique sua conexão e tente novamente.';
@@ -164,6 +172,22 @@ class ErrorHandler {
   static ({String message, String category, String code}) _describe(
     Object? error,
   ) {
+    if (error is BookMetadataConflict) {
+      return (
+        message:
+            'Este livro foi alterado em outra tela. Feche os detalhes e abra novamente antes de editar.',
+        category: 'data',
+        code: 'metadata-conflict',
+      );
+    }
+    if (error is DuplicateBookReferences) {
+      return (
+        message:
+            'Há mais de um registro desta edição na sua biblioteca. Consulte os registros existentes antes de adicionar.',
+        category: 'data',
+        code: 'duplicate-reference',
+      );
+    }
     if (error is SharedDataUnconfirmed) {
       return (
         message: 'Conecte-se para consultar os dados compartilhados.',

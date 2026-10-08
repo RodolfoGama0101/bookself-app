@@ -97,6 +97,21 @@ class _ProfileCollection extends Fake
   _ProfileCollection(this.database, this.collectionPath);
   final ProfileFirestoreFake database;
   final String collectionPath;
+  @override
+  Query<Map<String, dynamic>> where(
+    Object field, {
+    Object? isEqualTo,
+    Object? isNotEqualTo,
+    Object? isLessThan,
+    Object? isLessThanOrEqualTo,
+    Object? isGreaterThan,
+    Object? isGreaterThanOrEqualTo,
+    Object? arrayContains,
+    Iterable<Object?>? arrayContainsAny,
+    Iterable<Object?>? whereIn,
+    Iterable<Object?>? whereNotIn,
+    bool? isNull,
+  }) => _ProfileQuery(database, collectionPath, {field.toString(): isEqualTo});
 
   @override
   DocumentReference<Map<String, dynamic>> doc([String? path]) {
@@ -106,6 +121,69 @@ class _ProfileCollection extends Fake
       collectionPath,
     );
   }
+}
+
+// Dublês locais de APIs sealed; não usados em produção.
+// ignore: subtype_of_sealed_class
+class _ProfileQuery extends Fake implements Query<Map<String, dynamic>> {
+  _ProfileQuery(this.database, this.path, this.filters, [this.maximum = 100]);
+  final ProfileFirestoreFake database;
+  final String path;
+  final Map<String, Object?> filters;
+  final int maximum;
+  @override
+  Query<Map<String, dynamic>> where(
+    Object field, {
+    Object? isEqualTo,
+    Object? isNotEqualTo,
+    Object? isLessThan,
+    Object? isLessThanOrEqualTo,
+    Object? isGreaterThan,
+    Object? isGreaterThanOrEqualTo,
+    Object? arrayContains,
+    Iterable<Object?>? arrayContainsAny,
+    Iterable<Object?>? whereIn,
+    Iterable<Object?>? whereNotIn,
+    bool? isNull,
+  }) => _ProfileQuery(database, path, {
+    ...filters,
+    field.toString(): isEqualTo,
+  }, maximum);
+  @override
+  Query<Map<String, dynamic>> limit(int count) =>
+      _ProfileQuery(database, path, filters, count);
+  @override
+  Future<QuerySnapshot<Map<String, dynamic>>> get([GetOptions? options]) async {
+    final rows = database.documents.entries
+        .where(
+          (row) =>
+              row.key.startsWith('$path/') &&
+              !row.key.substring(path.length + 1).contains('/') &&
+              filters.entries.every(
+                (filter) => row.value[filter.key] == filter.value,
+              ),
+        )
+        .take(maximum)
+        .map((row) => _QueryDocument(row.key.split('/').last, row.value))
+        .toList();
+    return _QuerySnapshot(rows);
+  }
+}
+
+// ignore: subtype_of_sealed_class
+class _QuerySnapshot extends Fake
+    implements QuerySnapshot<Map<String, dynamic>> {
+  _QuerySnapshot(this.docs);
+  @override
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs;
+}
+
+// ignore: subtype_of_sealed_class
+class _QueryDocument extends ProfileSnapshot
+    implements QueryDocumentSnapshot<Map<String, dynamic>> {
+  _QueryDocument(super.id, super.data);
+  @override
+  Map<String, dynamic> data() => super.data()!;
 }
 
 // ignore: subtype_of_sealed_class

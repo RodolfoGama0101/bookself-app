@@ -8,6 +8,9 @@ import '../../data/models/book_model.dart';
 import '../../services/book_service.dart';
 import '../../utils/error_handler.dart';
 import 'completion_date_picker.dart';
+import 'dialog_with_controllers.dart';
+import 'content_state.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BookDetailsSheet extends StatefulWidget {
   final BookModel book;
@@ -33,7 +36,197 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
   bool _isLoading = false;
   bool _isPickingDate = false;
   bool _isConfirmingDelete = false;
-  bool get _isBusy => _isLoading || _isPickingDate || _isConfirmingDelete;
+  bool _isEditingMetadata = false;
+  bool get _isBusy =>
+      _isLoading || _isPickingDate || _isConfirmingDelete || _isEditingMetadata;
+
+  Future<void> _editMetadata() async {
+    if (_isBusy) return;
+    setState(() => _isEditingMetadata = true);
+    final title = TextEditingController(text: _currentBook.title);
+    final authors = TextEditingController(
+      text: _currentBook.authors.join('; '),
+    );
+    final cover = TextEditingController(text: _currentBook.coverUrl);
+    final form = GlobalKey<FormState>();
+    bool saving = false;
+    String? failure;
+    BookModel? confirmed;
+    await showDialogWithControllers<void>(
+      context: context,
+      controllers: [title, authors, cover],
+      builder: (_) => StatefulBuilder(
+        builder: (dialogContext, update) => AlertDialog(
+          scrollable: true,
+          title: const Text('Editar livro manual'),
+          content: Form(
+            key: form,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: title,
+                  enabled: !saving,
+                  maxLength: 500,
+                  decoration: const InputDecoration(labelText: 'Título'),
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Informe o título.'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: authors,
+                  enabled: !saving,
+                  decoration: const InputDecoration(
+                    labelText: 'Autores',
+                    helperText: 'Separe os autores por ponto e vírgula.',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: cover,
+                  enabled: !saving,
+                  decoration: const InputDecoration(
+                    labelText: 'URL da capa (opcional)',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) return null;
+                    final uri = Uri.tryParse(value.trim());
+                    return uri?.scheme == 'https' && uri!.host.isNotEmpty
+                        ? null
+                        : 'Use um endereço HTTPS válido.';
+                  },
+                ),
+                if (failure != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(failure!),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: saving ? null : () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: saving
+                  ? null
+                  : () async {
+                      if (!form.currentState!.validate()) return;
+                      update(() {
+                        saving = true;
+                        failure = null;
+                      });
+                      try {
+                        final value = await _bookService.updateManualMetadata(
+                          _currentBook,
+                          title: title.text,
+                          authors: authors.text
+                              .split(';')
+                              .map((author) => author.trim())
+                              .where((author) => author.isNotEmpty)
+                              .toList(),
+                          coverUrl: cover.text.trim(),
+                        );
+                        confirmed = value;
+                        if (dialogContext.mounted) Navigator.pop(dialogContext);
+                      } catch (error) {
+                        if (dialogContext.mounted) {
+                          update(() {
+                            saving = false;
+                            failure = ErrorHandler.getFriendlyErrorMessage(
+                              error,
+                              operation: ErrorOperation.saveBook,
+                            );
+                          });
+                        }
+                      }
+                    },
+              child: Text(saving ? 'Salvando…' : 'Salvar'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      _isEditingMetadata = false;
+      if (confirmed != null) _currentBook = confirmed!;
+    });
+    if (confirmed != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Livro atualizado.')));
+    }
+  }
+
+  void _showHistory() => showDialog<void>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Histórico de status'),
+      content: SizedBox(
+        width: 480,
+        height: 300,
+        child: StreamBuilder<List<Map<String, dynamic>>>(
+          stream: _bookService.streamBookActivity(_currentBook.id),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return ContentState(
+                title: 'Histórico indisponível',
+                message: ErrorHandler.getFriendlyErrorMessage(
+                  snapshot.error,
+                  operation: ErrorOperation.loadLibrary,
+                ),
+              );
+            }
+            if (!snapshot.hasData) {
+              return const ContentState(
+                title: 'Carregando histórico',
+                loading: true,
+              );
+            }
+            if (snapshot.data!.isEmpty) {
+              return const ContentState(
+                title: 'Nenhuma atividade registrada',
+                message: 'Novas mudanças de status aparecerão aqui.',
+              );
+            }
+            return ListView(
+              children: [
+                const Text(
+                  'Até 100 atividades mais recentes. Datas de conclusão são informadas separadamente.',
+                ),
+                ...snapshot.data!.map(
+                  (event) => ListTile(
+                    title: Text(
+                      event['action'] == 'added'
+                          ? 'Adicionado · ${event['status']}'
+                          : '${event['beforeStatus']} → ${event['status']}',
+                    ),
+                    subtitle: Text(
+                      event['occurredAt'] is Timestamp
+                          ? DateFormat('dd/MM/yyyy HH:mm').format(
+                              (event['occurredAt'] as Timestamp).toDate(),
+                            )
+                          : 'Aguardando confirmação',
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Fechar'),
+        ),
+      ],
+    ),
+  );
 
   @override
   void initState() {
@@ -62,7 +255,6 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     final updated = _currentBook.copyWith(
       status: newStatus,
       finishedDate: finishedDate,
-      addedAt: DateTime.now(), // Atualiza para subir no feed
     );
 
     try {
@@ -348,6 +540,18 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
 
             // Ações de Edição/Alteração de Status
             if (widget.isEditable) ...[
+              if (_currentBook.googleBooksId == null &&
+                  _currentBook.publishedDate == 'Manual')
+                OutlinedButton.icon(
+                  onPressed: _isBusy ? null : _editMetadata,
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Editar livro manual'),
+                ),
+              OutlinedButton.icon(
+                onPressed: _isBusy ? null : _showHistory,
+                icon: const Icon(Icons.history),
+                label: const Text('Histórico de status'),
+              ),
               const Divider(),
               const SizedBox(height: 12),
               Text(

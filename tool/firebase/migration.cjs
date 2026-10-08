@@ -44,7 +44,9 @@ function plan(saved) {
   const imports = {}, conflicts = [], references = new Map();
   let books = 0, users = 0, bible = 0, relationships = 0;
   for (const [path, data] of Object.entries(saved.documents).sort(([a], [b]) => a.localeCompare(b))) {
-    const [collection, id] = path.split('/');
+    const segments = path.split('/');
+    if (segments.length !== 2) continue; // Subcoleções são preservadas, nunca convertidas em livros.
+    const [collection, id] = segments;
     if (collection === 'bible_progress') bible++;
     if (collection === 'users') {
       users++;
@@ -73,13 +75,18 @@ function plan(saved) {
     imports[`migration_imports/${digest(path)}`] = {
       schemaVersion: 1, migrationVersion: 1, sourcePath: path,
       sourceDigest: digest(data), ownerId: data.userId ?? null,
-      originalId: id, identity, createdAt: null,
-      legacyRef: {collection: 'books', id, creationUnknown: true},
+      originalId: id, identity, createdAt: validTimestamp(data.createdAt) ? copy(data.createdAt) : null,
+      legacyRef: {collection: 'books', id, creationUnknown: !validTimestamp(data.createdAt)},
       original: copy(data),
     };
   }
   return {migrationVersion: 1, sourceDigest: saved.sourceDigest, imports, conflicts,
     counts: {documents: Object.keys(saved.documents).length, books, users, bible, relationships}};
+}
+function validTimestamp(value) {
+  return value && Array.isArray(value.$timestamp) && value.$timestamp.length === 2
+    && Number.isInteger(value.$timestamp[0]) && Number.isInteger(value.$timestamp[1])
+    && value.$timestamp[1] >= 0 && value.$timestamp[1] < 1e9;
 }
 function validatePlan(saved, prepared) {
   if (digest(plan(saved)) !== digest(prepared)) throw new Error('Plano divergente do backup');

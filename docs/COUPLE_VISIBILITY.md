@@ -41,3 +41,7 @@ Formatação, análise limpa, **321 testes Flutter**, **53 testes Auth/Firestore
 Dois Chromes isolados com contas fictícias validaram ocultação de livro retirando detalhes já abertos, ocultação bíblica sem comparação após recarga, bloqueio com término recíproco e desbloqueio sem restaurar vínculo. Capítulos próprios permaneceram. Emuladores/navegadores foram encerrados, credenciais de fixture removidas e capturas mantidas em diretório ignorado. Comandos em [DEVELOPMENT.md](DEVELOPMENT.md); jornada em [WEB_VALIDATION.md](WEB_VALIDATION.md).
 
 As regras mais estritas exigem cliente compatível: clientes antigos consultam documentos pessoais do parceiro e podem editar sem a projeção atômica. Planejar atualização, disponibilidade das projeções, backup e recuperação em [SEC-06](SECURITY.md#implantação-pendente). Esta entrega não confirma proteção em produção.
+
+## Marcadores explícitos de livros — DATA-06
+
+Projeções de livros incluem `activityStatus` e `activityAction` junto de `activityAt`; não incluem `createdAt`, `updatedAt`, `latestActivityAt`, ID do evento ou histórico privado. O feed exige marcador explícito posterior ao aceite, sem reconstruir eventos do estado atual. Ocultação/republicação conserva o histórico pessoal e retira o marcador compartilhado; não gera atividade retroativa. A implementação do feed multimídia permanece em COUPLE-08. [Contrato dos livros](BOOK_LIBRARY.md).

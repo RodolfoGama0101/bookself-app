@@ -370,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     IconData actionIcon;
                     Color actionColor;
 
-                    switch (book.status) {
+                    switch (book.activityStatus) {
                       case 'Lido':
                         actionText = 'concluiu a leitura de';
                         actionIcon = Icons.check_circle_rounded;
@@ -385,6 +385,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         actionText = 'quer ler';
                         actionIcon = Icons.bookmark_add_rounded;
                         actionColor = theme.colorScheme.onSurfaceVariant;
+                    }
+                    if (book.activityAction == 'added') {
+                      actionText = 'adicionou à biblioteca';
+                      actionIcon = Icons.library_add_outlined;
                     }
 
                     return Padding(

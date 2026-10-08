@@ -15,6 +15,7 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
 | [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
+| [docs/BOOK_LIBRARY.md](docs/BOOK_LIBRARY.md) | Identidade de livros, datas, histórico privado, edição manual e filtros pessoais. |
 | [docs/NAVIGATION.md](docs/NAVIGATION.md) | Navegação atual de livros/Bíblia/Nós e mapa incremental das mídias futuras. |
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Modelo v1: base privada implementada localmente em DATA-02; episódios, escutas, experiências e migração pendentes. |
 | [docs/DATA_MIGRATION.md](docs/DATA_MIGRATION.md) | Backup/plano offline e ensaio recuperável; conversão ativa e produção separadas. |
@@ -38,6 +39,8 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 - Restauração de sessão com estados de carregamento/erro e conclusão de perfil após cadastro parcial, preservando perfis existentes.
 - Busca paginada de livros no Google Books, com timeout, tratamento de resposta parcial e descarte de buscas antigas; referência do catálogo preservada em registros novos. Cadastro manual disponível sem chave ou rede.
 - Fontes Outfit/Playfair Display empacotadas para carregamento sem rede; capas em HTTPS com fallback, sem proxy externo.
+- Mesma referência Google Books reencontra o livro pessoal sem substituir progresso; edições diferentes e cadastros manuais deliberados permanecem independentes. Metadados manuais podem ser corrigidos pelo dono; filtros combinam título/autor, status e período de inclusão/conclusão.
+- Datas de inclusão preservadas em mudanças de status; criação/atualização e histórico privado com timestamps do servidor. O Início usa a última atividade explícita por livro, sem reconstruir acontecimentos antigos. [Contrato e limites](docs/BOOK_LIBRARY.md).
 - Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
 - Navegação Início/Biblioteca/Nós/Perfil. Biblioteca reúne os livros pessoais, busca/cadastro e acesso à Bíblia; Nós reúne consulta do parceiro, comparação bíblica, convites, compartilhamento e bloqueios. Filtros/testamento são preservados entre destinos; a Bíblia retorna à origem. Filmes, séries e músicas só entrarão após seus fluxos funcionais.
 - Carregamento, vazio e falha de livros/progresso têm mensagens e ações próprias. Falha/offline da comparação retira dados alheios sem bloquear a Bíblia pessoal; ausência de apresentação do parceiro não apaga o vínculo.

@@ -12,6 +12,10 @@ class BookModel {
   final String publishedDate;
   final DateTime? finishedDate; // Data personalizada selecionada pelo usuário
   final DateTime addedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final String? activityStatus;
+  final String? activityAction;
   final String? googleBooksId;
   final bool isShared;
   final DateTime? activityAt;
@@ -27,6 +31,10 @@ class BookModel {
     required this.publishedDate,
     this.finishedDate,
     required this.addedAt,
+    this.createdAt,
+    this.updatedAt,
+    this.activityStatus,
+    this.activityAction,
     this.googleBooksId,
     this.isShared = true,
     this.activityAt,
@@ -47,9 +55,15 @@ class BookModel {
       publishedDate: data['publishedDate'] ?? '',
       finishedDate: (data['finishedDate'] as Timestamp?)?.toDate(),
       addedAt: (data['addedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+      activityStatus: data['activityStatus'] as String?,
+      activityAction: data['activityAction'] as String?,
       googleBooksId: data['googleBooksId'] as String?,
       isShared: data['isShared'] != false,
-      activityAt: (data['activityAt'] as Timestamp?)?.toDate(),
+      activityAt:
+          ((data['latestActivityAt'] ?? data['activityAt']) as Timestamp?)
+              ?.toDate(),
     );
   }
 
@@ -82,6 +96,7 @@ class BookModel {
     String? publishedDate,
     bool? isShared,
     bool? feedVisible,
+    String? activityStatus,
     Object? finishedDate = _CopyWithValue.unchanged,
     DateTime? addedAt,
     Object? googleBooksId = _CopyWithValue.unchanged,
@@ -101,6 +116,10 @@ class BookModel {
           ? this.finishedDate
           : finishedDate as DateTime?,
       addedAt: addedAt ?? this.addedAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      activityStatus: activityStatus ?? this.activityStatus,
+      activityAction: activityAction,
       googleBooksId: identical(googleBooksId, _CopyWithValue.unchanged)
           ? this.googleBooksId
           : googleBooksId as String?,
