@@ -1,6 +1,6 @@
 # Arquitetura
 
-Revisão: 05/10/2026. As seções iniciais descrevem o código atual; a evolução ao final é uma proposta.
+Revisão: 08/10/2026. As seções iniciais descrevem o código atual; a evolução ao final é uma proposta.
 
 ## Inicialização e interface atuais
 
@@ -161,7 +161,7 @@ COUPLE-09 acrescentou identificação mínima e bloqueios independentes em 08/10
 
 ## Proposta para múltiplas mídias
 
-Consolidar esta proposta em uma decisão técnica antes da implementação. As entidades abaixo não são o esquema atual nem uma migração já autorizada.
+**DATA-01 consolidada em 08/10/2026:** [especificação proposta v1](DATA_MODEL.md), [exemplos fictícios estruturados](data-model/v1.examples.json) e [registro 011](decisions/011-modelo-multimidia-v1.md) detalham identidade, metadados, estado/progresso próprios, relação, listas/experiências e eventos. Proposta revisada contra MVP/política/modelos e validada por invariantes dos exemplos, sem aprovação específica do esquema pelo usuário. A tabela abaixo resume a separação; não é o contrato ativo nem uma migração autorizada. Implementação incremental em DATA-02 e ensaio recuperável em DATA-03 continuam necessários.
 
 | Entidade proposta | Dados | Motivo da separação |
 | --- | --- | --- |

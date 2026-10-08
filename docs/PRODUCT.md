@@ -1,6 +1,6 @@
 # Produto e expansão
 
-Revisão: 08/10/2026. **PROD-01 concluída como decisão de MVP aprovada pelo usuário; PROD-02 definida e revisada documentalmente.** O escopo abaixo orienta a expansão; filmes, séries e músicas continuam sem implementação.
+Revisão: 08/10/2026. **PROD-01 concluída como decisão de MVP aprovada pelo usuário; PROD-02 definida e DATA-01 consolidada como especificação proposta v1.** O escopo abaixo orienta a expansão; filmes, séries e músicas continuam sem implementação.
 
 ## Direção solicitada
 
@@ -36,7 +36,7 @@ Em 05/10/2026, após escolher o escopo musical, o usuário respondeu **“Aprova
 | Álbuns | Título/artista obrigatórios; ano, edição, capa, referência e lista de faixas opcionais. Favorito independente, sem conclusão permanente. | Salvar com lista incompleta; salvar/ouvir um álbum não salva ou conclui suas faixas automaticamente. |
 | Escutas | Registro pessoal separado da obra com data informada; repetições intencionais permitidas. | Duas escutas intencionais permanecem distintas; repetir envio da mesma operação não duplica; escutas e favoritos não são expostos pelo compartilhamento da obra. |
 
-Os campos opcionais não impedem cadastro manual nas novas mídias. Busca depende de fornecedor aprovado, mas salvar/consultar uma entrada própria não exige conta externa. IDs, versões, ausência/nulidade e estados internos serão consolidados em DATA-01/02; os rótulos desta decisão não são um contrato de persistência.
+Os campos opcionais não impedem cadastro manual nas novas mídias. Busca depende de fornecedor aprovado, mas salvar/consultar uma entrada própria não exige conta externa. IDs, versões, ausência/nulidade e estados internos foram consolidados como [proposta v1 em DATA-01](DATA_MODEL.md), com implementação pendente em DATA-02; os rótulos desta decisão não são um contrato de persistência ativo.
 
 | Experiência do casal | Escopo aprovado | Critério de sucesso |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ Os campos opcionais não impedem cadastro manual nas novas mídias. Busca depend
 
 Ficam para depois: avaliações/comentários novos, reprodução interna, letras, sessões sincronizadas, importação de histórico e playlists externas, recomendações automáticas, leitor de texto bíblico e estatísticas avançadas. Não remover campos pessoais legados por estarem fora do MVP.
 
-Continuam decisões pendentes: marca (NAME-01), fornecedores e condições de acesso (API-02/03), esquema versionado (DATA-01) e regras detalhadas de especiais, episódios futuros, reassistir e spoilers (SERIES-01). A navegação foi definida separadamente em PROD-02, conforme [mapa v1](NAVIGATION.md). A aprovação do MVP não escolhe silenciosamente as alternativas pendentes nem autoriza migração, implantação ou publicação.
+Continuam decisões pendentes: marca (NAME-01), fornecedores e condições de acesso (API-02/03) e regras detalhadas de especiais, episódios futuros, reassistir e spoilers (SERIES-01). A navegação foi definida separadamente em PROD-02, conforme [mapa v1](NAVIGATION.md); o esquema foi consolidado como [proposta v1 em DATA-01](DATA_MODEL.md), ainda sem código, contrato ativo ou aprovação específica pelo usuário. A aprovação do MVP não escolhe silenciosamente as alternativas pendentes nem autoriza migração, implantação ou publicação.
 
 ## Escopo musical escolhido — PROD-01
 

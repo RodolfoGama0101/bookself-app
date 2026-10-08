@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Exemplos fictícios para revisão de DATA-01; não são dados de migração nem configuração de fornecedores.",
+  "catalogs": [
+    {"schemaVersion":1,"id":"catalog-book-a","ownerId":"example-a","mediaType":"book","identity":{"kind":"external","provider":"google_books","externalId":"example-volume"},"metadata":{"title":"Livro de exemplo","authors":["Autoria fictícia"],"coverUrl":null,"publishedDate":"2020"},"fetchedAt":"2026-10-08T12:00:00Z"},
+    {"schemaVersion":1,"id":"catalog-book-b","ownerId":"example-b","mediaType":"book","identity":{"kind":"external","provider":"google_books","externalId":"example-volume"},"metadata":{"title":"Livro de exemplo","authors":["Autoria fictícia"],"coverUrl":null,"publishedDate":"2020"},"fetchedAt":"2026-10-08T12:00:00Z"},
+    {"schemaVersion":1,"id":"catalog-movie-a","ownerId":"example-a","mediaType":"movie","identity":{"kind":"external","provider":"example_video","externalId":"same-id"},"metadata":{"title":"Filme de exemplo","releaseYear":null,"coverUrl":null},"fetchedAt":"2026-10-08T12:00:00Z"},
+    {"schemaVersion":1,"id":"catalog-series-a","ownerId":"example-a","mediaType":"series","identity":{"kind":"external","provider":"example_video","externalId":"same-id"},"metadata":{"title":"Série de exemplo","releaseYear":null,"coverUrl":null,"productionStatus":null},"fetchedAt":"2026-10-08T12:00:00Z"},
+    {"schemaVersion":1,"id":"catalog-track-a","ownerId":"example-a","mediaType":"track","identity":{"kind":"external","provider":"example_music","externalId":"same-id"},"metadata":{"title":"Faixa de exemplo","artists":["Artista fictício"],"albumTitle":null,"version":null,"durationMs":null,"coverUrl":null},"fetchedAt":"2026-10-08T12:00:00Z"},
+    {"schemaVersion":1,"id":"catalog-album-a","ownerId":"example-a","mediaType":"album","identity":{"kind":"manual","ownerId":"example-a","manualId":"example-manual-album"},"metadata":{"title":"Álbum manual de exemplo","artists":["Artista fictício"],"releaseYear":null,"edition":null,"coverUrl":null},"fetchedAt":null}
+  ],
+  "entries": [
+    {"schemaVersion":1,"id":"entry-book-a","ownerId":"example-a","catalogId":"catalog-book-a","mediaType":"book","state":{"status":"reading","finishedOn":null},"isShared":true,"favorite":false,"createdAt":"2026-10-08T12:01:00Z","updatedAt":"2026-10-08T12:02:00Z","revision":2,"legacyRef":null},
+    {"schemaVersion":1,"id":"entry-book-b","ownerId":"example-b","catalogId":"catalog-book-b","mediaType":"book","state":{"status":"completed","finishedOn":null},"isShared":true,"favorite":false,"createdAt":"2026-10-08T12:01:00Z","updatedAt":"2026-10-08T12:02:00Z","revision":2,"legacyRef":null},
+    {"schemaVersion":1,"id":"entry-movie-a","ownerId":"example-a","catalogId":"catalog-movie-a","mediaType":"movie","state":{"status":"watched","watchedOn":"2026-10-07"},"isShared":false,"favorite":false,"createdAt":"2026-10-08T12:01:00Z","updatedAt":"2026-10-08T12:02:00Z","revision":2,"legacyRef":null},
+    {"schemaVersion":1,"id":"entry-series-a","ownerId":"example-a","catalogId":"catalog-series-a","mediaType":"series","state":{"status":"in_progress"},"isShared":true,"favorite":false,"createdAt":"2026-10-08T12:01:00Z","updatedAt":"2026-10-08T12:02:00Z","revision":2,"legacyRef":null},
+    {"schemaVersion":1,"id":"entry-track-a","ownerId":"example-a","catalogId":"catalog-track-a","mediaType":"track","state":null,"isShared":true,"favorite":true,"createdAt":"2026-10-08T12:01:00Z","updatedAt":"2026-10-08T12:02:00Z","revision":2,"legacyRef":null},
+    {"schemaVersion":1,"id":"entry-album-a","ownerId":"example-a","catalogId":"catalog-album-a","mediaType":"album","state":null,"isShared":true,"favorite":false,"createdAt":"2026-10-08T12:01:00Z","updatedAt":"2026-10-08T12:01:00Z","revision":1,"legacyRef":null}
+  ],
+  "referenceSlots": [
+    {"schemaVersion":1,"ownerId":"example-a","entryId":"entry-book-a","catalogId":"catalog-book-a"},
+    {"schemaVersion":1,"ownerId":"example-b","entryId":"entry-book-b","catalogId":"catalog-book-b"},
+    {"schemaVersion":1,"ownerId":"example-a","entryId":"entry-movie-a","catalogId":"catalog-movie-a"},
+    {"schemaVersion":1,"ownerId":"example-a","entryId":"entry-series-a","catalogId":"catalog-series-a"},
+    {"schemaVersion":1,"ownerId":"example-a","entryId":"entry-track-a","catalogId":"catalog-track-a"},
+    {"schemaVersion":1,"ownerId":"example-a","entryId":"entry-album-a","catalogId":"catalog-album-a"}
+  ],
+  "episodeProgress": [
+    {"schemaVersion":1,"ownerId":"example-a","entryId":"entry-series-a","episodeRef":{"seriesIdentity":{"kind":"external","provider":"example_video","externalId":"same-id"},"episodeId":"example-episode-1"},"watched":true,"watchedOn":null,"updatedAt":"2026-10-08T12:02:00Z","revision":1},
+    {"schemaVersion":1,"ownerId":"example-a","entryId":"entry-series-a","episodeRef":{"seriesIdentity":{"kind":"external","provider":"example_video","externalId":"same-id"},"episodeId":"example-episode-2"},"watched":false,"watchedOn":null,"updatedAt":"2026-10-08T12:02:00Z","revision":1}
+  ],
+  "listens": [
+    {"schemaVersion":1,"id":"listen-a-1","ownerId":"example-a","entryId":"entry-track-a","listenedOn":"2026-10-07","createdAt":"2026-10-08T12:03:00Z","updatedAt":"2026-10-08T12:03:00Z","revision":1},
+    {"schemaVersion":1,"id":"listen-a-2","ownerId":"example-a","entryId":"entry-track-a","listenedOn":"2026-10-07","createdAt":"2026-10-08T12:04:00Z","updatedAt":"2026-10-08T12:04:00Z","revision":1},
+    {"schemaVersion":1,"id":"listen-a-album","ownerId":"example-a","entryId":"entry-album-a","listenedOn":"2026-10-08","createdAt":"2026-10-08T12:05:00Z","updatedAt":"2026-10-08T12:05:00Z","revision":1}
+  ],
+  "sharedEntries": [
+    {"schemaVersion":1,"id":"entry-book-a","ownerId":"example-a","mediaType":"book","selection":{"mediaType":"book","identity":{"kind":"external","provider":"google_books","externalId":"example-volume"},"title":"Livro de exemplo","authors":["Autoria fictícia"],"coverUrl":null},"state":{"status":"reading","finishedOn":null},"createdAt":"2026-10-08T12:01:00Z","updatedAt":"2026-10-08T12:02:00Z","sourceRevision":2},
+    {"schemaVersion":1,"id":"entry-track-a","ownerId":"example-a","mediaType":"track","selection":{"mediaType":"track","identity":{"kind":"external","provider":"example_music","externalId":"same-id"},"title":"Faixa de exemplo","artists":["Artista fictício"],"coverUrl":null},"state":null,"createdAt":"2026-10-08T12:01:00Z","updatedAt":"2026-10-08T12:02:00Z","sourceRevision":2}
+  ],
+  "relationships": [
+    {"schemaVersion":1,"id":"example-consumed-invite","participantIds":["example-a","example-b"],"status":"active","startedAt":"2026-10-08T11:00:00Z","endedAt":null,"origin":"consented_invite"}
+  ],
+  "lists": [
+    {"schemaVersion":1,"id":"list-example","relationshipId":"example-consumed-invite","title":"Filmes para escolher juntos","createdBy":"example-a","createdAt":"2026-10-08T12:06:00Z","updatedAt":"2026-10-08T12:06:00Z","revision":1}
+  ],
+  "listItems": [
+    {"schemaVersion":1,"id":"list-item-example","listId":"list-example","relationshipId":"example-consumed-invite","addedBy":"example-a","selection":{"source":"library","mediaType":"movie","identity":{"kind":"external","provider":"example_video","externalId":"same-id"},"title":"Filme de exemplo","coverUrl":null},"addedAt":"2026-10-08T12:06:00Z","revision":1}
+  ],
+  "experiences": [
+    {"schemaVersion":1,"id":"experience-pending","relationshipId":"example-consumed-invite","authorId":"example-a","participantIds":["example-a","example-b"],"selection":{"source":"library","mediaType":"movie","identity":{"kind":"external","provider":"example_video","externalId":"same-id"},"title":"Filme de exemplo","coverUrl":null},"occurredOn":"2026-10-07","revision":2,"responses":{"example-a":{"revision":2,"decision":"confirmed","respondedAt":"2026-10-08T12:08:00Z"},"example-b":{"revision":1,"decision":"confirmed","respondedAt":"2026-10-08T12:07:00Z"}},"createdAt":"2026-10-08T12:07:00Z","updatedAt":"2026-10-08T12:08:00Z"},
+    {"schemaVersion":1,"id":"experience-confirmed","relationshipId":"example-consumed-invite","authorId":"example-b","participantIds":["example-a","example-b"],"selection":{"source":"library","mediaType":"album","identity":{"kind":"manual","ownerId":"example-a","manualId":"example-manual-album"},"title":"Álbum manual de exemplo","artists":["Artista fictício"],"coverUrl":null},"occurredOn":"2026-10-08","revision":1,"responses":{"example-a":{"revision":1,"decision":"confirmed","respondedAt":"2026-10-08T12:10:00Z"},"example-b":{"revision":1,"decision":"confirmed","respondedAt":"2026-10-08T12:09:00Z"}},"createdAt":"2026-10-08T12:09:00Z","updatedAt":"2026-10-08T12:10:00Z"},
+    {"schemaVersion":1,"id":"experience-withdrawn","relationshipId":"example-consumed-invite","authorId":"example-a","participantIds":["example-a","example-b"],"selection":{"source":"catalog","mediaType":"book","identity":{"kind":"external","provider":"google_books","externalId":"example-volume"},"title":"Livro de exemplo","authors":["Autoria fictícia"],"coverUrl":null},"occurredOn":"2026-10-07","revision":1,"responses":{"example-a":{"revision":1,"decision":"withdrawn","respondedAt":"2026-10-08T12:12:00Z"},"example-b":{"revision":1,"decision":"confirmed","respondedAt":"2026-10-08T12:11:00Z"}},"createdAt":"2026-10-08T12:11:00Z","updatedAt":"2026-10-08T12:12:00Z"}
+  ],
+  "activityEvents": [
+    {"schemaVersion":1,"id":"event-entry-a","actorId":"example-a","mediaType":"book","source":{"kind":"entry","id":"entry-book-a","revision":1},"action":"entry_added","occurredAt":"2026-10-08T12:01:00Z","relationshipId":"example-consumed-invite","operationId":"operation-example-add-book"},
+    {"schemaVersion":1,"id":"event-listen-a","actorId":"example-a","mediaType":"track","source":{"kind":"listen","id":"listen-a-1","revision":1},"action":"listen_recorded","occurredAt":"2026-10-08T12:03:00Z","relationshipId":null,"operationId":"operation-example-listen-1"},
+    {"schemaVersion":1,"id":"event-experience-a","actorId":"example-a","mediaType":"album","source":{"kind":"experience","id":"experience-confirmed","revision":1},"action":"experience_confirmed","occurredAt":"2026-10-08T12:10:00Z","relationshipId":"example-consumed-invite","operationId":"operation-example-confirm"}
+  ],
+  "legacyCompatibility": {
+    "books": {"preserveDocumentIds":true,"statusMapping":{"Quero Ler":"planned","Lendo":"reading","Lido":"completed"},"inferOriginalCreatedAtFromAddedAt":false,"inventCompletionDate":false},
+    "bible_progress": {"moveCollection":false,"preserveDocumentIds":true,"preserveReadChapters":true},
+    "relationshipsWithoutConsent": {"convertAutomatically":false},
+    "productionMigration": {"authorized":false,"task":"DATA-03"}
+  }
+}
