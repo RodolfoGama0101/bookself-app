@@ -8,8 +8,101 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../data/models/book_model.dart';
 import '../utils/error_handler.dart';
+import 'book_page_controller.dart';
+import 'library_query_service.dart';
 
 class BookService {
+  static const paginationEnabled =
+      bool.fromEnvironment('USE_PAGED_LIBRARY') ||
+      bool.fromEnvironment('USE_FIREBASE_EMULATORS');
+  BookPageController pagedBooks(
+    String owner, {
+    bool shared = false,
+    bool feed = false,
+    String? partner,
+    DateTime? since,
+  }) => BookPageController(
+    repository: FirestoreLibraryQueryRepository(firestore: _firestore),
+    watch: (uid, projection, start, limit) =>
+        watchBookWindow(uid, projection || shared, start, limit),
+    owner: owner,
+    ownerShared: shared,
+    partner: partner,
+    since: since,
+    feed: feed,
+  );
+
+  Stream<LibraryPage<BookModel>> watchBookWindow(
+    String uid,
+    bool shared,
+    DateTime? since,
+    int limit,
+  ) {
+    Query<Map<String, dynamic>> query = _firestore
+        .collection(shared ? 'shared_books' : 'books')
+        .where('userId', isEqualTo: uid);
+    final field = since == null ? 'addedAt' : 'activityAt';
+    if (since != null) {
+      query = query.where(
+        'activityAt',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(since),
+      );
+    }
+    return query
+        .orderBy(field, descending: true)
+        .orderBy(FieldPath.documentId, descending: true)
+        .limit(limit + 1)
+        .snapshots(includeMetadataChanges: true)
+        .where(
+          (s) =>
+              shared ||
+              (!s.metadata.isFromCache && !s.metadata.hasPendingWrites),
+        )
+        .map((s) {
+          if (s.metadata.isFromCache || s.metadata.hasPendingWrites) {
+            throw const SharedDataUnconfirmed();
+          }
+          final visible = s.docs.take(limit).toList();
+          final rows = visible.map(BookModel.fromFirestore).toList();
+          if (!shared) {
+            unawaited(
+              SharingService(firestore: _firestore)
+                  .publishOwn('books', rows.map((b) => b.id))
+                  .catchError((Object _) {}),
+            );
+          }
+          final last = visible.lastOrNull;
+          return LibraryPage(
+            rows,
+            s.docs.length > limit && last != null
+                ? LibraryCursor(
+                    scope:
+                        'books/$uid/$shared/${since?.toUtc().toIso8601String() ?? "library"}',
+                    timestamp: last.data()[field] as Timestamp,
+                    documentId: last.id,
+                  )
+                : null,
+          );
+        });
+  }
+
+  Future<DateTime?> feedStart(String uid, String? partner) async {
+    if (partner == null) return DateTime(1970);
+    final own = await _firestore
+        .collection('users')
+        .doc(uid)
+        .get(const GetOptions(source: Source.server));
+    final code = own.data()?['relationshipId'];
+    if (code is! String) return null;
+    final invitation = await _firestore
+        .collection('partner_invites')
+        .doc(code)
+        .get(const GetOptions(source: Source.server));
+    return invitation.data()?['status'] == 'accepted'
+        ? (invitation.data()?['decidedAt'] as Timestamp?)?.toDate()
+        : null;
+  }
+
   BookService({
     FirebaseFirestore? firestore,
     this.httpClient,

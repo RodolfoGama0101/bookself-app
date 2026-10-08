@@ -1,6 +1,24 @@
 # Consultas e sincronização — DATA-04/DATA-05
 
-Implementação local de **08/10/2026**, substituível por fakes e com Firestore injetável. A interface atual conserva os streams de `BookService`/`BibleService`; ainda não usa estas páginas. A navegação UI-01 conserva essa compatibilidade; a ligação paginada às telas pertence à UI-05. Esta entrega não adiciona mídias, feed de eventos futuro, cache de fornecedor ou fila de sincronização offline.
+Implementação local de **08/10/2026**, substituível por fakes e com Firestore injetável. UI-05 ligou as páginas/agregações às telas de livros nos emuladores e por ativação explícita; o caminho distribuído mantém streams de compatibilidade até preparar os índices. Esta entrega não adiciona bibliotecas pessoais de outras mídias, feed de eventos futuro, cache de fornecedor ou fila de sincronização offline.
+
+## Telas paginadas — UI-05
+
+`BookPageController` usa `LibraryQueryRepository` e janelas vivas de `BookService`, limitadas ao conteúdo carregado mais um documento de continuação. `BookshelfScreen` oferece total completo, Atualizar e Carregar mais. A consulta não é reiniciada ao trocar aba, tema ou filtros; posição/lista permanecem na mesma árvore. Texto, status e período são aplicados ao conteúdo carregado: quando há mais páginas, a interface explica que é preciso carregar mais para continuar a busca. Vazio filtrado se refere explicitamente aos livros carregados. Os agrupamentos mensais na biblioteca mostram os registros carregados; o total e as estatísticas do Início vêm de agregações completas.
+
+`HomeScreen` consulta atividade pessoal e permitida do parceiro separadamente, preservando o início do convite aceito. Mantém cursor/buffer de cada origem e entrega prefixos globais ordenados por atividade/ID; busca continuação da origem cuja borda ainda precede o fim solicitado. Sem convite aceito, não reconstrói atividade histórica do casal. Livros sem atividade não entram no feed, mas entram nas contagens pertinentes.
+
+A janela viva refaz a borda e conserva o **Timestamp exato do servidor**, sem reconstruí-lo a partir da data exibida. Inclusão/remoção/edição atualizam cartões e agregações; itens deslocados abaixo da janela podem voltar na próxima página, sem lacuna ou duplicação por ID. Durante uma leitura de continuação, o ouvinte existente continua tratando revogação/falhas; somente alterações de conteúdo aguardam a nova janela. Não se promete snapshot atômico entre páginas, agregações e edições concorrentes. Atualizar reinicia a consulta; Carregar mais conserva o prefixo, filtros e rolagem.
+
+Mudança de UID/parceiro/relação e descarte encerram janelas, limpam buffers/contagens e invalidam respostas antigas. Erro/cache/offline compartilhado retira conteúdo alheio e suas contagens; a tela oferece nova tentativa. Dados pessoais confirmados não viram confirmação de uma escrita pendente: a janela pessoal ignora snapshots locais não confirmados. As escritas atuais continuam nos serviços existentes, aguardadas pela UI; `MediaSyncService` será usado pelas novas bibliotecas quando forem implementadas.
+
+Paginação habilitada automaticamente com `USE_FIREBASE_EMULATORS=true`. Fora do demo, usar **somente após revisão/construção dos índices**:
+
+```sh
+flutter run --dart-define=USE_PAGED_LIBRARY=true
+```
+
+O define não instala índices nem regras. Sem ele, o caminho distribuído continua compatível com os streams anteriores. Não houve implantação. [Evidências](DEVELOPMENT.md#listas-experiências-e-paginação--couple-0506-ui-05), [decisão 013](decisions/013-listas-experiencias-e-paginacao.md).
 
 ## Paginação e estatísticas
 

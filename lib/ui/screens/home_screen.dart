@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/book_service.dart';
+import '../../services/book_page_controller.dart';
 import '../../data/models/book_model.dart';
 import '../widgets/book_card.dart';
 import '../widgets/reading_surface.dart';
@@ -15,10 +16,16 @@ import '../widgets/content_state.dart';
 import 'bible_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.bookService, this.onOpenBible});
+  const HomeScreen({
+    super.key,
+    this.bookService,
+    this.onOpenBible,
+    this.paginated = false,
+  });
 
   final BookService? bookService;
   final VoidCallback? onOpenBible;
+  final bool paginated;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -29,6 +36,35 @@ class _HomeScreenState extends State<HomeScreen> {
   Stream<List<BookModel>>? _feed;
   String? _feedScope;
   int _retry = 0;
+  BookPageController? _page;
+  int _requestRevision = 0;
+  bool get _usePages =>
+      widget.paginated ||
+      (widget.bookService == null && BookService.paginationEnabled);
+  Stream<List<BookModel>> _pagedFeed(
+    String uid,
+    String? partner,
+    String scope,
+    int revision,
+  ) async* {
+    final start = await _bookService.feedStart(uid, partner);
+    if (!mounted || _feedScope != scope || revision != _requestRevision) return;
+    final page = _bookService.pagedBooks(
+      uid,
+      partner: partner,
+      feed: true,
+      since: start ?? DateTime(9999),
+    );
+    _page = page;
+    yield* page.asStream();
+  }
+
+  @override
+  void dispose() {
+    _page?.dispose();
+    super.dispose();
+  }
+
   String? _cachedUserPhotoUrl;
   MemoryImage? _cachedUserAvatarImage;
   String? _cachedPartnerPhotoUrl;
@@ -77,8 +113,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final bookService = _bookService;
     final scope = '${user.uid}/${user.partnerUid}/${user.relationshipId}';
     if (_feedScope != scope) {
+      _page?.dispose();
+      _page = null;
       _feedScope = scope;
-      _feed = bookService.streamCoupleFeed(user.uid, user.partnerUid);
+      _feed = _usePages
+          ? _pagedFeed(user.uid, user.partnerUid, scope, ++_requestRevision)
+          : bookService.streamCoupleFeed(user.uid, user.partnerUid);
     }
 
     return Scaffold(
@@ -103,7 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting ||
+              (_usePages && _page?.busy == true && _page!.items.isEmpty)) {
             return const ContentState(
               title: 'Carregando suas leituras',
               loading: true,
@@ -132,53 +173,87 @@ class _HomeScreenState extends State<HomeScreen> {
           final currentMonthName = months[now.month - 1];
 
           // Mês atual
-          final userReadThisMonth = books
-              .where(
-                (b) =>
-                    b.userId == user.uid &&
-                    b.status == 'Lido' &&
-                    b.finishedDate != null &&
-                    b.finishedDate!.month == now.month &&
-                    b.finishedDate!.year == now.year,
-              )
-              .length;
+          final userReadThisMonth = _usePages
+              ? _page!.counts['${user.uid}/month'] ?? 0
+              : books
+                    .where(
+                      (b) =>
+                          b.userId == user.uid &&
+                          b.status == 'Lido' &&
+                          b.finishedDate != null &&
+                          b.finishedDate!.month == now.month &&
+                          b.finishedDate!.year == now.year,
+                    )
+                    .length;
 
-          final partnerReadThisMonth = books
-              .where(
-                (b) =>
-                    partner != null &&
-                    b.userId == partner.uid &&
-                    b.status == 'Lido' &&
-                    b.finishedDate != null &&
-                    b.finishedDate!.month == now.month &&
-                    b.finishedDate!.year == now.year,
-              )
-              .length;
+          final partnerReadThisMonth = _usePages
+              ? _page!.counts['${user.partnerUid}/month'] ?? 0
+              : books
+                    .where(
+                      (b) =>
+                          partner != null &&
+                          b.userId == partner.uid &&
+                          b.status == 'Lido' &&
+                          b.finishedDate != null &&
+                          b.finishedDate!.month == now.month &&
+                          b.finishedDate!.year == now.year,
+                    )
+                    .length;
 
           // Ano atual
-          final userReadThisYear = books
-              .where(
-                (b) =>
-                    b.userId == user.uid &&
-                    b.status == 'Lido' &&
-                    b.finishedDate != null &&
-                    b.finishedDate!.year == now.year,
-              )
-              .length;
+          final userReadThisYear = _usePages
+              ? _page!.counts['${user.uid}/year'] ?? 0
+              : books
+                    .where(
+                      (b) =>
+                          b.userId == user.uid &&
+                          b.status == 'Lido' &&
+                          b.finishedDate != null &&
+                          b.finishedDate!.year == now.year,
+                    )
+                    .length;
 
-          final partnerReadThisYear = books
-              .where(
-                (b) =>
-                    partner != null &&
-                    b.userId == partner.uid &&
-                    b.status == 'Lido' &&
-                    b.finishedDate != null &&
-                    b.finishedDate!.year == now.year,
-              )
-              .length;
+          final partnerReadThisYear = _usePages
+              ? _page!.counts['${user.partnerUid}/year'] ?? 0
+              : books
+                    .where(
+                      (b) =>
+                          partner != null &&
+                          b.userId == partner.uid &&
+                          b.status == 'Lido' &&
+                          b.finishedDate != null &&
+                          b.finishedDate!.year == now.year,
+                    )
+                    .length;
 
           return CustomScrollView(
             slivers: [
+              if (_usePages)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Wrap(
+                      spacing: 12,
+                      children: [
+                        TextButton(
+                          onPressed: _page!.busy ? null : () => _page!.start(),
+                          child: const Text('Atualizar atividades'),
+                        ),
+                        if (_page!.hasMore)
+                          TextButton(
+                            onPressed: _page!.busy
+                                ? null
+                                : () => _page!.loadMore(),
+                            child: Text(
+                              _page!.busy
+                                  ? 'Carregando…'
+                                  : 'Carregar mais atividades',
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),

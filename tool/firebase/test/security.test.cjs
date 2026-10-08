@@ -19,6 +19,92 @@ const book = uid => ({userId: uid, title: 'Livro fictício', authors: ['Autor'],
 const progress = (uid, bookName = 'Gênesis', readChapters = [1]) => ({userId: uid, bookName, readChapters, updatedAt: serverTimestamp()});
 const db = uid => env.authenticatedContext(uid, {email: `${uid}@example.com`}).firestore();
 
+const jointSelection = {mediaType:'movie',title:'Filme fictício',subtitle:'',source:'manual',reference:null,episode:null};
+const jointPath = (rid,id='experience') => `couple_relationships/${rid}/experiences/${id}`;
+async function jointRelation() {
+  await pair(db('a'),'a','b');
+  return (await getDoc(doc(db('a'),'users','a'))).data().relationshipId;
+}
+function jointExperience() {
+  return {schemaVersion:1,authorId:'a',participantIds:['a','b'],selection:jointSelection,
+    occurredOn:'2020-01-01',revision:1,version:1,createdAt:serverTimestamp(),updatedAt:serverTimestamp(),
+    responses:{a:{revision:1,decision:'confirmed',respondedAt:serverTimestamp()}}};
+}
+async function jointWrite(database,rid,id,data,audit=true) {
+  const batch=writeBatch(database), target=jointPath(rid,id);
+  batch.set(doc(database,target),data);
+  if(audit) batch.set(doc(database,`${target}/history/${data.version}`),data);
+  return batch.commit();
+}
+async function jointRespond(database,uid,rid,decision,expected) {
+  return runTransaction(database,async tx=>{
+    const ref=doc(database,jointPath(rid));
+    const data=(await tx.get(ref)).data();
+    if(expected !== undefined && data.version!==expected) throw new Error('revision conflict');
+    const next={...data,version:data.version+1,updatedAt:serverTimestamp(),responses:{...data.responses,
+      [uid]:{revision:data.revision,decision,respondedAt:serverTimestamp()}}};
+    tx.set(ref,next); tx.set(doc(database,`${jointPath(rid)}/history/${next.version}`),next);
+  });
+}
+test('COUPLE-05: autoria, dupla confirmação por revisão e auditoria obrigatória',async()=>{
+  const rid=await jointRelation();
+  await assertFails(jointWrite(db('a'),rid,'experience',jointExperience(),false));
+  await assertSucceeds(jointWrite(db('a'),rid,'experience',jointExperience()));
+  await assertFails(jointRespond(db('b'),'a',rid,'confirmed'));
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'confirmed'));
+  let data=(await getDoc(doc(db('a'),jointPath(rid)))).data();
+  assert.equal(data.responses.b.revision,1);
+  const revised={...data,version:3,revision:2,occurredOn:'2020-02-01',updatedAt:serverTimestamp(),
+    responses:{...data.responses,a:{revision:2,decision:'confirmed',respondedAt:serverTimestamp()}}};
+  await assertFails(jointWrite(db('b'),rid,'experience',revised));
+  await assertSucceeds(jointWrite(db('a'),rid,'experience',revised));
+  data=(await getDoc(doc(db('b'),jointPath(rid)))).data();
+  assert.equal(data.responses.b.revision,1); assert.equal(data.revision,2);
+  await assert.rejects(jointRespond(db('b'),'b',rid,'confirmed',2),/revision conflict/);
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'declined',3));
+  assert.equal((await getDocs(collection(db('a'),`${jointPath(rid)}/history`))).size,4);
+  await assertFails(updateDoc(doc(db('a'),`${jointPath(rid)}/history/1`),{occurredOn:'2020-03-01'}));
+  assert.equal((await getDoc(doc(db('a'),'books','a-book'))).data().status,'Lendo');
+});
+test('COUPLE-05: terceiro, campos privados, concorrência e histórico após término/novo vínculo',async()=>{
+  const rid=await jointRelation();
+  for(const database of [db('c'),env.unauthenticatedContext().firestore()]) {
+    await assertFails(jointWrite(database,rid,'experience',jointExperience()));
+    await assertFails(getDocs(collection(database,`couple_relationships/${rid}/experiences`)));
+  }
+  await assertFails(jointWrite(db('a'),rid,'experience',{...jointExperience(),selection:{...jointSelection,favorite:true}}));
+  await assertSucceeds(jointWrite(db('a'),rid,'experience',jointExperience()));
+  const attempts=await Promise.allSettled([jointRespond(db('a'),'a',rid,'withdrawn',1),jointRespond(db('b'),'b',rid,'confirmed',1)]);
+  assert.equal(attempts.filter(r=>r.status==='fulfilled').length,1);
+  await pair(db('a'),'a','b',false);
+  await assertSucceeds(getDoc(doc(db('b'),jointPath(rid))));
+  await assertFails(jointRespond(db('b'),'b',rid,'confirmed'));
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'withdrawn'));
+  await pair(db('a'),'a','c');
+  await assertFails(getDoc(doc(db('c'),jointPath(rid))));
+  await assertFails(jointWrite(db('a'),rid,'new',jointExperience()));
+});
+test('COUPLE-06: inclusão/remoção concorrentes, origem imutável e histórico privado',async()=>{
+  const rid=await jointRelation(), base=`couple_relationships/${rid}/lists/list`;
+  const list={schemaVersion:1,title:'Próximos momentos',authorId:'a',version:1,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
+  await assertSucceeds(setDoc(doc(db('a'),base),list));
+  const item=uid=>({schemaVersion:1,selection:jointSelection,authorId:uid,version:1,createdAt:serverTimestamp(),updatedAt:serverTimestamp(),removed:false,removedBy:null});
+  await Promise.all([assertSucceeds(setDoc(doc(db('a'),`${base}/items/one`),item('a'))),assertSucceeds(setDoc(doc(db('b'),`${base}/items/two`),item('b')))]);
+  await assertFails(updateDoc(doc(db('b'),`${base}/items/one`),{authorId:'b'}));
+  const remove=uid=>updateDoc(doc(db(uid),`${base}/items/one`),{removed:true,removedBy:uid,version:2,updatedAt:serverTimestamp()});
+  const results=await Promise.allSettled([remove('a'),remove('b')]);
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  assert.equal((await getDoc(doc(db('a'),`${base}/items/one`))).data().authorId,'a');
+  for(const uid of ['a','b']) await assertSucceeds(setDoc(doc(db('a'),`users/${uid}/couple_history/${rid}`),{relationshipId:rid,createdAt:serverTimestamp()}));
+  await assertFails(getDocs(collection(db('c'),'users/a/couple_history')));
+  await assertFails(setDoc(doc(db('a'),`${base}/items/secret`),{...item('a'),selection:{...jointSelection,personalState:'Lido'}}));
+  await pair(db('a'),'a','b',false);
+  await assertSucceeds(getDocs(collection(db('b'),`${base}/items`)));
+  await assertFails(setDoc(doc(db('b'),`${base}/items/late`),item('b')));
+  await assertFails(updateDoc(doc(db('b'),`${base}/items/two`),{removed:true,removedBy:'b',version:2,updatedAt:serverTimestamp()}));
+  await assertFails(getDoc(doc(db('c'),base)));
+});
+
 test('DATA-02: biblioteca privada isolada inclusive do parceiro, ex e terceiro', async()=>{
   await assertSucceeds(mediaSave(db('a'),'a','c1','e1'));
   await pair(db('a'),'a','b');

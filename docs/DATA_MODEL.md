@@ -10,6 +10,8 @@ Não escolhe marca, fornecedor audiovisual/musical, cache/licença de fornecedor
 
 ## Entidades e fronteiras
 
+**COUPLE-05/06 e UI-05 em 08/10/2026:** listas/experiências e histórico consentido foram implementados localmente com seleção mínima, auditoria atômica e índice privado, conforme [contrato incremental](COUPLE_WORKSPACE.md). Reutilizam o convite aceito em vez de criar o documento-pai proposto de relação; as subcoleções usam o mesmo ID. A [decisão 013](decisions/013-listas-experiencias-e-paginacao.md) registra essa adaptação e a paginação das telas de livros. Negações de listas/experiências descritas abaixo referem-se à entrega histórica DATA-02; as regras atuais permitem somente o contrato conjunto validado, sem liberar outras entidades propostas.
+
 **Atualização DATA-03/04/05 em 08/10/2026:** [ensaio de preparação](DATA_MIGRATION.md) preserva todo o legado numa área distinta de entradas ativas, sem decidir duplicatas/datas desconhecidas. [Consultas e sincronização](DATA_ACCESS.md) implementam páginas/agregações, índices versionados e estados de operação privada. Ainda não há conversão ativa, evento multimídia, ligação das consultas às telas ou implantação; referências a migração pendente neste documento dizem respeito à adoção, não à preparação já ensaiada.
 
 ### Subconjunto local implementado — DATA-02

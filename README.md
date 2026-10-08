@@ -17,11 +17,12 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
 | [docs/BOOK_LIBRARY.md](docs/BOOK_LIBRARY.md) | Identidade de livros, datas, histórico privado, edição manual e filtros pessoais. |
 | [docs/NAVIGATION.md](docs/NAVIGATION.md) | Navegação atual de livros/Bíblia/Nós e mapa incremental das mídias futuras. |
-| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Modelo v1: base privada implementada localmente em DATA-02; episódios, escutas, experiências e migração pendentes. |
+| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Modelo v1 e contratos locais: base privada, listas/experiências; progresso episódico, escutas pessoais e migração ativa pendentes. |
 | [docs/DATA_MIGRATION.md](docs/DATA_MIGRATION.md) | Backup/plano offline e ensaio recuperável; conversão ativa e produção separadas. |
-| [docs/DATA_ACCESS.md](docs/DATA_ACCESS.md) | Paginação, índices, agregações e sincronização; ligação das novas consultas às telas pendente. |
+| [docs/DATA_ACCESS.md](docs/DATA_ACCESS.md) | Paginação, índices, agregações e sincronização; telas de livros habilitadas no demo e ativação remota separada. |
 | [docs/COUPLE_INVITATIONS.md](docs/COUPLE_INVITATIONS.md) | Jornada, contrato local e limites de convites consentidos. |
 | [docs/COUPLE_POLICY.md](docs/COUPLE_POLICY.md) | Política de consentimento aprovada para a evolução e critérios de implementação. |
+| [docs/COUPLE_WORKSPACE.md](docs/COUPLE_WORKSPACE.md) | Listas e experiências consentidas, revisões, autoria e histórico restrito. |
 | [docs/DESIGN.md](docs/DESIGN.md) | Sistema visual, layouts responsivos e validação do redesign das telas atuais. |
 | [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integrações atuais e candidatas, com fontes oficiais. |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Configuração isolada de Auth/Firestore, comandos e clientes por plataforma. |
@@ -32,6 +33,9 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/IOS_VALIDATION.md](docs/IOS_VALIDATION.md) | Permissões de foto e verificação Apple ainda pendente. |
 
 ## Funcionalidades implementadas
+
+- Nós → Listas e experiências: seleções manuais de livros, filmes, séries/episódios, faixas e álbuns; listas com autoria e retirada concorrente; experiências com data, proposta/correção e duas confirmações da revisão atual. Histórico restrito aos participantes antigos, com retirada da própria confirmação após término. Código/regras locais: **ativação remota depende de SEC-06**. Não cria bibliotecas pessoais das novas mídias nem altera progresso do parceiro. [Contrato](docs/COUPLE_WORKSPACE.md).
+- Biblioteca e Início com paginação nos emuladores; ativação explícita em outro ambiente por `USE_PAGED_LIBRARY=true` após instalar índices. Carregar mais conserva filtros, cursores e buffers por origem; totais/estatísticas usam agregações completas. [Limites dos filtros e ativação](docs/DATA_ACCESS.md#telas-paginadas--ui-05).
 
 - Cadastro, login, recuperação de senha e saída com Firebase Authentication.
 - Login e cadastro preservam a senha digitada, inclusive espaços; a validação local exige pelo menos seis caracteres nos dois formulários.
@@ -99,6 +103,8 @@ APK Android **1.1.0+2** disponível na [pré-release v1.1.0](https://github.com/
    ```
 
 ## Validação
+
+Em **08/10/2026 — COUPLE-05/06 e UI-05**, listas/experiências com revisão/dupla confirmação e histórico restrito, mais páginas/agregações das telas de livros, foram verificadas localmente: análise limpa, **394 testes Flutter**, **85 testes Node/demo** e build web demo aprovados. Testes de widgets incluem texto 2×/tela pequena e filtros ao carregar mais. Sem jornada nova em navegador/nativos, migração, implantação ou publicação; ativação remota das novas telas depende das regras/índices e dos defines documentados. [Evidências e limites](docs/DEVELOPMENT.md#listas-experiências-e-paginação--couple-0506-ui-05).
 
 Em **08/10/2026 — UI-01/02 e BIBLE-01**, navegação e feedback das categorias atuais implementados e progresso preservado. Análise limpa, **373 testes Flutter**, seis testes offline de migração e build web demo aprovados. Jornada visual nos emuladores incluiu Bíblia, marcação confirmada e consulta após recarga; [evidências e limites](docs/WEB_VALIDATION.md#biblioteca-nós-e-bíblia--ui-0102-bible-01). Android/iOS e produção não executados.
 

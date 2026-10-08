@@ -5,6 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 Future<DateTime?> showCompletionDatePicker(
   BuildContext context, {
   DateTime? initialDate,
+  String helpText = 'Quando você terminou a leitura?',
+  String fieldLabelText = 'Data de conclusão',
 }) {
   final today = DateUtils.dateOnly(DateTime.now());
   final firstDate = DateTime(1);
@@ -20,10 +22,10 @@ Future<DateTime?> showCompletionDatePicker(
     initialDate: initial,
     firstDate: firstDate,
     lastDate: today,
-    helpText: 'Quando você terminou a leitura?',
+    helpText: helpText,
     cancelText: 'Cancelar',
     confirmText: 'Confirmar',
-    fieldLabelText: 'Data de conclusão',
+    fieldLabelText: fieldLabelText,
     fieldHintText: 'dd/mm/aaaa',
     errorFormatText: 'Use o formato dd/mm/aaaa.',
     errorInvalidText: 'Informe uma data válida até hoje.',

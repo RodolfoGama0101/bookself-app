@@ -2,6 +2,12 @@
 
 Revisão: 08/10/2026. As seções iniciais descrevem o código atual; a evolução ao final é uma proposta.
 
+## Listas, experiências e telas paginadas — COUPLE-05/06, UI-05
+
+`CoupleWorkspaceService` concentra novas transações/consultas conjuntas; `CoupleSelection` limita os metadados compartilhados e `CoupleRecord` deriva duas confirmações da revisão atual. A tela em Nós aguarda escrita, conserva retry, trata conflito e descarta retorno de conta/relação antiga. As subcoleções da relação reutilizam o convite aceito, com índice privado de histórico e auditoria de experiências atômica. Participantes antigos leem o histórico; novas operações exigem reciprocidade ativa, salvo retirar a própria confirmação. [Contrato e limites](COUPLE_WORKSPACE.md).
+
+`BookPageController` liga DATA-04 às bibliotecas de livros e Início: buffers por origem, cursores do servidor, janela viva limitada, contagens completas e descarte de conteúdo alheio em erro/offline/troca. A janela pessoal ignora snapshots locais não confirmados; escritas continuam nos serviços existentes. Paginação habilitada no demo ou explicitamente por `USE_PAGED_LIBRARY` após instalar índices. O caminho distribuído mantém compatibilidade; descrições históricas de streams completos abaixo se referem a esse caminho. [Acesso e filtros carregados](DATA_ACCESS.md#telas-paginadas--ui-05), [decisão 013](decisions/013-listas-experiencias-e-paginacao.md).
+
 ## Base privada multimídia — DATA-02
 
 Implementação aditiva local em `lib/data/models/media_model.dart` e `lib/services/media_library_repository.dart`: tipos/identidade/metadados/estado por mídia, interface substituível e persistência Firestore injetável em catálogo, entradas e slots privados por dono. Inclusão transacional deduplica a referência sem redefinir progresso; edição pessoal exige revisão, mantém inclusão e usa timestamp confirmado. Regras candidatas isolam terceiros/parceiro/ex e preservam referências/autoria. Compartilhamento novo permanece desabilitado até suas projeções serem implementadas.

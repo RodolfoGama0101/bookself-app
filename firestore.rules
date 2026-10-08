@@ -629,6 +629,135 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['state', 'favorite', 'updatedAt', 'revision'])
         && request.resource.data.revision == resource.data.revision + 1;
     }
+    // Relações consentidas reutilizam o convite aceito imutável. Não migra legado.
+    function jointMember(rid) {
+      let invitation = get(invitePath(rid)).data;
+      return signedIn() && invitation.status == 'accepted'
+        && request.auth.uid in [invitation.senderUid, invitation.recipientUid];
+    }
+    function jointActive(rid) {
+      let invitation = get(invitePath(rid)).data;
+      let a = invitation.senderUid;
+      let b = invitation.recipientUid;
+      return jointMember(rid) && notBlocked(a,b)
+        && get(userPath(a)).data.get('partnerUid', null) == b
+        && get(userPath(b)).data.get('partnerUid', null) == a
+        && get(userPath(a)).data.get('relationshipId', null) == rid
+        && get(userPath(b)).data.get('relationshipId', null) == rid;
+    }
+    function jointSelection(s) {
+      return s is map && s.keys().hasAll(['mediaType','title','subtitle','source','reference','episode'])
+        && s.keys().hasOnly(['mediaType','title','subtitle','source','reference','episode'])
+        && s.mediaType in ['book','movie','series','track','album']
+        && s.title is string && s.title.size() > 0 && s.title.size() <= 300
+        && s.subtitle is string && s.subtitle.size() <= 300
+        && (!(s.mediaType in ['track','album']) || s.subtitle.size() > 0)
+        && s.source in ['manual','library','catalog']
+        && (s.reference == null || (s.reference is string && s.reference.size() > 0 && s.reference.size() <= 1000))
+        && (s.episode == null || (s.mediaType == 'series' && s.episode is map
+          && s.episode.keys().hasAll(['id','season','number']) && s.episode.keys().hasOnly(['id','season','number'])
+          && s.episode.id is string && s.episode.id.size() > 0 && s.episode.id.size() <= 128
+          && s.episode.season is int && s.episode.season >= 0 && s.episode.number is int && s.episode.number > 0));
+    }
+    match /users/{uid}/couple_history/{rid} {
+      allow read: if isOwner(uid);
+      allow create: if jointMember(rid)
+        && uid in [get(invitePath(rid)).data.senderUid, get(invitePath(rid)).data.recipientUid]
+        && request.resource.data.keys().hasAll(['relationshipId','createdAt'])
+        && request.resource.data.keys().hasOnly(['relationshipId','createdAt'])
+        && request.resource.data.relationshipId == rid && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+    match /couple_relationships/{rid}/lists/{listId} {
+      allow read: if jointMember(rid);
+      allow create: if jointActive(rid)
+        && request.resource.data.keys().hasAll(['schemaVersion','title','authorId','createdAt','updatedAt','version'])
+        && request.resource.data.keys().hasOnly(['schemaVersion','title','authorId','createdAt','updatedAt','version'])
+        && request.resource.data.schemaVersion == 1 && request.resource.data.version == 1
+        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 150
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time;
+      allow update, delete: if false;
+      match /items/{id} {
+        allow read: if jointMember(rid);
+        allow create: if jointActive(rid)
+          && exists(/databases/$(database)/documents/couple_relationships/$(rid)/lists/$(listId))
+          && request.resource.data.keys().hasAll(['schemaVersion','selection','authorId','createdAt','updatedAt','version','removed','removedBy'])
+          && request.resource.data.keys().hasOnly(['schemaVersion','selection','authorId','createdAt','updatedAt','version','removed','removedBy'])
+          && request.resource.data.schemaVersion == 1 && request.resource.data.version == 1
+          && jointSelection(request.resource.data.selection)
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time
+          && request.resource.data.removed == false && request.resource.data.removedBy == null;
+        allow update: if jointActive(rid) && resource.data.removed == false
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['removed','removedBy','version','updatedAt'])
+          && request.resource.data.version == resource.data.version + 1
+          && request.resource.data.removed == true && request.resource.data.removedBy == request.auth.uid
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if false;
+      }
+    }
+    function experiencePath(rid,id) { return /databases/$(database)/documents/couple_relationships/$(rid)/experiences/$(id); }
+    function response(r,rev) {
+      return r is map && r.keys().hasAll(['revision','decision','respondedAt'])
+        && r.keys().hasOnly(['revision','decision','respondedAt'])
+        && r.revision is int && r.revision > 0 && r.revision <= rev
+        && r.decision in ['confirmed','declined','withdrawn'] && r.respondedAt is timestamp;
+    }
+    function validExperience(rid,d) {
+      let invitation = get(invitePath(rid)).data;
+      let a = invitation.senderUid;
+      let b = invitation.recipientUid;
+      return d.keys().hasAll(['schemaVersion','authorId','participantIds','selection','occurredOn','revision','responses','createdAt','updatedAt','version'])
+        && d.keys().hasOnly(['schemaVersion','authorId','participantIds','selection','occurredOn','revision','responses','createdAt','updatedAt','version'])
+        && d.schemaVersion == 1 && d.authorId in [a,b] && d.participantIds == [a,b]
+        && jointSelection(d.selection) && d.occurredOn is string
+        && d.occurredOn.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')
+        && d.revision is int && d.revision > 0 && d.version is int && d.version > 0
+        && d.responses is map && d.responses.keys().hasOnly([a,b])
+        && (!d.responses.keys().hasAny([a]) || response(d.responses[a],d.revision))
+        && (!d.responses.keys().hasAny([b]) || response(d.responses[b],d.revision))
+        && d.createdAt is timestamp && d.updatedAt == request.time;
+    }
+    function ownResponse(d) {
+      return d.responses.keys().hasAny([request.auth.uid])
+        && d.responses[request.auth.uid].revision == d.revision
+        && d.responses[request.auth.uid].respondedAt == request.time;
+    }
+    function audited(rid,id,d) {
+      let audit = /databases/$(database)/documents/couple_relationships/$(rid)/experiences/$(id)/history/$(string(d.version));
+      return !exists(audit) && getAfter(audit).data == d;
+    }
+    match /couple_relationships/{rid}/experiences/{id} {
+      allow read: if jointMember(rid);
+      allow create: if jointActive(rid) && validExperience(rid,request.resource.data)
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.version == 1 && request.resource.data.revision == 1
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.responses.keys().hasOnly([request.auth.uid])
+        && ownResponse(request.resource.data) && request.resource.data.responses[request.auth.uid].decision == 'confirmed'
+        && audited(rid,id,request.resource.data);
+      allow update: if jointMember(rid) && validExperience(rid,request.resource.data)
+        && request.resource.data.version == resource.data.version + 1
+        && ownResponse(request.resource.data) && audited(rid,id,request.resource.data)
+        && (
+          (jointActive(rid) && resource.data.authorId == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['selection','occurredOn','revision','responses','updatedAt','version'])
+            && request.resource.data.revision == resource.data.revision + 1
+            && request.resource.data.responses.diff(resource.data.responses).affectedKeys().hasOnly([request.auth.uid])
+            && request.resource.data.responses[request.auth.uid].decision == 'confirmed')
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responses','updatedAt','version'])
+            && request.resource.data.responses.diff(resource.data.responses).affectedKeys().hasOnly([request.auth.uid])
+            && (jointActive(rid) || request.resource.data.responses[request.auth.uid].decision == 'withdrawn')));
+      allow delete: if false;
+      match /history/{version} {
+        allow read: if jointMember(rid);
+        allow create: if jointMember(rid) && version == string(request.resource.data.version)
+          && getAfter(experiencePath(rid,id)).data == request.resource.data
+          && (!exists(experiencePath(rid,id)) || get(experiencePath(rid,id)).data.version + 1 == request.resource.data.version);
+        allow update, delete: if false;
+      }
+    }
     match /{document=**} { allow read, write: if false; }
   }
 }

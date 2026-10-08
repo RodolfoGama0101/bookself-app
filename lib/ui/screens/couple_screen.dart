@@ -3,12 +3,14 @@ import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
 import '../../services/book_service.dart';
+import '../../services/couple_workspace_service.dart';
 import '../widgets/content_state.dart';
 import '../widgets/reading_surface.dart';
 import 'bookshelf_screen.dart';
 import 'partner_invitation_screen.dart';
 import 'sharing_screen.dart';
 import 'partner_blocks_screen.dart';
+import 'couple_workspace_screen.dart';
 
 class CoupleScreen extends StatefulWidget {
   const CoupleScreen({super.key, required this.onOpenBible, this.bookService});
@@ -80,6 +82,13 @@ class _CoupleScreenState extends State<CoupleScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+              if (CoupleWorkspaceService.enabled)
+                ListTile(
+                  leading: const Icon(Icons.playlist_add_check),
+                  title: const Text('Listas e experiências'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _open(const CoupleWorkspaceScreen()),
+                ),
               if (user.partnerUid != null) ...[
                 ListTile(
                   leading: const Icon(Icons.library_books_outlined),

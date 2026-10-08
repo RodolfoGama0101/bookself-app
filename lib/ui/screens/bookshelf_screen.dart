@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/book_service.dart';
+import '../../services/book_page_controller.dart';
 import '../../data/models/book_model.dart';
 import '../widgets/book_card.dart';
 import 'search_screen.dart';
@@ -23,12 +24,14 @@ class BookshelfScreen extends StatefulWidget {
     this.scope = BookshelfScope.combined,
     this.onOpenBible,
     this.onClose,
+    this.paginated = false,
   });
 
   final BookService? bookService;
   final BookshelfScope scope;
   final VoidCallback? onOpenBible;
   final VoidCallback? onClose;
+  final bool paginated;
 
   @override
   State<BookshelfScreen> createState() => _BookshelfScreenState();
@@ -43,13 +46,29 @@ class _BookshelfScreenState extends State<BookshelfScreen>
   final Set<String> _pendingCompletions = {};
   final _streams = <String, Stream<List<BookModel>>>{};
   final _retries = <String, int>{};
+  final _pages = <String, BookPageController>{};
+  bool get _usePages =>
+      widget.paginated ||
+      (widget.bookService == null && BookService.paginationEnabled);
   BookLibraryFilter _filter = const BookLibraryFilter();
   String? _filterOwner;
+  String? _dataScope;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final owner = context.watch<AuthService>().currentUserModel?.uid;
+    final user = context.read<AuthService>().currentUserModel;
+    final scope = '${user?.uid}/${user?.partnerUid}/${user?.relationshipId}';
+    if (_dataScope != scope) {
+      _dataScope = scope;
+      for (final page in _pages.values) {
+        page.dispose();
+      }
+      _pages.clear();
+      _streams.clear();
+      _retries.clear();
+    }
     if (_filterOwner != owner) {
       _filterOwner = owner;
       _filter = const BookLibraryFilter();
@@ -165,6 +184,9 @@ class _BookshelfScreenState extends State<BookshelfScreen>
 
   @override
   void dispose() {
+    for (final page in _pages.values) {
+      page.dispose();
+    }
     _userTabController.dispose();
     _myInnerTabController.dispose();
     _partnerInnerTabController.dispose();
@@ -540,9 +562,21 @@ class _BookshelfScreenState extends State<BookshelfScreen>
     _streams.removeWhere(
       (key, _) => key.split('/')[1] == '$isEditable' && key != scope,
     );
+    for (final key in _pages.keys.toList()) {
+      if (key.split('/')[1] == '$isEditable' && key != scope) {
+        _pages.remove(key)?.dispose();
+      }
+    }
     final stream = _streams.putIfAbsent(
       scope,
-      () => isEditable
+      () => _usePages
+          ? _pages
+                .putIfAbsent(
+                  scope,
+                  () => _bookService.pagedBooks(userId, shared: !isEditable),
+                )
+                .asStream()
+          : isEditable
           ? _bookService.streamUserBooks(userId)
           : _bookService.streamSharedBooks(userId),
     );
@@ -564,12 +598,16 @@ class _BookshelfScreenState extends State<BookshelfScreen>
             actionLabel: 'Tentar novamente',
             onAction: () => setState(() {
               _streams.remove(scope);
+              _pages.remove(scope)?.dispose();
               _retries[scope] = (_retries[scope] ?? 0) + 1;
             }),
           );
         }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting ||
+            (_usePages &&
+                _pages[scope]!.busy &&
+                _pages[scope]!.items.isEmpty)) {
           return const ContentState(title: 'Carregando livros', loading: true);
         }
 
@@ -585,6 +623,40 @@ class _BookshelfScreenState extends State<BookshelfScreen>
         // TabController de 3 sub-abas: "Lendo", "Lidos", "Quero Ler"
         return Column(
           children: [
+            if (_usePages)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Wrap(
+                  spacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      '${_pages[scope]?.items.length ?? 0} carregados de ${_pages[scope]?.counts['$userId/total'] ?? "…"} livros',
+                    ),
+                    TextButton(
+                      onPressed: _pages[scope]!.busy
+                          ? null
+                          : () => _pages[scope]!.start(),
+                      child: const Text('Atualizar'),
+                    ),
+                    if (_pages[scope]!.hasMore)
+                      TextButton(
+                        onPressed: _pages[scope]!.busy
+                            ? null
+                            : () => _pages[scope]!.loadMore(),
+                        child: Text(
+                          _pages[scope]!.busy ? 'Carregando…' : 'Carregar mais',
+                        ),
+                      ),
+                    if (isEditable &&
+                        _filter.isActive &&
+                        _pages[scope]!.hasMore)
+                      const Text(
+                        'Filtros aplicados aos livros carregados. Carregue mais para continuar a busca.',
+                      ),
+                  ],
+                ),
+              ),
             if (isEditable && widget.scope == BookshelfScope.combined)
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -658,7 +730,9 @@ class _BookshelfScreenState extends State<BookshelfScreen>
     if (books.isEmpty) {
       return ContentState(
         title: isEditable && _filter.isActive
-            ? 'Nenhum livro corresponde aos filtros nesta aba.'
+            ? (_usePages
+                  ? 'Nenhum dos livros carregados corresponde aos filtros nesta aba.'
+                  : 'Nenhum livro corresponde aos filtros nesta aba.')
             : emptyMessage,
         message: isEditable
             ? 'Busque um livro ou cadastre manualmente.'

@@ -1,5 +1,25 @@
 # Desenvolvimento com emuladores
 
+## Listas, experiências e paginação — COUPLE-05/06, UI-05
+
+Em **08/10/2026**: arquivos Dart afetados formatados, análise sem apontamentos, **394 testes Flutter** e **85 testes Node/emuladores demo** aprovados. Build web demo aprovado, incluindo verificação preliminar Wasm. Treze regressões Dart novas cobrem serviços e telas: duas confirmações/revisões/auditoria, retry com ID estável, conflito web preservado, retirada após término, adições independentes/remoção concorrente, seleção mínima, datas futuras rejeitadas, retorno tardio após troca de conta, formulário 320 × 480 com texto 2×; páginas/contagens completas, cursor de janela viva exato após inclusão, mescla assimétrica de origens/buffers, falha/offline, descarte e filtros preservados ao carregar mais. Arquivos: `test/couple_workspace_service_test.dart`, `test/couple_workspace_ui_test.dart`, `test/book_page_controller_test.dart`, `test/paged_library_ui_test.dart`. Os testes de widgets substituem serviços e fontes, sem rede.
+
+Três integrações novas em `tool/firebase/test/security.test.cjs` verificam proposta com auditoria atômica obrigatória, autoria/duas respostas por revisão, correção exigindo novo aceite, campos privados negados, terceiro/sem autenticação, disputa por versão, inclusões e retiradas concorrentes, índice de histórico privado, término e novo parceiro sem herdar acesso. Suíte completa usou exclusivamente `demo-bookself`, Auth 9099/Firestore 8080, com emuladores encerrados pelo runner. Os 85 testes incluem sete testes offline de migração já existentes; nenhum dado remoto ou real foi usado.
+
+Comandos equivalentes executados com o Dart/Flutter Tools do SDK instalado (os launchers `.bat` e a resolução do SDK no sandbox não funcionaram; execução aprovada dos executáveis reais):
+
+```sh
+dart format <arquivos-alterados>
+flutter analyze --no-pub
+flutter test --no-pub
+node tool/firebase/run-tests.cjs
+flutter build web --no-pub --dart-define=USE_FIREBASE_EMULATORS=true
+```
+
+`dart fix` falhou no descarte do arquivo temporário de diagnóstico do próprio Analysis Server; as chaves foram ajustadas nos arquivos novos e a análise completa confirmou ausência de apontamentos. Não houve edição do SDK, supressão nova ou mudança de dependências. No teste paginado, o callback do botão é executado com `tester.runAsync` para aguardar o cancelamento de streams fora do relógio simulado; os testes do controlador aguardam as futures diretamente.
+
+Modo demo habilita paginação e Listas e experiências automaticamente. Em outro ambiente, `USE_PAGED_LIBRARY=true` exige índices construídos, e `USE_COUPLE_WORKSPACE=true` exige regras implantadas/verificadas por SEC-06. Sem os defines, o cliente distribuído conserva o caminho anterior. Não houve instalação de índices, deploy, migração, publicação, jornada Flutter nova em navegador real ou execução Android/iOS. A UI foi verificada por regressões de widgets; build não equivale a jornada real. [Contrato conjunto](COUPLE_WORKSPACE.md), [paginação/filtros](DATA_ACCESS.md#telas-paginadas--ui-05), [decisão 013](decisions/013-listas-experiencias-e-paginacao.md).
+
 ## Preparação, paginação e sincronização — DATA-03/04/05
 
 Em **08/10/2026**: quatro arquivos Dart novos formatados, análise sem apontamentos e **363 testes Flutter aprovados**. Cinco regressões de consultas verificam limite + 1, empates, cursor removido, filtro/conta divergentes, servidor/cache, agregações completas e períodos que excluem conclusão ausente. Seis regressões do coordenador verificam confirmação atrasada, bloqueio de repetição, identidade manual em retry, revisão concorrente/releitura, troca/logout/descarte e dono divergente. Arquivos: `test/library_query_service_test.dart` e `test/media_sync_service_test.dart`.

@@ -4,6 +4,8 @@ Revisão: 08/10/2026. **PROD-01 concluída como decisão de MVP aprovada pelo us
 
 ## Direção solicitada
 
+**Entrega local de COUPLE-05/06 em 08/10/2026:** listas internas e experiências consentidas por revisão já aceitam seleções manuais das cinco mídias, com histórico restrito após término. Não substituem as bibliotecas/progresso pessoal de filmes, séries ou músicas ainda planejados. [Comportamento implementado](COUPLE_WORKSPACE.md).
+
 Expandir para **livros, filmes, séries e músicas**, com integração entre casais em todas as categorias. Preservar contas e acompanhamento bíblico. O centro da experiência passa a ser o repertório pessoal e as descobertas compartilhadas.
 
 ## Experiência proposta
