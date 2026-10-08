@@ -10,6 +10,8 @@ Não escolhe marca, fornecedor audiovisual/musical, cache/licença de fornecedor
 
 ## Entidades e fronteiras
 
+**Atualização DATA-03/04/05 em 08/10/2026:** [ensaio de preparação](DATA_MIGRATION.md) preserva todo o legado numa área distinta de entradas ativas, sem decidir duplicatas/datas desconhecidas. [Consultas e sincronização](DATA_ACCESS.md) implementam páginas/agregações, índices versionados e estados de operação privada. Ainda não há conversão ativa, evento multimídia, ligação das consultas às telas ou implantação; referências a migração pendente neste documento dizem respeito à adoção, não à preparação já ensaiada.
+
 ### Subconjunto local implementado — DATA-02
 
 `lib/data/models/media_model.dart` implementa as cinco mídias, identidade externa/manual, metadados, estado pessoal, catálogo e entrada. `MediaLibraryRepository` é substituível; `FirestoreMediaLibraryRepository` recebe Firestore injetado e usa exclusivamente `libraries/{ownerId}/{catalog|entries|reference_slots}`. A interface atual ainda usa `BookService`/`BibleService`: nenhuma nova categoria ou migração foi ativada.

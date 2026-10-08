@@ -1,5 +1,20 @@
 # Desenvolvimento com emuladores
 
+## Preparação, paginação e sincronização — DATA-03/04/05
+
+Em **08/10/2026**: quatro arquivos Dart novos formatados, análise sem apontamentos e **363 testes Flutter aprovados**. Cinco regressões de consultas verificam limite + 1, empates, cursor removido, filtro/conta divergentes, servidor/cache, agregações completas e períodos que excluem conclusão ausente. Seis regressões do coordenador verificam confirmação atrasada, bloqueio de repetição, identidade manual em retry, revisão concorrente/releitura, troca/logout/descarte e dono divergente. Arquivos: `test/library_query_service_test.dart` e `test/media_sync_service_test.dart`.
+
+`npm --prefix tool/firebase test` aprovou **78 testes** no projeto `demo-bookself`, Auth 19099/Firestore 18080: 72 integrações Auth/Firestore e seis testes offline do ensaio. Três integrações novas verificam páginas/contagens privadas e negação ao parceiro/terceiro/sem autenticação; feed/contagens permitidos antes do término e negados depois; preparação administrativa demo mantendo originais e negando clientes antigos/atuais. Emuladores encerrados pelo runner; nenhuma consulta/escrita remota.
+
+Os seis testes offline cobrem versão/hash, preservação de datas/campos/UID/livros/Bíblia/convites, duplicatas e dono/vínculo inválidos sem reparo, repetição/rollback, origem/destino alterados, término/livro posterior e arquivo recuperável exclusivo pelo CLI sem conteúdo no terminal. A fixture pública passou pelo comando e confirmou cinco documentos, um livro, duas contas, um progresso bíblico, um vínculo recíproco e zero conflitos:
+
+```sh
+node tool/firebase/migration.cjs docs/data-model/migration.fixture.json
+node --test tool/firebase/test/migration.test.cjs
+```
+
+Não foi feito novo build, execução de UI/nativos ou teste Dart contra SDK/emuladores em plataforma: nenhuma interface/plataforma foi alterada. Dart usa fakes; integrações reais usam SDK JS. Emulador não exige todos os índices remotos; oito índices precisam ser construídos antes da ativação em ambiente de desenvolvimento/produção. As telas atuais ainda usam streams completos. [Migração e etapas posteriores](DATA_MIGRATION.md), [consulta/sincronização por operação](DATA_ACCESS.md), [decisão](decisions/012-preparacao-e-acesso-a-dados.md).
+
 ## Base privada multimídia — DATA-02
 
 Em 08/10/2026: quatro arquivos Dart afetados formatados, `flutter analyze --no-pub` sem apontamentos e **352 testes Flutter** aprovados. `test/media_library_test.dart` acrescenta 20 casos: identidade reversível/limites, cinco mídias, opcionais/patch/null, datas civis, IDs manuais preparados sem banco, duas contas/progresso próprio, fornecedores/edições/retry, confirmação/falha, favorito sem escuta, revisão/imutabilidade e versões futuras/incompletas. Firestore é injetado no repositório; o fake cobre o encadeamento Dart e simula erros de callback reempacotados no web, sem pretender simular disputa real.
@@ -182,7 +197,7 @@ Sem `USE_FIREBASE_EMULATORS=true`, o comportamento anterior permanece: o app usa
 
 Não há exportação/importação automática. Encerrar/reiniciar os emuladores inicia uma sessão descartável. Não execute `npm test` enquanto estiver usando manualmente os mesmos emuladores: o runner exige suas portas e os testes limpam dados fictícios.
 
-`firebase.json` foi preservado; a configuração isolada fica em `firebase.emulators.json`. Regras locais não foram publicadas. `firestore.indexes.json` tem zero índices compostos, como as consultas atuais exigem; auditoria remota confirmou zero índices/overrides em 03/10/2026. Novas consultas precisam de revisão em DATA-04.
+`firebase.json` foi preservado; a configuração isolada fica em `firebase.emulators.json`. Regras locais não foram publicadas. DATA-04 versionou oito índices compostos para as novas consultas paginadas/agregações; streams das telas atuais ainda não usam essa paginação. Índices não foram implantados: a auditoria remota de 03/10/2026 encontrou zero índices/overrides. [Consultas e limites](DATA_ACCESS.md).
 
 Se o catálogo bíblico mudar, execute `node tool/firebase/generate-rule-catalog.cjs` e revise `firestore.rules`. O gerador atualiza somente nomes/IDs/limites bíblicos e validação de autores; os testes verificam os limites dos 66 livros. Não modifica o banco.
 

@@ -1,0 +1,7 @@
+{
+  "users/example_a": {"uid":"example_a","partnerUid":"example_b","relationshipId":"example_invite","coupleEpoch":2},
+  "users/example_b": {"uid":"example_b","partnerUid":"example_a","relationshipId":"example_invite","coupleEpoch":3},
+  "books/example_book": {"userId":"example_a","title":"Livro fictício","authors":[],"status":"Lido","addedAt":{"$timestamp":[1577836800,0]},"finishedDate":null,"isShared":false,"legacyField":"preservar"},
+  "bible_progress/example_a_genesis": {"userId":"example_a","bookName":"Gênesis","readChapters":[1,3]},
+  "partner_invites/example_invite": {"senderUid":"example_a","recipientUid":"example_b","status":"accepted"}
+}

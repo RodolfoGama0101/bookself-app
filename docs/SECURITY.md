@@ -22,6 +22,8 @@ SHA-256 do conteúdo retornado para a regra ativa: `67e516d2c05f980cfb40f5eba63c
 
 ## Regras candidatas versionadas
 
+DATA-03/04/05 em 08/10/2026: `migration_imports` permanece negada pelo padrão, incluindo clientes antigos/atuais, parceiro e terceiro. Ensaio usou apenas contexto administrativo demo e conservou documentos originais; não há importador remoto. Páginas e agregações usam as mesmas restrições por dono/projeção; contagem e continuação do ex-parceiro foram negadas após término. Oito índices foram versionados, sem publicação. [Contratos e limites](DATA_ACCESS.md), [plano de recuperação](DATA_MIGRATION.md).
+
 `firestore.rules` é usado somente pela configuração de emuladores. Não foi conectado automaticamente ao `firebase.json` distribuído. Os controles locais incluem SEC-04 e os convites de COUPLE-03, sob a política v1 aprovada. Ocultação, bloqueio, feed sem retroatividade e cache permanecem em COUPLE-04/DATA-05.
 
 | Dados/operação | Controle local validado |

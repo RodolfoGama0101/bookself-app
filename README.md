@@ -17,6 +17,8 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
 | [docs/NAVIGATION.md](docs/NAVIGATION.md) | Mapa da navegação definido em PROD-02, fluxos por mídia/casal e critérios para UI-01; ainda sem implementação. |
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Modelo v1: base privada implementada localmente em DATA-02; episódios, escutas, experiências e migração pendentes. |
+| [docs/DATA_MIGRATION.md](docs/DATA_MIGRATION.md) | Backup/plano offline e ensaio recuperável; conversão ativa e produção separadas. |
+| [docs/DATA_ACCESS.md](docs/DATA_ACCESS.md) | Paginação, índices, agregações e sincronização; ligação das novas consultas às telas pendente. |
 | [docs/COUPLE_INVITATIONS.md](docs/COUPLE_INVITATIONS.md) | Jornada, contrato local e limites de convites consentidos. |
 | [docs/COUPLE_POLICY.md](docs/COUPLE_POLICY.md) | Política de consentimento aprovada para a evolução e critérios de implementação. |
 | [docs/DESIGN.md](docs/DESIGN.md) | Sistema visual, layouts responsivos e validação do redesign das telas atuais. |
@@ -92,6 +94,8 @@ APK Android **1.1.0+2** disponível na [pré-release v1.1.0](https://github.com/
    ```
 
 ## Validação
+
+Em **08/10/2026 — DATA-03/04/05**, foram implementados ensaio de migração preservando originais, consultas com cursores/agregações e coordenador de sincronização privado multimídia. Formatação, análise limpa, **363 testes Flutter** e **78 testes Node/emuladores demo** aprovados. Índices versionados; nenhuma migração/implantação/publicação executada. Estante/feed atuais ainda usam streams completos; integração às telas permanece em UI-01. [Contratos e limites](docs/DATA_ACCESS.md), [ensaio](docs/DATA_MIGRATION.md).
 
 Em **05/10/2026**, a jornada Flutter web foi executada no navegador integrado com duas contas fictícias em Auth/Firestore demo: cadastro/perfil, livro manual sem capa, status/data, progresso bíblico, vínculo/consulta e desvínculo com dados pessoais preservados. A busca sem chave teve sua mensagem repetida corrigida; análise limpa, 275 testes Flutter e build web demo passaram. CORE-13 posteriormente corrigiu e validou a restauração automática após recarga no Chrome demo, incluindo logout/recarga; análise limpa, 283 testes Flutter, seis testes Node e builds web padrão/demo passaram. Rede/offline, capas externas, plataformas nativas e autenticação em produção continuam pendentes. O [registro web](docs/WEB_VALIDATION.md) atualiza o limite da jornada emulada nas evidências anteriores, sem validar produção ou concluir toda a matriz de release.
 

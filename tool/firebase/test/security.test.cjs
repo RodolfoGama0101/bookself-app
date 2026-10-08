@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {initializeTestEnvironment, assertSucceeds, assertFails} = require('@firebase/rules-unit-testing');
 const {doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch, runTransaction, onSnapshot, collection, query, where, getDocs, serverTimestamp, Timestamp, setLogLevel} = require('firebase/firestore');
+const {orderBy, documentId, startAfter, limit, getCountFromServer} = require('firebase/firestore');
+const migration = require('../migration.cjs');
 setLogLevel('silent');
 const projectId = 'demo-bookself';
 const firestoreHost = process.env.FIRESTORE_EMULATOR_HOST;
@@ -31,6 +33,92 @@ test('DATA-02: biblioteca privada isolada inclusive do parceiro, ex e terceiro',
   await pair(db('a'),'a','b',false);
   await assertFails(getDoc(doc(db('b'),'libraries','a','entries','e1')));
   await assertSucceeds(getDocs(collection(db('a'),'libraries','a','entries')));
+});
+
+test('DATA-04: paginação privada ordenada por data/ID e contagens completas por mídia',async()=>{
+  const database=db('a'), batch=writeBatch(database);
+  for(let i=0;i<7;i++) {
+    const type=i===6?'movie':'book',identity={...mediaIdentity,externalId:`work-${i}`};
+    const values=mediaDocuments('a',`c${i}`,type,identity);
+    batch.set(doc(database,'libraries','a','catalog',`c${i}`),values.catalog);
+    batch.set(doc(database,'libraries','a','entries',`e${i}`),values.entry);
+    batch.set(doc(database,'libraries','a','reference_slots',values.catalog.catalogKey),{schemaVersion:1,catalogId:`c${i}`,entryId:`e${i}`});
+  }
+  await assertSucceeds(batch.commit());
+  const entries=collection(database,'libraries','a','entries');
+  const base=query(entries,orderBy('createdAt','desc'),orderBy(documentId(),'desc'));
+  const first=await getDocs(query(base,limit(3)));
+  assert.deepEqual(first.docs.map(d=>d.id),['e6','e5','e4']);
+  const last=first.docs[1];
+  const next=await getDocs(query(base,startAfter(last.data().createdAt,last.id),limit(3)));
+  assert.deepEqual(next.docs.map(d=>d.id),['e4','e3','e2']);
+  assert.equal((await getCountFromServer(query(entries,where('mediaType','==','book'),where('state.status','==','planned')))).data().count,6);
+  for(const unauthorized of [db('b'),db('c'),env.unauthenticatedContext().firestore()]) {
+    const target=collection(unauthorized,'libraries','a','entries');
+    await assertFails(getDocs(query(target,orderBy('createdAt','desc'),orderBy(documentId(),'desc'),limit(3))));
+    await assertFails(getCountFromServer(target));
+  }
+});
+
+test('DATA-04: feed limitado e métricas do parceiro são revogados após término',async()=>{
+  await pair(db('a'),'a','b');
+  const current=Timestamp.now();
+  await env.withSecurityRulesDisabled(async context=>{
+    const database=context.firestore(), batch=writeBatch(database);
+    for(let i=0;i<5;i++) {
+      const data={...book('a'),status:'Lido',finishedDate:stamp,activityAt:current};
+      batch.set(doc(database,'books',`page-${i}`),data);
+      batch.set(doc(database,'shared_books',`page-${i}`),data);
+    }
+    await batch.commit();
+  });
+  const target=collection(db('b'),'shared_books');
+  const feed=query(target,where('userId','==','a'),where('activityAt','>=',stamp),orderBy('activityAt','desc'),orderBy(documentId(),'desc'));
+  const first=await assertSucceeds(getDocs(query(feed,limit(3))));
+  assert.equal(first.size,3);
+  const last=first.docs[1];
+  assert.equal((await getDocs(query(feed,startAfter(last.data().activityAt,last.id),limit(3)))).size,3);
+  const metric=query(target,where('userId','==','a'),where('status','==','Lido'),where('finishedDate','>=',stamp),where('finishedDate','<',current));
+  assert.equal((await assertSucceeds(getCountFromServer(metric))).data().count,5);
+  await assertFails(getDocs(query(collection(db('c'),'shared_books'),where('userId','==','a'),limit(3))));
+  await pair(db('a'),'a','b',false);
+  await assertFails(getDocs(query(feed,startAfter(last.data().activityAt,last.id),limit(3))));
+  await assertFails(getCountFromServer(metric));
+});
+
+test('DATA-03: área de ensaio preserva legado e nega clientes antigo, parceiro e terceiro',async()=>{
+  await pair(db('a'),'a','b');
+  await env.withSecurityRulesDisabled(async context=>{
+    const database=context.firestore(), sources={};
+    for(const name of ['users','books','bible_progress','partner_invites','shared_books']) {
+      for(const row of (await getDocs(collection(database,name))).docs) sources[`${name}/${row.id}`]=row.data();
+    }
+    const encode=value=>value instanceof Timestamp?{$timestamp:[value.seconds,value.nanoseconds]}:
+      Array.isArray(value)?value.map(encode):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([k,v])=>[k,encode(v)])):value;
+    const snapshot=encode(sources),{saved,prepared}=migration.rehearse(snapshot);
+    const batch=writeBatch(database);
+    for(const [path,data] of Object.entries(prepared.imports)) batch.set(doc(database,path),data);
+    await batch.commit();
+    for(const [path,data] of Object.entries(sources)) {
+      assert.deepEqual((await getDoc(doc(database,path))).data(),data);
+    }
+    const current={...snapshot};
+    for(const row of (await getDocs(collection(database,'migration_imports'))).docs) current[`migration_imports/${row.id}`]=row.data();
+    assert.deepEqual(migration.rollback(saved,prepared,current),snapshot);
+    for(const client of [db('a'),db('b'),db('c'),env.unauthenticatedContext().firestore()]) {
+      const path=Object.keys(prepared.imports)[0];
+      await assertFails(getDoc(doc(client,path)));
+      await assertFails(getDocs(collection(client,'migration_imports')));
+      await assertFails(setDoc(doc(client,path),prepared.imports[path]));
+    }
+    const remove=writeBatch(database);
+    for(const path of Object.keys(prepared.imports)) remove.delete(doc(database,path));
+    await remove.commit();
+    assert.equal((await getDocs(collection(database,'migration_imports'))).size,0);
+  });
+  await pair(db('a'),'a','b',false);
+  await assertSucceeds(getDoc(doc(db('a'),'books','a-book')));
+  await assertFails(getDoc(doc(db('b'),'shared_books','a-book')));
 });
 
 test('DATA-02: mesma obra em duas contas mantém estado e datas independentes', async()=>{
