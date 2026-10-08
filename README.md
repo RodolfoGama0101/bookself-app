@@ -24,6 +24,7 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/COUPLE_POLICY.md](docs/COUPLE_POLICY.md) | Política de consentimento aprovada para a evolução e critérios de implementação. |
 | [docs/COUPLE_WORKSPACE.md](docs/COUPLE_WORKSPACE.md) | Listas e experiências consentidas, revisões, autoria e histórico restrito. |
 | [docs/DESIGN.md](docs/DESIGN.md) | Sistema visual, layouts responsivos e validação do redesign das telas atuais. |
+| [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) | Correções de contraste/semântica/teclado, roteiro de avaliação humana e limites por plataforma. |
 | [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integrações atuais e candidatas, com fontes oficiais. |
 | [docs/CATALOG_TRIALS.md](docs/CATALOG_TRIALS.md) | Ensaio de fornecedores, comandos sem segredos e pendências TMDB/MusicBrainz/Spotify. |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Configuração isolada de Auth/Firestore, comandos e clientes por plataforma. |
@@ -106,6 +107,8 @@ APK Android **1.1.0+2** disponível na [pré-release v1.1.0](https://github.com/
    ```
 
 ## Validação
+
+Em **08/10/2026 — DOC-03/PROD-03/UI-03/API-05**, roteiro reproduzível e servidor web local adicionados; contraste, nomes/estados acessíveis e grade bíblica ajustados. Análise limpa, **402 testes Flutter**, **85 testes Node/demo** e build web demo aprovados. Jornada web confirmou manual sem chave, capa/fallback, leitura/recarga e capítulos pelo teclado. Os quatro itens continuam em andamento: reprodução independente, feedback humano, leitores de tela reais e execução Android/iOS ainda pendentes. [Achados e roteiro](docs/ACCESSIBILITY.md), [evidências](docs/WEB_VALIDATION.md#validação-local-de-fluxos-e-acessibilidade--08102026).
 
 Em **08/10/2026 — COUPLE-07 e ensaios API-02/03**, interesses de listas consentidas verificados com análise limpa, **398 testes Flutter**, quatro testes Node da ferramenta de catálogo e build web demo aprovados. MusicBrainz teve buscas reais bem-sucedidas e detalhes com HTTP 503; TMDB aguarda credencial e nenhuma decisão de fornecedor foi presumida. [Evidências e limites](docs/DEVELOPMENT.md#interesses-e-ensaios-de-catálogo--couple-07-api-0203).
 

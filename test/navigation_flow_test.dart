@@ -297,16 +297,23 @@ void main() {
   testWidgets(
     'falha/offline na comparação mantém a Bíblia pessoal e não inventa zero do parceiro',
     (tester) async {
+      final semantics = tester.ensureSemantics();
       auth.partner = 'partner';
       await open(tester, page: BibleScreen(bibleService: bible));
       bible.shared.addError(const SharedDataUnconfirmed());
       await tester.pumpAndSettle();
       expect(find.textContaining('Comparação indisponível'), findsOneWidget);
       expect(find.text('2% (1/50)'), findsOneWidget);
+      final bookAction = tester
+          .getSemantics(find.bySemanticsLabel('Gênesis. 50 capítulos'))
+          .getSemanticsData();
+      expect(bookAction.flagsCollection.isButton, isTrue);
+      expect(bookAction.value, 'Você leu 1 de 50');
       await tester.tap(find.text('Gênesis'));
       await tester.pumpAndSettle();
       expect(find.text('Gênesis'), findsOneWidget);
       expect(tester.takeException(), isNull);
+      semantics.dispose();
     },
   );
   testWidgets('progresso pessoal pendente não aparece como zero confirmado', (

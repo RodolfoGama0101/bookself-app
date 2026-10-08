@@ -227,78 +227,86 @@ class _BibleScreenState extends State<BibleScreen>
               );
             },
             borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Nome do Livro e número de capítulos
-                  _progressLabels(
-                    book.name,
-                    '${book.chapters} cap.',
-                    theme.textTheme.titleMedium,
-                    theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 12),
+            child: Semantics(
+              button: true,
+              label: '${book.name}. ${book.chapters} capítulos',
+              value:
+                  'Você leu $uReadCount de ${book.chapters}'
+                  '${partnerId != null && pProg != null ? '. ${partnerName ?? 'Parceiro'} leu $pReadCount de ${book.chapters}' : ''}',
+              excludeSemantics: true,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Nome do Livro e número de capítulos
+                    _progressLabels(
+                      book.name,
+                      '${book.chapters} cap.',
+                      theme.textTheme.titleMedium,
+                      theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 12),
 
-                  // Barra de Progresso - Usuário Atual
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _progressLabels(
-                        'Você',
-                        '${(uPercent * 100).toInt()}% ($uReadCount/${book.chapters})',
-                        theme.textTheme.bodySmall,
-                        theme.textTheme.labelMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: uPercent,
-                          backgroundColor: theme.primaryColor.withValues(
-                            alpha: 0.15,
-                          ),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            theme.primaryColor,
-                          ),
-                          minHeight: 6,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Barra de Progresso - Parceiro (se houver parceiro vinculado)
-                  if (partnerId != null && pProg != null) ...[
-                    const SizedBox(height: 10),
+                    // Barra de Progresso - Usuário Atual
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _progressLabels(
-                          partnerName ?? 'Parceiro',
-                          '${(pPercent * 100).toInt()}% ($pReadCount/${book.chapters})',
+                          'Você',
+                          '${(uPercent * 100).toInt()}% ($uReadCount/${book.chapters})',
                           theme.textTheme.bodySmall,
-                          theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.secondary,
-                          ),
+                          theme.textTheme.labelMedium,
                         ),
                         const SizedBox(height: 4),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
-                            value: pPercent,
-                            backgroundColor: theme.colorScheme.secondary
-                                .withValues(alpha: 0.15),
+                            value: uPercent,
+                            backgroundColor: theme.primaryColor.withValues(
+                              alpha: 0.15,
+                            ),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              theme.colorScheme.secondary,
+                              theme.primaryColor,
                             ),
                             minHeight: 6,
                           ),
                         ),
                       ],
                     ),
+
+                    // Barra de Progresso - Parceiro (se houver parceiro vinculado)
+                    if (partnerId != null && pProg != null) ...[
+                      const SizedBox(height: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _progressLabels(
+                            partnerName ?? 'Parceiro',
+                            '${(pPercent * 100).toInt()}% ($pReadCount/${book.chapters})',
+                            theme.textTheme.bodySmall,
+                            theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.secondary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: pPercent,
+                              backgroundColor: theme.colorScheme.secondary
+                                  .withValues(alpha: 0.15),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                theme.colorScheme.secondary,
+                              ),
+                              minHeight: 6,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
@@ -588,6 +596,8 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
     final userProgress = _readChapters;
     final partnerProgress = _partnerReadChapters;
     final isAllRead = userProgress.length == widget.book.chapters;
+    final chapterExtent = (MediaQuery.textScalerOf(context).scale(18) + 32)
+        .clamp(56.0, double.infinity);
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -673,8 +683,9 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
         SliverPadding(
           padding: const EdgeInsets.all(16),
           sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5,
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: chapterExtent + 24,
+              mainAxisExtent: chapterExtent,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
@@ -691,52 +702,63 @@ class _BibleBookChaptersScreenState extends State<BibleBookChaptersScreen> {
                       ? null
                       : () => _saveProgress(chapterNum, !isReadByMe),
                   borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isReadByMe
-                          ? theme.primaryColor.withValues(alpha: 0.2)
-                          : theme.inputDecorationTheme.fillColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
+                  child: Semantics(
+                    label: '${widget.book.name}, capítulo $chapterNum',
+                    value:
+                        '${isReadByMe ? 'Lido por você' : 'Não lido por você'}'
+                        '${isReadByPartner ? '. Lido pelo parceiro' : ''}'
+                        '${_isSaving && _savingChapter == chapterNum ? '. Salvando' : ''}',
+                    button: true,
+                    selected: isReadByMe,
+                    enabled: !_isSaving,
+                    excludeSemantics: true,
+                    child: Container(
+                      decoration: BoxDecoration(
                         color: isReadByMe
-                            ? theme.primaryColor
-                            : theme.primaryColor.withValues(alpha: 0.15),
-                        width: isReadByMe ? 1.5 : 1,
+                            ? theme.primaryColor.withValues(alpha: 0.2)
+                            : theme.inputDecorationTheme.fillColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isReadByMe
+                              ? theme.primaryColor
+                              : theme.primaryColor.withValues(alpha: 0.15),
+                          width: isReadByMe ? 1.5 : 1,
+                        ),
                       ),
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Número do Capítulo
-                        if (_isSaving && _savingChapter == chapterNum)
-                          const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        else
-                          Text(
-                            '$chapterNum',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isReadByMe
-                                  ? theme.primaryColor
-                                  : theme.textTheme.bodyMedium?.color,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Número do Capítulo
+                          if (_isSaving && _savingChapter == chapterNum)
+                            const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          else
+                            Text(
+                              '$chapterNum',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isReadByMe
+                                    ? theme.primaryColor
+                                    : theme.textTheme.bodyMedium?.color,
+                              ),
                             ),
-                          ),
 
-                        // Indicador de Leitura do Parceiro (Pequeno coração/círculo no canto)
-                        if (isReadByPartner)
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Icon(
-                              Icons.favorite_rounded,
-                              size: 10,
-                              color: theme.colorScheme.secondary,
+                          // Indicador de Leitura do Parceiro (Pequeno coração/círculo no canto)
+                          if (isReadByPartner)
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: Icon(
+                                Icons.favorite_rounded,
+                                size: 10,
+                                color: theme.colorScheme.secondary,
+                              ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

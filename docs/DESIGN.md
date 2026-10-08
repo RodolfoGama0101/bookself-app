@@ -54,6 +54,8 @@ Durante a inspeção foram corrigidos um acesso ao tema do diálogo após seu fe
 
 ## Limites
 
+Em 08/10/2026, UI-03 ajustou o primário do tema claro para uma variante do musgo `#465227` (contraste de 6,21:1 sobre areia, 5,63:1 sobre cartão). Paleta original, fontes, lombadas e superfícies Organic preservadas. Cartões e capítulos receberam nomes/estados acessíveis; grade bíblica adapta células à escala. [Achados, protocolo e limites](ACCESSIBILITY.md) distinguem inspeção web/testes da validação com leitores de tela reais.
+
 Agent-browser não abriu sessão por falta de escrita no diretório de sockets; a revisão visual usou o navegador integrado. Uma aba recarregada voltou ao login e a autenticação não se confirmou ali; uma nova aba/origem identificada pelo aviso de emulador permitiu a jornada. A restauração após recarga continua na investigação já registrada em WEB_VALIDATION.md, sem atribuir causa a este redesign.
 
 Não foram executados Android/iOS, leitor de tela completo, teclado de todas as rotas, capas externas/CORS, câmera/galeria ou toda a matriz offline. Regras/modelos/vínculo não mudaram, portanto a suíte de regras não foi repetida. Não houve implantação, migração ou publicação. UI-03 e REL-04 permanecem abertas para essas verificações.

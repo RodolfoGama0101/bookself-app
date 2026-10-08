@@ -16,7 +16,8 @@ class AppTheme {
   static const darkTextSecondary = Color(0xFFBAC6B3);
   static const lightBg = sand;
   static const lightCard = Color(0xFFDED2BD);
-  static const lightPrimary = moss;
+  // Variante do musgo para texto/controles com contraste em superfícies claras.
+  static const lightPrimary = Color(0xFF465227);
   static const lightAccent = Color(0xFF80563D);
   static const lightTextPrimary = Color(0xFF293329);
   static const lightTextSecondary = Color(0xFF505C49);

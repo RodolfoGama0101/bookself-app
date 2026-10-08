@@ -29,6 +29,7 @@ class BookCover extends StatelessWidget {
     if (imageUrl == null) return placeholderBuilder(context);
     return Image.network(
       imageUrl,
+      excludeFromSemantics: true,
       fit: BoxFit.cover,
       webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
       frameBuilder: (context, child, frame, synchronouslyLoaded) =>

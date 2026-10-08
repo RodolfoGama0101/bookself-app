@@ -6,6 +6,7 @@ import 'package:bookself_app/services/bible_service.dart';
 import 'package:bookself_app/ui/screens/bible_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/test_fonts.dart';
@@ -113,6 +114,49 @@ Future<void> act(WidgetTester tester, bool all, bool isRead) =>
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(useBundledTestFonts);
+
+  testWidgets('capítulo anuncia estado e pode ser marcado pelo teclado', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final service = ChapterServiceFake([1]);
+    await showChapters(tester, service);
+    final read = tester
+        .getSemantics(find.bySemanticsLabel('Rute, capítulo 1'))
+        .getSemanticsData();
+    expect(read.value, 'Lido por você');
+    expect(read.flagsCollection.isSelected.toBoolOrNull(), isTrue);
+    expect(read.flagsCollection.isButton, isTrue);
+    final node = Focus.of(
+      tester.element(
+        find.descendant(of: chapter(2), matching: find.byType(Container)).first,
+      ),
+    );
+    node.requestFocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    expect(service.writes.single.chapter, 2);
+    expect(
+      tester
+          .getSemantics(find.bySemanticsLabel('Rute, capítulo 2'))
+          .getSemanticsData()
+          .value,
+      'Não lido por você. Salvando',
+    );
+    service.pending.complete([1, 2]);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .getSemantics(find.bySemanticsLabel('Rute, capítulo 2'))
+          .getSemanticsData()
+          .value,
+      'Lido por você',
+    );
+    await tester.pumpWidget(const SizedBox());
+    await service.close();
+    semantics.dispose();
+  });
 
   for (final all in [false, true]) {
     for (final isRead in [false, true]) {

@@ -35,6 +35,7 @@ void main() {
       ),
     );
     final image = tester.widget<Image>(find.byType(Image));
+    expect(image.excludeFromSemantics, isTrue);
     expect(
       (image.image as NetworkImage).url,
       'https://example.com/cover?size=1',

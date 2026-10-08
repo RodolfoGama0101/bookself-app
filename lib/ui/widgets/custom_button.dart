@@ -28,13 +28,17 @@ class CustomButton extends StatelessWidget {
           foregroundColor: foregroundColor ?? theme.colorScheme.onPrimary,
         ),
         child: isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    foregroundColor ?? theme.colorScheme.onPrimary,
+            ? Semantics(
+                label: '$text. Aguarde, operação em andamento',
+                liveRegion: true,
+                child: SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      foregroundColor ?? theme.colorScheme.onPrimary,
+                    ),
                   ),
                 ),
               )

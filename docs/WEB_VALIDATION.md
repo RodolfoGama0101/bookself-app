@@ -1,5 +1,28 @@
 # Validação web com Firebase demo
 
+## Validação local de fluxos e acessibilidade — 08/10/2026
+
+DOC-03, PROD-03, UI-03 e API-05 avançaram com avaliação exploratória pelo agente. Ambiente Windows, Flutter 3.44.0/Dart 3.12.0, navegador integrado em `127.0.0.1:17361`, Auth 9099/Firestore 8080 exclusivamente demo-bookself. Servidor `tool/serve-web.cjs` restrito a build/web e loopback. Conta e livro fictícios, sem chave Google Books. Chrome isolado do agent-browser foi bloqueado pelo Controle de Aplicativo Windows; não houve tentativa de desativar a política.
+
+| Jornada observada | Resultado |
+| --- | --- |
+| Cadastro fictício e perfil | Início aberto, aviso de emulador presente. Botão pendente conservou nome e anúncio de operação. |
+| Busca sem chave | Indisponibilidade traduzida, ações Manual e Cadastrar manualmente acessíveis. |
+| Cadastro manual | Título/autoria/URL pública salvos; biblioteca exibiu 1 carregado de 1. |
+| Capa externa | Open Library HTTPS renderizou na biblioteca; fixture visual, não decisão de fornecedor. |
+| Iniciar leitura | Confirmação mudou Quero Ler para Lendo, com inclusão preservada. |
+| Recarga | Voltou ao Início automaticamente; livro e atividade de início de leitura preservados. |
+| Cartão e detalhes | Após correção, árvore anunciou botão com título/autoria/status, em vez de imagem; Enter abriu detalhes e Escape fechou, devolvendo foco ao cartão. |
+| Falha da imagem | Edição para host `.invalid` mostrou placeholder nos detalhes e manteve título/autoria/status. |
+| Capítulos em 320 px | Gênesis 1 anunciado como botão/Não lido por você; Enter marcou e anunciou Lido por você, resumo 1/50 e feedback confirmado. |
+| Tema claro em 1.280 × 800 | Navegação lateral e lista bíblica legíveis; build final anunciou livros como botões com contagem, preservando Gênesis 1/50 após recarga. |
+
+Quatro novas regressões relevantes elevaram a suíte a **402 Flutter**: contraste primário/texto secundário nos dois temas, nome/anúncio do botão pendente, Tab/Enter no botão, estado/seleção e gravação bíblica pelo teclado. Capa decorativa também coberta na regressão existente. Fontes reais sem rede e texto 2×/telas pequenas reaproveitam cobertura anterior. Análise limpa e build demo final aprovados, incluindo verificação preliminar Wasm. **85 testes Node/demo** passaram em Auth 29099/Firestore 28080, separados da jornada; SDK fixado confirmado. Nenhuma regra, índice remoto, dependência, identidade técnica ou dado de produção alterado.
+
+Capturas da capa renderizada, fallback e capítulo confirmado ficam locais, fora do Git, e são entregues no chat. Não há dados reais nas imagens. A árvore semântica não certifica NVDA/TalkBack/VoiceOver; não houve nova jornada do casal, feedback humano, teclado completo de todas as rotas, offline completo do navegador, dispositivos Android/iOS ou publicação. **Os quatro itens permanecem abertos pelos critérios completos.** Achados corrigidos e protocolo de continuidade em [ACCESSIBILITY.md](ACCESSIBILITY.md), reprodução em [DEVELOPMENT.md](DEVELOPMENT.md#jornada-web-reproduzível--doc-03).
+
+## Registro histórico de 05/10/2026
+
 Data: 05/10/2026. Evidência parcial para DOC-03/API-05/REL-04 e regressões do fluxo atual. Não comprova produção, Android/iOS nem jornadas de categorias planejadas.
 
 ## Ambiente e reprodução

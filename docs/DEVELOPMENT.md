@@ -181,6 +181,36 @@ Os testes Dart usam fakes e fontes locais; não acessam o projeto remoto. Valida
 
 ## Abrir o app localmente
 
+### Jornada web reproduzível — DOC-03
+
+Na raiz do projeto, após selecionar/conferir o SDK e instalar pelos lockfiles conforme as seções anteriores, use três terminais:
+
+```powershell
+# Terminal 1: manter aberto, somente demo-bookself e loopback
+npm --prefix tool/firebase run emulators
+
+# Terminal 2: compilar sem chave de catálogo e servir só o build
+flutter build web --no-pub --dart-define=USE_FIREBASE_EMULATORS=true
+node tool/serve-web.cjs 17361
+
+# Terminal 3: verificações, usando portas diferentes da jornada aberta
+# PowerShell; para encerrar a jornada, Ctrl+C nos terminais 1 e 2
+$env:BOOKSELF_TEST_AUTH_PORT = '29099'
+$env:BOOKSELF_TEST_FIRESTORE_PORT = '28080'
+try { npm --prefix tool/firebase test } finally {
+  Remove-Item Env:BOOKSELF_TEST_AUTH_PORT
+  Remove-Item Env:BOOKSELF_TEST_FIRESTORE_PORT
+}
+```
+
+Abra `http://127.0.0.1:17361` no navegador. Confirme o aviso **Running in emulator mode** antes de cadastrar contas fictícias. Sem aviso, pare a jornada e confira o define/build; não teste com contas reais. Rede ainda é necessária para o runtime web/Firebase público; fontes do app são locais. Para duas sessões simultâneas, use perfis de navegador isolados; duas abas na mesma origem compartilham a sessão.
+
+`tool/serve-web.cjs` não exige dependências: aceita uma porta entre 1024 e 65535, escuta exclusivamente em 127.0.0.1 e serve somente arquivos de `build/web`, com MIME de JS/Wasm/fontes e cache desabilitado. Não serve a raiz, `.git` ou configurações locais; não faz proxy, build, deploy ou chamada Firebase. Porta ocupada deve ser resolvida escolhendo outra porta, preservando processos desconhecidos. Compilar novamente e recarregar basta para conferir um novo build.
+
+Critérios de reprodução: SDK confirmado; análise/testes Flutter passam; suíte Firebase inicia/encerra seus próprios emuladores; cadastro fictício carrega perfil; manual sem chave salva; leitura/Bíblia sobrevivem à recarga; logout mantém login após recarga. Registre comandos, versões, resultados e dificuldades sem segredos. Os [objetivos de avaliação humana](ACCESSIBILITY.md#roteiro-para-validação-humana) incluem vínculo/listas/experiências e acessibilidade.
+
+Em 08/10/2026, esses comandos equivalentes foram executados pelo agente no SDK instalado: análise limpa, 402 Flutter e 85 Node/emuladores aprovados; build demo aprovado. Servidor respondeu HTML 200, caminho ausente 404 e tentativa codificada de escapar de `build/web` 403. Na restrição do sandbox Windows, launchers `.bat` não completaram; executáveis Dart/Flutter Tools reais precisaram de execução aprovada para resolver o SDK. Não editar SDK nem relaxar verificações por isso. Chrome do agent-browser foi bloqueado pelo Controle de Aplicativo; inspeção usou navegador integrado. **Reprodução por outra pessoa ainda pendente: DOC-03 não foi marcada concluída.**
+
 Em um terminal:
 
 ```sh

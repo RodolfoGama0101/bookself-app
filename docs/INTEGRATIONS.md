@@ -31,6 +31,12 @@ Verificações locais: análise limpa, 275 testes Flutter, 25 testes em Auth/Fir
 
 Em 03/10/2026, a auditoria remota somente de metadados confirmou regra permitindo qualquer leitura/escrita a uma conta autenticada. A correção foi validada em emuladores; implantação permanece separada. Consulte [SECURITY.md](SECURITY.md) e [DEVELOPMENT.md](DEVELOPMENT.md).
 
+## Verificação web de imagens — API-05, 08/10/2026
+
+No build demo, uma capa HTTPS de Open Library renderizou na biblioteca. A URL foi apenas uma fixture visual pública; não adiciona fornecedor de catálogo nem autenticação. Corrigir o mesmo livro manual para um endereço HTTPS inacessível mostrou o placeholder nos detalhes, sem retirar título/autoria/status. `BookCover` exclui a imagem decorativa da árvore acessível; metadados e ações são anunciados pelo cartão/detalhes. [Jornada e limites](WEB_VALIDATION.md#validação-local-de-fluxos-e-acessibilidade--08102026).
+
+Os testes de fontes reais sem rede e fallback estão entre os 402 Flutter aprovados. Não foi desconectado o navegador inteiro nem executado Android/iOS; CORS de todos os hosts e a matriz offline/nativa permanecem pendentes. API-05 continua aberta.
+
 ## Filmes e séries
 
 **TMDB** é um candidato para metadados de filmes, TV e imagens. Exige registro de credencial e concordância com termos; autenticação e limites precisam entrar no desenho, conforme a [documentação oficial](https://developer.themoviedb.org/docs/getting-started).
