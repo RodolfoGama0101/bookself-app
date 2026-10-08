@@ -17,6 +17,8 @@ APK e checksum em `build/release/`, ignorados pelo Git. Avisos existentes de KGP
 
 O APK padrão mantém filmes e o novo espaço de listas/experiências/interesses desativados: dependem de flags e regras/índices de SEC-06. Não inclui segredo de catálogo. A entrega de código foi validada com 426 testes Flutter, 86 Node/demo, análise limpa e build web; 37 testes pertinentes passaram novamente após os últimos ajustes. Nenhum dispositivo Android executado; REL-02/REL-04/SEC-03/SEC-06 permanecem pendentes. [Notas desta pré-release](releases/v1.2.0.md).
 
+A [pré-release v1.2.0](https://github.com/RodolfoGama0101/bookself-app/releases/tag/v1.2.0) foi publicada em 08/10/2026 às 19:28:50 UTC, tag no commit `b7a97b9`, enviado à `develop`. Consulta pública confirmou estado publicado/pré-release e os dois assets. APK e `.sha256` baixados de volta foram comparados ao original, com hashes idênticos; digest remoto do APK também corresponde. O [CI remoto](https://github.com/RodolfoGama0101/bookself-app/actions/runs/37832214507) foi disparado; no momento da verificação estava em execução. Não houve merge em `main`, loja, migração ou deploy Firebase.
+
 Data: 03/10/2026. REL-01: reprodução atual concluída; diagnóstico da falha histórica inconclusivo. Builds debug locais, sem execução do app, alteração de dados ou publicação.
 
 ## Resultado atual
