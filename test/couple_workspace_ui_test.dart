@@ -103,6 +103,27 @@ class JointUiService extends CoupleWorkspaceService {
   }
 }
 
+class InterestUiService extends JointUiService {
+  final updates = StreamController<List<CoupleRecord>>.broadcast();
+  @override
+  Stream<List<CoupleRecord>> records(
+    String id,
+    String collection, {
+    String? listId,
+  }) {
+    if (collection == 'items') return updates.stream;
+    if (collection == 'lists') {
+      return Stream.value([
+        CoupleRecord('list', {
+          'title': 'Escolhas consentidas',
+          'authorId': 'a',
+        }),
+      ]);
+    }
+    return Stream.value([]);
+  }
+}
+
 void main() {
   setUpAll(useBundledTestFonts);
   Future<void> show(
@@ -168,6 +189,39 @@ void main() {
       auth.dispose();
     },
   );
+  testWidgets('falha e troca de conta retiram interesses da lista ativa', (
+    tester,
+  ) async {
+    final auth = JointAuth(), service = InterestUiService();
+    await show(tester, auth, service);
+    await tester.tap(find.text('Escolhas consentidas'));
+    await tester.pump();
+    service.updates.add([
+      for (final uid in ['a', 'b'])
+        CoupleRecord(uid, {
+          'authorId': uid,
+          'removed': false,
+          'selection': CoupleSelection(
+            type: MediaType.book,
+            title: 'Obra da lista',
+          ).toMap(),
+        }),
+    ]);
+    await tester.pumpAndSettle();
+    expect(find.text('Interesses em comum'), findsOneWidget);
+    service.updates.addError(StateError('offline simulado'));
+    await tester.pumpAndSettle();
+    expect(find.text('Interesses em comum'), findsNothing);
+    expect(find.textContaining('Opção 1'), findsNothing);
+    auth.change();
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Sem parceiro'), findsOneWidget);
+    expect(find.text('Obra da lista'), findsNothing);
+    expect(service.updates.hasListener, isFalse);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await service.updates.close();
+    auth.dispose();
+  });
   testWidgets(
     'histórico permite só retirada e troca de conta descarta sucesso tardio',
     (tester) async {

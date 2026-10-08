@@ -1,4 +1,4 @@
-# Listas e experiências do casal — COUPLE-05/06
+# Listas, experiências e interesses do casal — COUPLE-05/06/07
 
 Implementação local em **08/10/2026**, acessível por **Nós → Listas e experiências**. Usa a [política aprovada](COUPLE_POLICY.md); regras candidatas ainda dependem de SEC-06. Não implementa catálogos/bibliotecas individuais de filmes, séries ou música, nem escolhe fornecedores.
 
@@ -33,6 +33,14 @@ Datas novas são obrigatórias e validadas como calendário até hoje pelo clien
 IDs de lista, item e experiência são preparados antes da primeira escrita. A ação **Repetir alteração** conserva a mesma intenção/ID; retry de criação reencontra o documento do autor sem redefinir conteúdo. Repetir retirada/correção com versão antiga produz conflito. Inclusões simultâneas em itens diferentes não regravam toda a lista; duas retiradas da mesma versão têm um vencedor. Nova inclusão deliberada é outro ID, inclusive para título semelhante: não há fusão por título nem deduplicação automática entre mídias/fornecedores. Listas são internas; não são playlists externas.
 
 ## Verificação e ativação
+
+### Interesses em comum — COUPLE-07
+
+No vínculo ativo, abrir uma lista mostra as seleções incluídas independentemente pelos dois. `commonCoupleSelections` compara mídia, origem, referência, título/autor/artista (somente caixa e espaços normalizados) e temporada/episódio quando existentes. Retirados, terceiros e inclusões repetidas por uma única pessoa não contam. Seleções semelhantes não são fundidas no banco; referências/edições diferentes não são tratadas como iguais. A tela explica o motivo e a incerteza da coincidência por texto.
+
+O botão **Destacar próxima opção** percorre as coincidências em ordem de mídia/título para apoiar uma conversa. Não faz sorteio, recomendação externa, escrita, confirmação de experiência ou progresso. Não consulta bibliotecas individuais, ocultos, favoritos, opiniões ou escutas; seleções deliberadas continuam consentidas independentemente da ocultação pessoal, como prevê COUPLE-01. Sem coincidências há convite para cada participante adicionar suas escolhas; sem parceiro/histórico encerrado há orientação sem novas sugestões. Falha do stream, retirada, troca de lista/conta/vínculo removem as opções derivadas; não há cache separado nem novas regras/índices.
+
+Regressões em `test/couple_interests_test.dart` cobrem autoria/remoção/terceiros/duplicatas, separação de mídias/artistas/origens/referências, opção explícita e remoção em 320 × 480/texto 2×. Regras e confirmação do servidor são as de COUPLE-06, sem ampliação de acesso. Validação nativa/produção permanece separada.
 
 Regressões Dart em `test/couple_workspace_service_test.dart` e `test/couple_workspace_ui_test.dart` verificam confirmação atrasada, retry sem duplicação, revisão concorrente, duas confirmações, retirada/término, ausência de acesso pessoal, descarte/troca de conta e formulário em 320 × 480 com texto 2×. Testes de regras no projeto `demo-bookself` verificam consultas de participantes/terceiros/sem autenticação, auditoria atômica, campos privados negados, disputa por versão, remoção concorrente, término e novo parceiro sem herdar acesso. [Comandos/resultados](DEVELOPMENT.md#listas-experiências-e-paginação--couple-0506-ui-05).
 

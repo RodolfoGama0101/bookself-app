@@ -7,6 +7,7 @@ import '../../services/couple_workspace_service.dart';
 import '../widgets/content_state.dart';
 import '../widgets/completion_date_picker.dart';
 import '../widgets/dialog_with_controllers.dart';
+import '../widgets/couple_interests.dart';
 
 class CoupleWorkspaceScreen extends StatefulWidget {
   const CoupleWorkspaceScreen({super.key, this.service});
@@ -426,6 +427,10 @@ class _CoupleWorkspaceScreenState extends State<CoupleWorkspaceScreen> {
               const Text(
                 'Um convite aceito habilita listas e experiências. Seus vínculos anteriores com conteúdo conjunto aparecem aqui.',
               ),
+            if (!active)
+              const Text(
+                'Interesses em comum ficam disponíveis na lista do vínculo atual. Sem parceiro, sua biblioteca continua individual; o histórico não sugere novas escolhas.',
+              ),
             if (relation != null)
               FutureBuilder<Map<String, dynamic>>(
                 future: _relationship,
@@ -444,6 +449,10 @@ class _CoupleWorkspaceScreenState extends State<CoupleWorkspaceScreen> {
                 'Listas do casal',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
+              if (active)
+                const Text(
+                  'Abra uma lista para consultar os interesses em comum.',
+                ),
               if (active)
                 TextButton.icon(
                   onPressed: _busy
@@ -491,6 +500,13 @@ class _CoupleWorkspaceScreenState extends State<CoupleWorkspaceScreen> {
                   _items,
                   (rows) => Column(
                     children: [
+                      if (active)
+                        CoupleInterests(
+                          key: ValueKey('$scope/$relation/$_list'),
+                          rows: rows,
+                          uid: user.uid,
+                          partnerUid: user.partnerUid!,
+                        ),
                       if (rows.where((r) => r.data['removed'] != true).isEmpty)
                         const Text('Lista vazia.'),
                       for (final row in rows.where(

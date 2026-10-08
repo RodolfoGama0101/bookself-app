@@ -12,6 +12,8 @@ Na entrega documental de PROD-02, `MainNavigation` oferecia Início/Estante/Bíb
 
 **COUPLE-05/06 em 08/10/2026:** Nós agora oferece Listas e experiências com cadastro manual de seleção mínima, resposta/correção por revisão e histórico consentido. As referências a listas/experiências futuras nesta definição histórica foram atendidas pelo [contrato local](COUPLE_WORKSPACE.md); catálogos/bibliotecas pessoais das novas mídias permanecem futuros. UI-05 ligou paginação às telas de livros no demo; [ativação e limites](DATA_ACCESS.md#telas-paginadas--ui-05).
 
+**COUPLE-07 em 08/10/2026:** abrir lista do vínculo ativo mostra coincidências entre seleções adicionadas pelos dois e ação para destacar próxima opção. Histórico encerrado não oferece sugestões. Comparação de bibliotecas pessoais/recomendações externas permanece fora desta entrega. [Contrato](COUPLE_WORKSPACE.md#interesses-em-comum--couple-07).
+
 Manter quatro destinos principais: **Início, Biblioteca, Nós e Perfil**. Categorias ficam dentro da Biblioteca, evitando que cada nova mídia aumente a barra principal. O espaço Nós reúne a consulta do parceiro e a gestão da relação; a biblioteca pessoal continua utilizável sem vínculo. A Bíblia conserva uma jornada própria de progresso.
 
 | Destino | Conteúdo e ações | Limite |

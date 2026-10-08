@@ -2,6 +2,8 @@
 
 Referências revisadas em 02/10/2026. Revalidar requisitos, limites e termos antes de implementar. Nenhum fornecedor novo está aprovado ou integrado nesta versão.
 
+**Atualização de 08/10/2026 — API-02/03:** [comparação e ensaios reproduzíveis](CATALOG_TRIALS.md) revisam fontes oficiais, limitações comerciais/cache/backend e mostram resultados reais de buscas MusicBrainz com falha 503 nos detalhes. Credencial TMDB ainda ausente, Spotify sem acesso autenticado e fornecedor musical não escolhido. Não representam adaptadores implementados nem conclusão dos ensaios.
+
 ## Integrações atuais
 
 | Serviço | Uso | Pendências |

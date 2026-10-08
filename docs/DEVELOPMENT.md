@@ -1,5 +1,11 @@
 # Desenvolvimento com emuladores
 
+## Interesses e ensaios de catálogo — COUPLE-07, API-02/03
+
+Em **08/10/2026**, função de comparação e widget de interesses da lista ativa verificados por quatro novas regressões Dart: autoria, retirada, terceiro, duplicatas, identidades distintas, escolha explícita, erro do stream, cancelamento/troca de conta e 320 × 480/texto 2×. Arquivos afetados formatados, **análise sem apontamentos, 398 testes Flutter e build web demo aprovados**, incluindo verificação preliminar Wasm. Comandos seguem os mesmos SDKs abaixo. Não há novas dependências, regras, índices ou consultas pessoais; não foi necessário repetir a suíte Auth/Firestore sem alterações nessa camada. Links locais: 310 verificados, nenhum destino ausente; diff sem erros de whitespace.
+
+Ferramenta de ensaio Node em `tool/catalog/trial.cjs`, com quatro testes locais passando por `node --test tool/catalog/trial.test.cjs`. Consultas MusicBrainz reais somente de leitura mostraram cobertura das amostras e falhas HTTP 503 nos detalhes; TMDB não foi acessado por falta de credencial. Fontes, resultados, configuração ignorada, retomada e limites em [CATALOG_TRIALS.md](CATALOG_TRIALS.md). Sem jornada nova no navegador/Android/iOS, publicação, migração, contratação ou implantação. API-02/03 continuam parciais, sem escolha definitiva de fornecedor.
+
 ## Listas, experiências e paginação — COUPLE-05/06, UI-05
 
 Em **08/10/2026**: arquivos Dart afetados formatados, análise sem apontamentos, **394 testes Flutter** e **85 testes Node/emuladores demo** aprovados. Build web demo aprovado, incluindo verificação preliminar Wasm. Treze regressões Dart novas cobrem serviços e telas: duas confirmações/revisões/auditoria, retry com ID estável, conflito web preservado, retirada após término, adições independentes/remoção concorrente, seleção mínima, datas futuras rejeitadas, retorno tardio após troca de conta, formulário 320 × 480 com texto 2×; páginas/contagens completas, cursor de janela viva exato após inclusão, mescla assimétrica de origens/buffers, falha/offline, descarte e filtros preservados ao carregar mais. Arquivos: `test/couple_workspace_service_test.dart`, `test/couple_workspace_ui_test.dart`, `test/book_page_controller_test.dart`, `test/paged_library_ui_test.dart`. Os testes de widgets substituem serviços e fontes, sem rede.

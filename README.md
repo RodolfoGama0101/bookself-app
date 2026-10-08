@@ -25,6 +25,7 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/COUPLE_WORKSPACE.md](docs/COUPLE_WORKSPACE.md) | Listas e experiências consentidas, revisões, autoria e histórico restrito. |
 | [docs/DESIGN.md](docs/DESIGN.md) | Sistema visual, layouts responsivos e validação do redesign das telas atuais. |
 | [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integrações atuais e candidatas, com fontes oficiais. |
+| [docs/CATALOG_TRIALS.md](docs/CATALOG_TRIALS.md) | Ensaio de fornecedores, comandos sem segredos e pendências TMDB/MusicBrainz/Spotify. |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Configuração isolada de Auth/Firestore, comandos e clientes por plataforma. |
 | [docs/SECURITY.md](docs/SECURITY.md) | Auditoria remota, regras candidatas, concorrência de vínculo e implantação pendente. |
 | [docs/decisions/README.md](docs/decisions/README.md) | Alternativas, escolhas técnicas implementadas e pendências. |
@@ -33,6 +34,8 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/IOS_VALIDATION.md](docs/IOS_VALIDATION.md) | Permissões de foto e verificação Apple ainda pendente. |
 
 ## Funcionalidades implementadas
+
+- Interesses em comum na lista do vínculo ativo: compara seleções adicionadas pelos dois, explica coincidências e permite destacar próxima opção sem alterar progresso. Sem consultas pessoais adicionais. Ativação acompanha as listas locais; [contrato](docs/COUPLE_WORKSPACE.md#interesses-em-comum--couple-07).
 
 - Nós → Listas e experiências: seleções manuais de livros, filmes, séries/episódios, faixas e álbuns; listas com autoria e retirada concorrente; experiências com data, proposta/correção e duas confirmações da revisão atual. Histórico restrito aos participantes antigos, com retirada da própria confirmação após término. Código/regras locais: **ativação remota depende de SEC-06**. Não cria bibliotecas pessoais das novas mídias nem altera progresso do parceiro. [Contrato](docs/COUPLE_WORKSPACE.md).
 - Biblioteca e Início com paginação nos emuladores; ativação explícita em outro ambiente por `USE_PAGED_LIBRARY=true` após instalar índices. Carregar mais conserva filtros, cursores e buffers por origem; totais/estatísticas usam agregações completas. [Limites dos filtros e ativação](docs/DATA_ACCESS.md#telas-paginadas--ui-05).
@@ -103,6 +106,8 @@ APK Android **1.1.0+2** disponível na [pré-release v1.1.0](https://github.com/
    ```
 
 ## Validação
+
+Em **08/10/2026 — COUPLE-07 e ensaios API-02/03**, interesses de listas consentidas verificados com análise limpa, **398 testes Flutter**, quatro testes Node da ferramenta de catálogo e build web demo aprovados. MusicBrainz teve buscas reais bem-sucedidas e detalhes com HTTP 503; TMDB aguarda credencial e nenhuma decisão de fornecedor foi presumida. [Evidências e limites](docs/DEVELOPMENT.md#interesses-e-ensaios-de-catálogo--couple-07-api-0203).
 
 Em **08/10/2026 — COUPLE-05/06 e UI-05**, listas/experiências com revisão/dupla confirmação e histórico restrito, mais páginas/agregações das telas de livros, foram verificadas localmente: análise limpa, **394 testes Flutter**, **85 testes Node/demo** e build web demo aprovados. Testes de widgets incluem texto 2×/tela pequena e filtros ao carregar mais. Sem jornada nova em navegador/nativos, migração, implantação ou publicação; ativação remota das novas telas depende das regras/índices e dos defines documentados. [Evidências e limites](docs/DEVELOPMENT.md#listas-experiências-e-paginação--couple-0506-ui-05).
 
