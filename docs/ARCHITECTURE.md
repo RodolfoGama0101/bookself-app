@@ -110,6 +110,7 @@ Escritas já iniciadas não são canceladas pelo fechamento. Não há timeout qu
 | `shared_books/{documentId}` | Metadados/progresso mínimos, sem preferência nem campos privados | Consulta do dono/parceiro recíproco; ausente quando oculto. |
 | `shared_bible_progress/{uid_nomeNormalizado}` | `userId`, `bookName`, `readChapters`, `updatedAt` | Projeção permitida por livro bíblico. |
 | `partner_blocks/{uid}/targets/{otherUid}` | Nome mínimo e `createdAt` | Bloqueio privado do dono; impede convites entre as duas contas. |
+| `partner_contacts/{uid}/targets/{otherUid}` | `name`, `invitationCode` anulável | Identificação privada por interação autorizada; não concede acesso pessoal. |
 | `books/{documentId}` | `userId`, `title`, `authors`, `coverUrl`, `status`, `publishedDate`, `finishedDate`, `addedAt`, `googleBooksId` opcional | Livro na estante de uma pessoa. |
 | `bible_progress/{uid_nomeNormalizado}` | `userId`, `bookName`, `readChapters`, `updatedAt` | Capítulos lidos por pessoa/livro bíblico. |
 
@@ -143,7 +144,7 @@ COUPLE-03 substitui novos vínculos diretos por convites com código aleatório 
 
 Aceite grava convite e os dois perfis em transação, sem ler o perfil privado do remetente. `relationshipId` identifica o convite consumido e `coupleEpoch` incrementa a versão dos dois participantes, invalidando convites antigos mesmo após término. O convite enviado do destinatário é cancelado no mesmo aceite. Desvínculo lê somente o perfil próprio e compara parceiro/identificador capturados; o servidor exige limpeza recíproca e preservação da versão. Legados sem identificador/versão continuam suportados, sem conversão automática em consentimento. [Contrato e consequências](COUPLE_INVITATIONS.md).
 
-SEC-04 restringe `users` ao dono e `partner_profiles` a nome/foto do dono/parceiro recíproco. COUPLE-04 acrescenta ocultação/revogação, feed sem retroatividade e cache nas categorias atuais; bloqueio fora de vínculo permanece em COUPLE-09, e sincronização geral em DATA-05. **As regras não estão implantadas no remoto**: a auditoria de 03/10/2026 encontrou autorização recursiva para qualquer conta autenticada. Código local não comprova proteção remota nem aprovação de distribuição.
+SEC-04 restringe `users` ao dono e `partner_profiles` a nome/foto do dono/parceiro recíproco. COUPLE-04 acrescenta ocultação/revogação, feed sem retroatividade e cache nas categorias atuais; COUPLE-09 estende o bloqueio a pessoas identificadas por interação autorizada, e a sincronização geral permanece em DATA-05. **As regras não estão implantadas no remoto**: a auditoria de 03/10/2026 encontrou autorização recursiva para qualquer conta autenticada. Código local não comprova proteção remota nem aprovação de distribuição.
 
 `firebase.emulators.json` usa somente `demo-bookself`, Auth/Firestore locais, sem substituir `firebase.json`. Os filtros atuais não exigem índices compostos. A suíte tem 43 integrações de autorização/concorrência; regressões Dart cobrem contrato, confirmação, falhas, sessão, troca de streams, consentimento e tela pequena. Duas sessões Flutter web demo validaram a jornada consentida. [Evidências e implantação pendente](SECURITY.md).
 
@@ -153,6 +154,10 @@ SEC-04 restringe `users` ao dono e `partner_profiles` a nome/foto do dono/parcei
 - Imagens e serviços externos requerem avaliação de uso sem rede.
 
 As tarefas correspondentes estão em [BACKLOG.md](../BACKLOG.md).
+
+## Bloqueios independentes
+
+COUPLE-09 acrescentou identificação mínima e bloqueios independentes em 08/10/2026. Reserva/término registram contatos privados em transação; bloqueio de ex-parceiro preserva o vínculo atual e incrementa `coupleEpoch` com `lastBlockedUid` para comprovação atômica nas regras. Convites anteriores da conta precisam ser substituídos, mesmo após desbloqueio. [Escolhas, compatibilidade e limites](decisions/010-bloqueios-independentes.md). Esta extensão é do modelo atual, sem aprovar o esquema proposto abaixo.
 
 ## Proposta para múltiplas mídias
 
@@ -181,4 +186,4 @@ Trocar nome exibido não exige trocar IDs técnicos. Alterações de `applicatio
 
 COUPLE-04 acrescenta `isShared` opcional aos registros pessoais (ausente = visível), sem substituir IDs ou remover legado. `SharingService` publica projeções mínimas após releitura transacional; livros/Bíblia próprios permanecem privados. Salvar capítulos/livro conserva preferência e campos desconhecidos e sincroniza projeção; ocultar a remove atomicamente. A estante do parceiro consulta `shared_books`; comparação bíblica consulta `shared_bible_progress`. O feed combina streams pessoais e compartilhados separados, com cancelamento conjunto, e usa `activityAt` do servidor posterior ao aceite para atividades conjuntas. Estatísticas usam todo conteúdo permitido do período. `addedAt`/histórico imutável permanecem em DATA-06.
 
-Builders usam identidade/relação como chave; detalhes abertos e capítulos acompanham revogação. Cache/offline alheio retira conteúdo; a apresentação do parceiro também exige confirmação de servidor. Bloqueio do parceiro ativo grava documento privado e término/versionamento em transação; o fluxo fora de vínculo está em COUPLE-09. [Contrato completo](COUPLE_VISIBILITY.md) e [ADR 009](decisions/009-visibilidade-e-revogacao.md). Nenhuma mídia planejada foi implementada nem regra remota publicada.
+Builders usam identidade/relação como chave; detalhes abertos e capítulos acompanham revogação. Cache/offline alheio retira conteúdo; a apresentação do parceiro também exige confirmação de servidor. Bloqueio do parceiro ativo grava documento privado e término/versionamento em transação; o fluxo fora de vínculo foi implementado em COUPLE-09, conforme [registro 010](decisions/010-bloqueios-independentes.md). [Contrato completo](COUPLE_VISIBILITY.md) e [ADR 009](decisions/009-visibilidade-e-revogacao.md). Nenhuma mídia planejada foi implementada nem regra remota publicada.

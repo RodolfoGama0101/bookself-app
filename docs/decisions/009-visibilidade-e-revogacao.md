@@ -14,6 +14,6 @@ Há uma cópia derivada e custo de leitura para publicação/verificação. O le
 
 Preferimos memória e confirmação do servidor para dados alheios. A inicialização limpa persistência antiga; offline retira conteúdo compartilhado. O custo é menor disponibilidade offline, com sincronização geral ainda em DATA-05. Nenhuma regra pode recolher capturas/copias externas de dados já entregues.
 
-Bloqueio do parceiro ativo encerra o vínculo e impede convites em ambos os sentidos; retirar bloqueio não restaura a relação. O fluxo fora do vínculo permanece em COUPLE-09, sem inferir revogação de histórico conjunto ainda não implementado.
+Bloqueio do parceiro ativo encerra o vínculo e impede convites em ambos os sentidos; retirar bloqueio não restaura a relação. Atualização de 08/10/2026: o fluxo fora do vínculo foi implementado em COUPLE-09 ([registro 010](010-bloqueios-independentes.md)), sem inferir revogação de histórico conjunto ainda não implementado.
 
 Contrato, validação e compatibilidade estão em [COUPLE_VISIBILITY.md](../COUPLE_VISIBILITY.md). SEC-06 exige implantação explícita posterior; contas, livros, capítulos, IDs e projeto remoto foram preservados.

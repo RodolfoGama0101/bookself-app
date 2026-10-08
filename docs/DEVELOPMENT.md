@@ -1,5 +1,13 @@
 # Desenvolvimento com emuladores
 
+## Bloqueios independentes — COUPLE-09
+
+Em 08/10/2026, formatação dos oito arquivos Dart afetados, `flutter analyze --no-pub` sem apontamentos, **332 testes Flutter**, **63 testes Auth/Firestore** e `flutter build web --no-pub --dart-define=USE_FIREBASE_EMULATORS=true` aprovados. Testes emulados executados por `node tool/firebase/run-tests.cjs`, equivalente ao script npm test, com Auth 29099/Firestore 28080 somente no projeto demo-bookself. Portas alternativas evitaram conflito com outras sessões; não houve instalação/upgrade de dependências.
+
+Cinco regressões adicionais de serviço cobrem identificação na reserva/término, bloqueio conhecido confirmado/repetível, preservação do novo vínculo, rejeição de alvo desconhecido/ativo/caminho inválido e falha sem alteração parcial. Seis regressões de interface cobrem cancelamento, ausência de UID, bloqueio sem sucesso antecipado, falha/repetição, desbloqueio independente, tela 320 × 480/texto 2×, erro de leitura/retry, troca de conta e descarte. Dez integrações novas cobrem privacidade, falsificação/terceiros, bloqueios bilaterais, ex/novo parceiro, legado, concorrência com aceite, convites antigos e transações completas de reserva/bloqueio com os dois contatos e término seguro com apresentação alheia contaminada.
+
+Não houve nova jornada em navegador/dispositivo, build/execução Android/iOS, migração, deploy de regras ou publicação. Resultados de widgets e compilação web não substituem essas verificações. Contatos históricos não são preenchidos administrativamente; [decisão e limites](decisions/010-bloqueios-independentes.md).
+
 Revisão: 05/10/2026. Ambiente local para Auth/Firestore, separado do projeto distribuído. A implantação de regras é uma etapa distinta; os comandos abaixo não executam deploy.
 
 ## Pré-requisitos

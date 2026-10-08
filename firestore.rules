@@ -12,6 +12,7 @@ service cloud.firestore {
     function canRead(uid) { return isOwner(uid) || isPartner(uid); }
     function nullableString(value) { return value == null || value is string; }
     function blockPath(uid, other) { return /databases/$(database)/documents/partner_blocks/$(uid)/targets/$(other); }
+    function contactPath(uid, other) { return /databases/$(database)/documents/partner_contacts/$(uid)/targets/$(other); }
     function notBlocked(a, b) { return !exists(blockPath(a, b)) && !exists(blockPath(b, a)); }
 
     function invitePath(code) { return /databases/$(database)/documents/partner_invites/$(code); }
@@ -57,12 +58,42 @@ service cloud.firestore {
         && getAfter(userPath(before)).data.get('partnerUid', null) == null;
     }
 
+    function contactFromInvitation(uid, other, data) {
+      let invitation = getAfter(invitePath(data.invitationCode)).data;
+      return data.invitationCode is string
+        && (request.auth.uid == invitation.senderUid || request.auth.uid == invitation.recipientUid)
+        && ((uid == invitation.senderUid && other == invitation.recipientUid && data.name == invitation.recipientName)
+          || (uid == invitation.recipientUid && other == invitation.senderUid && data.name == invitation.senderName));
+    }
+    function contactFromRelationship(uid, other, data) {
+      return data.invitationCode == null && (isOwner(uid) || isOwner(other))
+        && get(userPath(uid)).data.get('partnerUid', null) == other
+        && get(userPath(other)).data.get('partnerUid', null) == uid
+        && (data.name == 'Pessoa conhecida' || data.name == get(userPath(other)).data.name
+          || (exists(contactPath(uid, other)) && data.name == get(contactPath(uid, other)).data.name));
+    }
+    match /partner_contacts/{uid}/targets/{other} {
+      allow read: if isOwner(uid);
+      allow create, update: if signedIn() && uid != other
+        && request.resource.data.keys().hasAll(['name', 'invitationCode'])
+        && request.resource.data.keys().hasOnly(['name', 'invitationCode'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 200
+        && (contactFromRelationship(uid, other, request.resource.data)
+          || contactFromInvitation(uid, other, request.resource.data));
+      allow delete: if false;
+    }
     match /partner_blocks/{uid}/targets/{other} {
       allow read, delete: if isOwner(uid);
       allow create: if isOwner(uid) && other != uid
-        && get(userPath(uid)).data.get('partnerUid', null) == other
-        && getAfter(userPath(uid)).data.get('partnerUid', null) == null
-        && getAfter(userPath(other)).data.get('partnerUid', null) == null
+        && ((get(userPath(uid)).data.get('partnerUid', null) == other
+          && getAfter(userPath(uid)).data.get('partnerUid', null) == null
+          && getAfter(userPath(other)).data.get('partnerUid', null) == null)
+          || (get(userPath(uid)).data.get('partnerUid', null) != other
+            && exists(contactPath(uid, other))
+            && request.resource.data.name == get(contactPath(uid, other)).data.name
+            && getAfter(userPath(uid)).data.lastBlockedUid == other
+            && getAfter(userPath(uid)).data.coupleEpoch == epoch(uid) + 1))
         && request.resource.data.keys().hasOnly(['name', 'createdAt'])
         && request.resource.data.name is string
         && request.resource.data.createdAt == request.time;
@@ -90,6 +121,12 @@ service cloud.firestore {
           && request.resource.data.name is string && request.resource.data.name.size() > 0
           && request.resource.data.name.size() <= 200
           && nullableString(request.resource.data.get('photoUrl', null)))
+        || (isOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['coupleEpoch', 'lastBlockedUid'])
+          && request.resource.data.lastBlockedUid is string
+          && request.resource.data.coupleEpoch == epoch(uid) + 1
+          && !exists(blockPath(uid, request.resource.data.lastBlockedUid))
+          && getAfter(blockPath(uid, request.resource.data.lastBlockedUid)).data.createdAt == request.time)
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['partnerUid', 'relationshipId', 'coupleEpoch'])
           && (linkPair(uid, resource.data.get('partnerUid', null), request.resource.data.get('partnerUid', null))
             || (request.resource.data.get('relationshipId', null) == null

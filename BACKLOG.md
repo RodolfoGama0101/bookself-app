@@ -1,6 +1,6 @@
 # Backlog do projeto
 
-Atualizado em **05/10/2026**. Nome atual: **Bookself App**. Proposta de novo nome: **Entrelace**, ainda não escolhida nem aplicada.
+Atualizado em **08/10/2026**. Nome atual: **Bookself App**. Proposta de novo nome: **Entrelace**, ainda não escolhida nem aplicada.
 
 Este arquivo centraliza as tarefas identificadas na análise do repositório e no planejamento solicitado de filmes, séries e músicas para casais. Novas descobertas devem entrar aqui. A lista não significa que todos os itens estejam aprovados para implementação imediata.
 
@@ -76,7 +76,7 @@ Decisões/ensaios e ajustes de documentação podem ocorrer enquanto correções
 - [ ] **COUPLE-07 · P2 · Evolução:** mostrar interesses em comum e ajudar a escolher o próximo item. **Dep.:** COUPLE-06. **Concluir quando:** comparação usar apenas itens permitidos, resultados explicarem a coincidência e conta sem parceiro/sem coincidências tiver estado adequado.
 - [ ] **COUPLE-08 · P2 · Evolução:** unificar feed e estatísticas por mídia para o casal. **Dep.:** DATA-06, MOVIE-02, SERIES-02, MUSIC-02. **Concluir quando:** filtros e métricas por categoria usarem eventos válidos, não contarem duas vezes uma experiência conjunta e respeitarem visibilidade/desvínculo.
 
-- [ ] **COUPLE-09 · P1 · Evolução:** permitir bloquear após recusa/término e gerir bloqueios independentes fora de uma relação ativa. **Dep.:** COUPLE-03, COUPLE-04. **Concluir quando:** identificação mínima vier de interação autorizada, sem diretório público/UID exposto; dono puder bloquear/desbloquear sem vínculo ativo, bloqueios dos dois lados forem independentes e convites antigos não reviverem. COUPLE-04 entrega o bloqueio do parceiro ativo; esta extensão mantém a política v1 aprovada sem anunciar o fluxo mais amplo como implementado.
+- [x] **COUPLE-09 · P1 · Evolução:** permitir bloquear após recusa/término e gerir bloqueios independentes fora de uma relação ativa. **Dep.:** COUPLE-03, COUPLE-04. **Concluído localmente em 08/10/2026:** lista privada “Pessoas e bloqueios” em Convites e Compartilhamento, com identificação mínima persistida na reserva/término; sem diretório público ou UID/e-mail na interface. Serviço/regras exigem interação autorizada, bloqueio próprio e invalidação de convites por versão; desbloqueio mantém bloqueio do outro lado e exige convite novo. Bloquear ex-parceiro preserva novo vínculo e dados pessoais. Confirmação, falha/repetição, troca de conta, descarte e layout 320 × 480/texto 2× cobertos. Formatação, análise limpa, 332 testes Flutter, 63 integrações Auth/Firestore e build web demo aprovados. [Decisão e limites](docs/decisions/010-bloqueios-independentes.md), [verificação](docs/DEVELOPMENT.md#bloqueios-independentes--couple-09). Sem migração, implantação remota ou execução nova em navegador/Android/iOS; términos antigos sem identificação persistida não são preenchidos retroativamente. SEC-06 continua pendente.
 
 ## 5. Base de múltiplas mídias e preservação de dados
 

@@ -441,6 +441,15 @@ class AuthService extends ChangeNotifier {
 
   Stream<Map<String, String>> watchBlocks() =>
       _partners.watchBlocks(_currentUserModel!.uid);
+  Stream<Map<String, String>> watchContacts() =>
+      _partners.watchContacts(_currentUserModel!.uid);
+  Future<String?> blockKnownPerson(String other) async {
+    if (_currentUserModel?.partnerUid == other) return blockPartner();
+    return (await _operatePartner(
+      (uid) => _partners.blockContact(uid, other),
+    )).error;
+  }
+
   Future<String?> unblockPartner(String other) async =>
       (await _operatePartner((uid) => _partners.unblock(uid, other))).error;
   Future<String?> blockPartner() async {

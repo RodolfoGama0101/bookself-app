@@ -684,3 +684,136 @@ test('bloqueio e término concorrentes não deixam vínculo unilateral', async (
   assert.deepEqual(await state(),{a:null,b:null,c:null,d:null});
   assert.equal((await getDoc(doc(db('a'),'books','a-book'))).exists(),true);
 });
+
+async function remember(database, code) {
+  const invitation=(await getDoc(doc(database,'partner_invites',code))).data();
+  const batch=writeBatch(database);
+  batch.set(doc(database,'partner_contacts',invitation.senderUid,'targets',invitation.recipientUid),{name:invitation.recipientName,invitationCode:code});
+  batch.set(doc(database,'partner_contacts',invitation.recipientUid,'targets',invitation.senderUid),{name:invitation.senderName,invitationCode:code});
+  return batch.commit();
+}
+async function blockKnown(database, uid, other) {
+  return runTransaction(database,async tx=>{
+    const ownRef=doc(database,'users',uid);
+    const contactRef=doc(database,'partner_contacts',uid,'targets',other);
+    const blockRef=doc(database,'partner_blocks',uid,'targets',other);
+    const own=(await tx.get(ownRef)).data();
+    const contact=(await tx.get(contactRef)).data();
+    if ((await tx.get(blockRef)).exists()) return;
+    tx.set(blockRef,{name:contact?.name ?? 'Forjado',createdAt:serverTimestamp()});
+    tx.update(ownRef,{coupleEpoch:(own.coupleEpoch??0)+1,lastBlockedUid:other});
+  });
+}
+test('contatos de convite reservado são privados e não autorizam perfil ou biblioteca',async()=>{
+  const code=await issue(db('a'),'a');await claim(db('b'),code,'b');
+  await assertSucceeds(remember(db('b'),code));
+  assert.equal((await getDocs(collection(db('a'),'partner_contacts','a','targets'))).size,1);
+  await assertFails(getDocs(collection(db('c'),'partner_contacts','a','targets')));
+  await assertFails(remember(db('c'),code));
+  await assertFails(setDoc(doc(db('a'),'partner_contacts','a','targets','c'),{name:'Pessoa fictícia',invitationCode:code}));
+  await assertFails(setDoc(doc(db('a'),'partner_contacts','a','targets','b'),{name:'Forjado',invitationCode:code}));
+  await assertFails(getDoc(doc(db('b'),'users','a')));
+  await assertFails(getDoc(doc(db('b'),'books','a-book')));
+});
+test('código sem reserva, dados extras e contato criado por terceiro são negados',async()=>{
+  const code=await issue(db('a'),'a');
+  await assertFails(setDoc(doc(db('a'),'partner_contacts','a','targets','b'),{name:'Pessoa fictícia',invitationCode:code}));
+  await claim(db('b'),code,'b');await remember(db('b'),code);
+  await assertFails(updateDoc(doc(db('b'),'partner_contacts','b','targets','a'),{email:'private@example.com'}));
+  await assertFails(blockKnown(db('c'),'a','b'));
+  await assertFails(blockKnown(db('a'),'a','c'));
+  await assertFails(updateDoc(doc(db('a'),'users','a'),{coupleEpoch:1,lastBlockedUid:'b'}));
+});
+test('após recusa ambos bloqueiam independentemente e desbloqueio não revive convite',async()=>{
+  const code=await issue(db('a'),'a');await claim(db('b'),code,'b');await remember(db('b'),code);
+  await updateDoc(doc(db('b'),'partner_invites',code),{status:'declined',decidedAt:serverTimestamp()});
+  await assertSucceeds(blockKnown(db('a'),'a','b'));
+  await assertSucceeds(blockKnown(db('b'),'b','a'));
+  await assertSucceeds(deleteDoc(doc(db('a'),'partner_blocks','a','targets','b')));
+  await assertFails(deleteDoc(doc(db('a'),'partner_blocks','b','targets','a')));
+  await assertFails(accept(db('b'),code,'a','b'));
+  const next=await issue(db('b'),'b');
+  await assertFails(claim(db('a'),next,'a'));
+  assert.deepEqual(await state(),{a:null,b:null,c:null,d:null});
+});
+test('bloquear após término preserva novo parceiro e registros pessoais',async()=>{
+  await pair(db('a'),'a','b');
+  const code=(await getDoc(doc(db('a'),'partner_invite_slots','a'))).data().code;
+  await remember(db('a'),code);await pair(db('a'),'a','b',false);
+  await pair(db('a'),'a','c');
+  await assertSucceeds(blockKnown(db('a'),'a','b'));
+  assert.deepEqual(await state(),{a:'c',b:null,c:'a',d:null});
+  assert.equal((await getDoc(doc(db('a'),'books','a-book'))).data().title,'Livro fictício');
+  await assertFails(getDoc(doc(db('b'),'shared_books','a-book')));
+});
+test('contatos legados podem ser registrados junto ao término sem leitura privada alheia',async()=>{
+  await env.withSecurityRulesDisabled(async context=>{
+    await updateDoc(doc(context.firestore(),'users','a'),{partnerUid:'b'});
+    await updateDoc(doc(context.firestore(),'users','b'),{partnerUid:'a'});
+  });
+  const database=db('b');const batch=writeBatch(database);
+  for (const [uid,other] of [['a','b'],['b','a']]) {
+    batch.set(doc(database,'partner_contacts',uid,'targets',other),{name:'Pessoa fictícia',invitationCode:null});
+    batch.update(doc(database,'users',uid),{partnerUid:null,relationshipId:null});
+  }
+  await assertSucceeds(batch.commit());
+  await assertSucceeds(blockKnown(db('a'),'a','b'));
+});
+test('bloqueio e aceite simultâneos não deixam relação ativa com pessoa bloqueada',async()=>{
+  const code=await issue(db('a'),'a');await claim(db('b'),code,'b');await remember(db('b'),code);
+  await Promise.allSettled([blockKnown(db('a'),'a','b'),accept(db('b'),code,'a','b')]);
+  const links=await state();assertReciprocal(links);
+  const blocked=(await getDoc(doc(db('a'),'partner_blocks','a','targets','b'))).exists();
+  assert.equal(blocked,links.a===null);
+});
+test('desbloquear não permite aceite de convites pendentes anteriores',async()=>{
+  const code=await issue(db('a'),'a');await claim(db('b'),code,'b');await remember(db('b'),code);
+  await blockKnown(db('b'),'b','a');
+  await deleteDoc(doc(db('b'),'partner_blocks','b','targets','a'));
+  await assertFails(accept(db('b'),code,'a','b'));
+  await assertFails(updateDoc(doc(db('a'),'partner_invites',code),{recipientEpoch:1}));
+  assert.deepEqual(await state(),{a:null,b:null,c:null,d:null});
+});
+test('reserva e contatos dos dois participantes podem ser gravados atomicamente',async()=>{
+  const code=await issue(db('a'),'a');await lookup(db('b'),code,'b');
+  const database=db('b');
+  await assertSucceeds(runTransaction(database,async tx=>{
+    const own=(await tx.get(doc(database,'users','b'))).data();
+    const ref=doc(database,'partner_invites',code);
+    const invitation=(await tx.get(ref)).data();
+    tx.update(ref,{recipientUid:'b',recipientEpoch:own.coupleEpoch??0,recipientName:own.name,recipientPhotoUrl:null});
+    tx.set(doc(database,'partner_contacts','a','targets','b'),{name:own.name,invitationCode:code});
+    tx.set(doc(database,'partner_contacts','b','targets','a'),{name:invitation.senderName,invitationCode:code});
+  }));
+  await assertSucceeds(blockKnown(db('b'),'b','a'));
+});
+test('bloqueio ativo registra contatos junto à revogação sem ler perfil privado do parceiro',async()=>{
+  await pair(db('a'),'a','b');const database=db('a');
+  await assertSucceeds(runTransaction(database,async tx=>{
+    const own=(await tx.get(doc(database,'users','a'))).data();
+    const a=(await tx.get(doc(database,'partner_profiles','a'))).data();
+    const b=(await tx.get(doc(database,'partner_profiles','b'))).data();
+    tx.set(doc(database,'partner_contacts','a','targets','b'),{name:b.name,invitationCode:null});
+    tx.set(doc(database,'partner_contacts','b','targets','a'),{name:a.name,invitationCode:null});
+    tx.set(doc(database,'partner_blocks','a','targets','b'),{name:b.name,createdAt:serverTimestamp()});
+    tx.update(doc(database,'users','a'),{partnerUid:null,relationshipId:null,coupleEpoch:(own.coupleEpoch??0)+1});
+    tx.update(doc(database,'users','b'),{partnerUid:null,relationshipId:null});
+  }));
+  await assertSucceeds(blockKnown(db('b'),'b','a'));
+  assert.deepEqual(await state(),{a:null,b:null,c:null,d:null});
+});
+test('término conserva contato mínimo mesmo com apresentação do parceiro contaminada',async()=>{
+  await pair(db('a'),'a','b');
+  await env.withSecurityRulesDisabled(context=>updateDoc(doc(context.firestore(),'partner_profiles','b'),{email:'private@example.com'}));
+  await assertFails(getDoc(doc(db('a'),'partner_profiles','b')));
+  const database=db('a');
+  await assertSucceeds(runTransaction(database,async tx=>{
+    const own=(await tx.get(doc(database,'users','a'))).data();
+    const contact=(await tx.get(doc(database,'partner_contacts','a','targets','b'))).data();
+    tx.set(doc(database,'partner_contacts','a','targets','b'),{name:contact?.name??'Pessoa conhecida',invitationCode:null});
+    tx.set(doc(database,'partner_contacts','b','targets','a'),{name:own.name,invitationCode:null});
+    tx.update(doc(database,'users','a'),{partnerUid:null,relationshipId:null});
+    tx.update(doc(database,'users','b'),{partnerUid:null,relationshipId:null});
+  }));
+  await assertSucceeds(blockKnown(db('a'),'a','b'));
+});

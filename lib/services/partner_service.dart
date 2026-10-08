@@ -37,6 +37,49 @@ class PartnerService {
       _firestore.collection('partner_invite_slots').doc(uid);
   DocumentReference<Map<String, dynamic>> _invite(String code) =>
       _firestore.collection('partner_invites').doc(code);
+  DocumentReference<Map<String, dynamic>> _contact(String uid, String other) =>
+      _firestore
+          .collection('partner_contacts')
+          .doc(uid)
+          .collection('targets')
+          .doc(other);
+  DocumentReference<Map<String, dynamic>> _block(String uid, String other) =>
+      _firestore
+          .collection('partner_blocks')
+          .doc(uid)
+          .collection('targets')
+          .doc(other);
+
+  void _rememberInvitation(
+    Transaction tx,
+    PartnerInvitation invitation,
+    String recipient,
+    String recipientName,
+  ) {
+    tx.set(_contact(recipient, invitation.senderUid), {
+      'name': invitation.senderName,
+      'invitationCode': invitation.code,
+    });
+    tx.set(_contact(invitation.senderUid, recipient), {
+      'name': recipientName,
+      'invitationCode': invitation.code,
+    });
+  }
+
+  Future<void> _rememberRelationship(
+    Transaction tx,
+    String uid,
+    String other,
+    String ownName,
+  ) async {
+    // Término/bloqueio não dependem da disponibilidade do perfil alheio.
+    final contact = (await tx.get(_contact(uid, other))).data();
+    tx.set(_contact(uid, other), {
+      'name': contact?['name'] ?? 'Pessoa conhecida',
+      'invitationCode': null,
+    });
+    tx.set(_contact(other, uid), {'name': ownName, 'invitationCode': null});
+  }
 
   static String newCode() {
     final random = Random.secure();
@@ -156,6 +199,12 @@ class PartnerService {
           'recipientPhotoUrl': user['photoUrl'],
         });
       }
+      _rememberInvitation(
+        tx,
+        invitation,
+        uid,
+        invitation.recipientName ?? user!['name'] as String,
+      );
       return invitation;
     });
   }
@@ -295,6 +344,7 @@ class PartnerService {
           'O vínculo mudou. Confira seu perfil novamente.',
         );
       }
+      await _rememberRelationship(tx, uid, partnerUid, user!['name'] as String);
       tx.update(_user(uid), {'partnerUid': null, 'relationshipId': null});
       tx.update(_user(partnerUid), {
         'partnerUid': null,
@@ -309,6 +359,50 @@ class PartnerService {
       .collection('targets')
       .snapshots()
       .map((s) => {for (final d in s.docs) d.id: d.data()['name'] as String});
+
+  Stream<Map<String, String>> watchContacts(String uid) => _firestore
+      .collection('partner_contacts')
+      .doc(uid)
+      .collection('targets')
+      .snapshots(includeMetadataChanges: true)
+      .map((s) {
+        if (s.metadata.isFromCache || s.metadata.hasPendingWrites) {
+          throw const PartnerInvitationException(
+            'Não foi possível confirmar as pessoas conhecidas. Verifique sua conexão.',
+          );
+        }
+        return {for (final d in s.docs) d.id: d.data()['name'] as String};
+      });
+
+  Future<void> blockContact(String uid, String other) async {
+    if (uid.isEmpty ||
+        other.isEmpty ||
+        uid == other ||
+        uid.contains('/') ||
+        other.contains('/')) {
+      throw ArgumentError('Identidades inválidas');
+    }
+    await _transaction((tx) async {
+      final own = (await tx.get(_user(uid))).data();
+      final contact = (await tx.get(_contact(uid, other))).data();
+      final blocked = await tx.get(_block(uid, other));
+      if (contact == null || own == null || own['partnerUid'] == other) {
+        throw const PartnerInvitationException(
+          'Confira a pessoa e o vínculo novamente antes de bloquear.',
+        );
+      }
+      if (blocked.exists) return;
+      tx.set(_block(uid, other), {
+        'name': contact['name'],
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      // Invalida também convites ainda pendentes: desbloquear exige um novo código.
+      tx.update(_user(uid), {
+        'coupleEpoch': (own['coupleEpoch'] as int? ?? 0) + 1,
+        'lastBlockedUid': other,
+      });
+    });
+  }
 
   Future<void> unblock(String uid, String other) => _firestore
       .collection('partner_blocks')
@@ -331,6 +425,7 @@ class PartnerService {
           'O vínculo mudou. Confira seu perfil novamente.',
         );
       }
+      await _rememberRelationship(tx, uid, other, own!['name'] as String);
       tx.set(
         _firestore
             .collection('partner_blocks')
@@ -342,7 +437,7 @@ class PartnerService {
       tx.update(_user(uid), {
         'partnerUid': null,
         'relationshipId': null,
-        'coupleEpoch': (own?['coupleEpoch'] as int? ?? 0) + 1,
+        'coupleEpoch': (own['coupleEpoch'] as int? ?? 0) + 1,
       });
       tx.update(_user(other), {'partnerUid': null, 'relationshipId': null});
     });

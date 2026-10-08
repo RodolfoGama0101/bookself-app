@@ -9,6 +9,7 @@ import '../../utils/error_handler.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/reading_surface.dart';
+import 'partner_blocks_screen.dart';
 
 class PartnerInvitationScreen extends StatefulWidget {
   const PartnerInvitationScreen({super.key});
@@ -353,6 +354,17 @@ class _PartnerInvitationScreenState extends State<PartnerInvitationScreen> {
             const SizedBox(height: 12),
             const Text(
               'O convite vale por 7 dias. Enviar ou consultar um código não libera acesso aos seus registros.',
+            ),
+            TextButton.icon(
+              onPressed: _pending
+                  ? null
+                  : () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const PartnerBlocksScreen(),
+                      ),
+                    ),
+              icon: const Icon(Icons.block),
+              label: const Text('Pessoas e bloqueios'),
             ),
             if (_uid == null) const Text('Entre novamente para continuar.'),
             if (linked)

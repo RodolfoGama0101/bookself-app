@@ -138,6 +138,7 @@ void main() {
       );
       expect(database.documents['receiver']!['partnerUid'], isNull);
       expect(database.readPaths, isNot(contains('users/sender')));
+      expect(database.readPaths, isNot(contains('partner_profiles/sender')));
       await expectLater(
         service.claim('receiver', code),
         throwsA(isA<PartnerInvitationException>()),
@@ -272,6 +273,113 @@ void main() {
       );
       expect(
         database.controller('partner_invites/$outgoingCode').hasListener,
+        isFalse,
+      );
+    },
+  );
+  test(
+    'reserva guarda apenas nomes e origem para ambos, sem perfil privado alheio',
+    () async {
+      database.documents['partner_invites/$code'] = invitation(recipient: null);
+      await service.claim('receiver', code);
+      expect(database.documents['partner_contacts/receiver/targets/sender'], {
+        'name': 'Pessoa remetente',
+        'invitationCode': code,
+      });
+      expect(database.documents['partner_contacts/sender/targets/receiver'], {
+        'name': 'Pessoa',
+        'invitationCode': code,
+      });
+      expect(database.readPaths, isNot(contains('users/sender')));
+    },
+  );
+  test(
+    'término legado conserva identificação mínima e permite bloquear sem vínculo',
+    () async {
+      database.documents['receiver']!['partnerUid'] = 'sender';
+      database.documents['sender']!['partnerUid'] = 'receiver';
+      await service.unlink('receiver', 'sender');
+      expect(
+        database.documents['partner_contacts/receiver/targets/sender']!['name'],
+        'Pessoa conhecida',
+      );
+      await service.blockContact('receiver', 'sender');
+      expect(database.documents['receiver']!['coupleEpoch'], 1);
+      expect(database.documents['receiver']!['legacy'], 'preservado');
+      expect(database.documents['sender']!['partnerUid'], isNull);
+      expect(database.readPaths, isNot(contains('users/sender')));
+    },
+  );
+  test(
+    'bloqueio conhecido aguarda escrita, preserva novo vínculo e é repetível',
+    () async {
+      database.documents['partner_contacts/receiver/targets/sender'] = {
+        'name': 'Pessoa remetente',
+        'invitationCode': code,
+      };
+      database.documents['receiver']!['partnerUid'] = 'new-partner';
+      database.commitGate = Completer<void>();
+      var confirmed = false;
+      final pending = service
+          .blockContact('receiver', 'sender')
+          .then((_) => confirmed = true);
+      await Future<void>.delayed(Duration.zero);
+      expect(confirmed, isFalse);
+      expect(database.writes, 0);
+      database.commitGate!.complete();
+      await pending;
+      database.commitGate = null;
+      expect(database.documents['receiver']!['partnerUid'], 'new-partner');
+      expect(database.documents['receiver']!['lastBlockedUid'], 'sender');
+      final writes = database.writes;
+      await service.blockContact('receiver', 'sender');
+      expect(database.writes, writes);
+    },
+  );
+  test(
+    'pessoa desconhecida, parceiro ativo e caminhos inválidos não são bloqueados por contato',
+    () async {
+      await expectLater(
+        service.blockContact('receiver', 'stranger'),
+        throwsA(isA<PartnerInvitationException>()),
+      );
+      database.documents['partner_contacts/receiver/targets/sender'] = {
+        'name': 'Pessoa',
+        'invitationCode': code,
+      };
+      database.documents['receiver']!['partnerUid'] = 'sender';
+      await expectLater(
+        service.blockContact('receiver', 'sender'),
+        throwsA(isA<PartnerInvitationException>()),
+      );
+      await expectLater(
+        service.blockContact('receiver', 'a/b'),
+        throwsArgumentError,
+      );
+      expect(database.writes, 0);
+    },
+  );
+  test(
+    'falha de escrita não cria bloqueio nem altera versão do perfil',
+    () async {
+      database.documents['partner_contacts/receiver/targets/sender'] = {
+        'name': 'Pessoa',
+        'invitationCode': code,
+      };
+      database.commitGate = Completer<void>();
+      final pending = service.blockContact('receiver', 'sender');
+      final expectation = expectLater(pending, throwsStateError);
+      await Future<void>.delayed(Duration.zero);
+      database.commitGate!.completeError(StateError('Falha fictícia'));
+      await expectation;
+      expect(
+        database.documents.containsKey(
+          'partner_blocks/receiver/targets/sender',
+        ),
+        isFalse,
+      );
+      expect(
+        database.documents['receiver']!.containsKey('coupleEpoch'),
         isFalse,
       );
     },

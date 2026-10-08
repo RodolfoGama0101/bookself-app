@@ -1,5 +1,7 @@
 # Autorização e vínculo atuais
 
+Atualização de 08/10/2026 — COUPLE-09: contatos privados exigem convite reservado ou relação recíproca comprovados; não criam diretório nem autorização pessoal. Bloqueio fora do vínculo exige contato persistido e incremento atômico de `coupleEpoch`, comprovado por `lastBlockedUid` e novo bloqueio. Terceiros, falsificação de nome/participante, versões avulsas, reuso de convite e bloqueios bilaterais foram verificados em emuladores. [Contrato e compatibilidade](decisions/010-bloqueios-independentes.md); [resultados](DEVELOPMENT.md#bloqueios-independentes--couple-09). A revisão de implantação SEC-06 deve incluir a nova coleção e o campo opcional, sem tomar o resultado local como autorização remota.
+
 Revisão: 05/10/2026. Auditoria remota de 03/10 somente de regras/índices; validação das novas regras exclusivamente em emuladores. Nenhuma escrita, migração ou implantação remota foi executada pelo agente.
 
 ## Resultado da auditoria remota

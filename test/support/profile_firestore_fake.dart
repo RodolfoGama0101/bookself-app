@@ -31,6 +31,8 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
         'partner_invites',
         'partner_invite_slots',
         'partner_invite_lookups',
+        'partner_contacts',
+        'partner_blocks',
         'books',
         'bible_progress',
         'shared_books',
@@ -111,6 +113,10 @@ class _ProfileReference extends Fake
   String get key => collectionPath == 'users' ? id : path;
   @override
   final String id;
+
+  @override
+  CollectionReference<Map<String, dynamic>> collection(String collectionPath) =>
+      _ProfileCollection(database, '$path/$collectionPath');
 
   @override
   Stream<DocumentSnapshot<Map<String, dynamic>>> snapshots({

@@ -7,6 +7,7 @@ import '../../services/auth_service.dart';
 import '../../services/book_service.dart';
 import '../../services/bible_service.dart';
 import '../widgets/reading_surface.dart';
+import 'partner_blocks_screen.dart';
 
 class SharingScreen extends StatefulWidget {
   const SharingScreen({super.key, this.bookService, this.bibleService});
@@ -176,6 +177,15 @@ class _SharingScreenState extends State<SharingScreen> {
             ),
             const SizedBox(height: 24),
             Text('Bloqueios', style: Theme.of(context).textTheme.titleLarge),
+            TextButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const PartnerBlocksScreen(),
+                ),
+              ),
+              icon: const Icon(Icons.people_outline),
+              label: const Text('Pessoas e bloqueios'),
+            ),
             if (auth.currentUserModel?.partnerUid != null)
               OutlinedButton.icon(
                 onPressed: _saving || auth.isLoading
