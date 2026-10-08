@@ -36,13 +36,15 @@ enum ErrorOperation {
 
 /// Transporta somente o status, sem URL, chave, consulta ou corpo da resposta.
 class CatalogRequestException implements Exception {
-  const CatalogRequestException(this.statusCode);
+  const CatalogRequestException(this.statusCode, {this.mediaName = 'livros'});
 
   final int statusCode;
+  final String mediaName;
 }
 
 class CatalogConfigurationException implements Exception {
-  const CatalogConfigurationException();
+  const CatalogConfigurationException({this.mediaName = 'livros'});
+  final String mediaName;
 }
 
 class CatalogQuotaException extends CatalogRequestException {
@@ -198,7 +200,7 @@ class ErrorHandler {
     if (error is CatalogConfigurationException) {
       return (
         message:
-            'A busca de livros está indisponível. Você pode cadastrar manualmente.',
+            'A busca de ${error.mediaName} está indisponível. Você pode cadastrar manualmente.',
         category: 'catalog',
         code: 'not-configured',
       );
@@ -240,7 +242,7 @@ class ErrorHandler {
           404 =>
             'O catálogo não está disponível no momento. Tente novamente mais tarde.',
           >= 500 && <= 599 => _unavailableMessage,
-          _ => 'Não foi possível buscar livros. Tente novamente.',
+          _ => 'Não foi possível buscar ${error.mediaName}. Tente novamente.',
         },
         category: 'catalog',
         code: status >= 400 && status <= 599 ? 'http-$status' : 'unknown',

@@ -20,6 +20,39 @@ const progress = (uid, bookName = 'Gênesis', readChapters = [1]) => ({userId: u
 const db = uid => env.authenticatedContext(uid, {email: `${uid}@example.com`}).firestore();
 
 const jointSelection = {mediaType:'movie',title:'Filme fictício',subtitle:'',source:'manual',reference:null,episode:null};
+test('MOVIE-02/03: filme pessoal, seleção mínima e sessão consentida após desvínculo',async()=>{
+  const rid=await jointRelation();
+  const identity={kind:'manual',ownerId:'a',manualId:'movie'};
+  await assertSucceeds(mediaBatch(db('a'),'a','movie-catalog','movie-entry','movie',identity).commit());
+  await assertSucceeds(mediaBatch(db('b'),'b','movie-catalog','movie-entry','movie',{...identity,ownerId:'b'}).commit());
+  const own=doc(db('a'),'libraries/a/entries/movie-entry');
+  await assertSucceeds(updateDoc(own,{state:{status:'watched',watchedOn:'2020-01-01'},revision:2,updatedAt:serverTimestamp()}));
+  for(const uid of ['b','c']) {
+    await assertFails(getDoc(doc(db(uid),'libraries/a/entries/movie-entry')));
+    await assertFails(updateDoc(doc(db(uid),'libraries/a/entries/movie-entry'),{state:{status:'planned',watchedOn:null},revision:3,updatedAt:serverTimestamp()}));
+  }
+  const selection={...jointSelection,source:'library',reference:mediaKey('movie',identity)};
+  const base=`couple_relationships/${rid}/lists/movies`;
+  await assertSucceeds(setDoc(doc(db('a'),base),{schemaVersion:1,title:'Filmes para nós',authorId:'a',version:1,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
+  const item={schemaVersion:1,selection,authorId:'a',version:1,createdAt:serverTimestamp(),updatedAt:serverTimestamp(),removed:false,removedBy:null};
+  await assertSucceeds(setDoc(doc(db('a'),`${base}/items/movie`),item));
+  await assertSucceeds(getDoc(doc(db('b'),`${base}/items/movie`)));
+  await assertFails(setDoc(doc(db('a'),`${base}/items/private`),{...item,selection:{...selection,watchedOn:'2020-01-01'}}));
+  await assertSucceeds(jointWrite(db('a'),rid,'experience',{...jointExperience(),selection}));
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'confirmed'));
+  assert.equal((await getDoc(own)).data().state.status,'watched');
+  assert.equal((await getDoc(doc(db('b'),'libraries/b/entries/movie-entry'))).data().state.status,'planned');
+  await pair(db('a'),'a','b',false);
+  await assertSucceeds(getDoc(doc(db('b'),jointPath(rid))));
+  await assertSucceeds(getDoc(doc(db('b'),`${base}/items/movie`)));
+  await assertFails(setDoc(doc(db('b'),`${base}/items/late`),{...item,authorId:'b'}));
+  await assertFails(jointRespond(db('b'),'b',rid,'confirmed'));
+  await assertFails(getDoc(doc(db('b'),'libraries/a/entries/movie-entry')));
+  await pair(db('a'),'a','c');
+  await assertFails(getDoc(doc(db('c'),jointPath(rid))));
+  await assertFails(getDoc(doc(db('c'),`${base}/items/movie`)));
+  await assertSucceeds(getDoc(own));
+});
 const jointPath = (rid,id='experience') => `couple_relationships/${rid}/experiences/${id}`;
 async function jointRelation() {
   await pair(db('a'),'a','b');

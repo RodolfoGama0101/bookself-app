@@ -63,7 +63,7 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 - Design Organic com paleta areia/sálvia/musgo, tipografia Outfit, cartões flexíveis e navegação lateral em telas grandes. Login, busca, capítulos e perfil têm limites de largura; telas pequenas têm barra inferior e, abaixo de 380 px com texto acima de 1,5×, menu com os quatro destinos.
 - Fechamento seguro de busca, perfil, detalhes e diálogos durante requisições, com resultado de exclusão na estante.
 
-A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes, séries e músicas ainda não estão implementados. Convites consentidos estão prontos no código/regras locais; a implantação depende de SEC-06 e dos controles restantes de COUPLE-04.
+A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes têm cadastro manual, detalhes, biblioteca/status/data e seleção para listas/sessões do casal no código local, habilitados nos emuladores. A busca externa aguarda fornecedor aprovado e intermediário; séries e músicas ainda não estão implementadas. [Ativação, contrato e limites de filmes](docs/MOVIES.md). Convites consentidos estão prontos no código/regras locais; a implantação depende de SEC-06 e dos controles restantes de COUPLE-04.
 
 Sem preferência salva, o tema inicial continua escuro. “Sistema” acompanha o brilho do dispositivo; Claro/Escuro explícitos permanecem fixos. A preferência é do app no dispositivo/navegador, vale também no login e permanece após logout; outros dispositivos têm escolhas independentes. Limpar os dados locais remove a preferência. A tela de carregamento da inicialização mantém a aparência escura; a interface principal abre após a leitura da escolha salva.
 
@@ -107,6 +107,8 @@ APK Android **1.1.0+2** disponível na [pré-release v1.1.0](https://github.com/
    ```
 
 ## Validação
+
+Em **08/10/2026 — API-04/MOVIE-01/02/03**, categoria de filmes manual integrada, com biblioteca/status/data e ações consentidas de lista/sessão do casal. Análise limpa, **426 testes Flutter**, **86 testes Node/demo** e build web demo aprovados; jornada web confirmou cadastro, mudança de status, data e filtro. API-04/MOVIE-01 permanecem parciais pela ausência de fornecedor/intermediário real; MOVIE-02/03 concluídas localmente, sem produção. [Contrato e pendências](docs/MOVIES.md), [evidências](docs/DEVELOPMENT.md#filmes--api-04-movie-010203).
 
 Em **08/10/2026 — DOC-03/PROD-03/UI-03/API-05**, roteiro reproduzível e servidor web local adicionados; contraste, nomes/estados acessíveis e grade bíblica ajustados. Análise limpa, **402 testes Flutter**, **85 testes Node/demo** e build web demo aprovados. Jornada web confirmou manual sem chave, capa/fallback, leitura/recarga e capítulos pelo teclado. Os quatro itens continuam em andamento: reprodução independente, feedback humano, leitores de tela reais e execução Android/iOS ainda pendentes. [Achados e roteiro](docs/ACCESSIBILITY.md), [evidências](docs/WEB_VALIDATION.md#validação-local-de-fluxos-e-acessibilidade--08102026).
 

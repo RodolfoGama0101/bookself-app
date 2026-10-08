@@ -1,5 +1,13 @@
 # Desenvolvimento com emuladores
 
+## Filmes — API-04, MOVIE-01/02/03
+
+Em **08/10/2026**, arquivos Dart afetados formatados, análise sem apontamentos e **426 testes Flutter aprovados** (24 novos de catálogo/persistência/interface). **86 testes Node/demo aprovados**, incluindo jornada de duas bibliotecas de filmes, seleção mínima em lista, dupla confirmação de sessão e revogação/histórico após desvínculo. O build web demo e a verificação preliminar Wasm passaram. Não houve novas dependências, alteração de regras/índices ou arquivos Firebase gerados.
+
+Navegador integrado com FlutterFire real, exclusivamente Auth 9099/Firestore 8080 do projeto `demo-bookself` e servidor loopback 17361: conta fictícia, Biblioteca → Filmes, cadastro manual de título/ano sem pôster/API, Quero assistir → Assistido sem data, informar data civil 07/10/2026, retorno à biblioteca e filtro Assistidos confirmados. Evidência local ignorada `build/movies-demo.png`. Fluxos de casal/terceiro/novo vínculo e concorrência foram verificados em testes Dart e emuladores; não houve jornada visual de duas contas nesta etapa. [Contrato e limites](MOVIES.md).
+
+Android/iOS e busca real não executados: sem dispositivo/fornecedor audiovisual aprovado/credencial de ensaio. Backend de catálogo, adaptação de provedor musical, cache conforme termos, implantação de regras/índices e publicação permanecem pendentes. A ativação demo não autoriza produção. SDK/launchers: executável Dart e snapshot Flutter do SDK registrado, pois launchers `.bat` não responderam neste host.
+
 ## Interesses e ensaios de catálogo — COUPLE-07, API-02/03
 
 Em **08/10/2026**, função de comparação e widget de interesses da lista ativa verificados por quatro novas regressões Dart: autoria, retirada, terceiro, duplicatas, identidades distintas, escolha explícita, erro do stream, cancelamento/troca de conta e 320 × 480/texto 2×. Arquivos afetados formatados, **análise sem apontamentos, 398 testes Flutter e build web demo aprovados**, incluindo verificação preliminar Wasm. Comandos seguem os mesmos SDKs abaixo. Não há novas dependências, regras, índices ou consultas pessoais; não foi necessário repetir a suíte Auth/Firestore sem alterações nessa camada. Links locais: 310 verificados, nenhum destino ausente; diff sem erros de whitespace.

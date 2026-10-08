@@ -37,6 +37,8 @@ Para outro ambiente, mantenha outro arquivo `config/<ambiente>.local.json`, igno
 
 ## Pendência SEC-03: restrições, quotas e rotação
 
+Para a entrega local de filmes, `USE_MOVIE_LIBRARY` habilita as telas fora do modo demo; distribuição depende das regras/índices de SEC-06. `MOVIE_CATALOG_URL` e `MOVIE_CATALOG_PROVIDER` descrevem somente um intermediário HTTPS normalizado. Sem esses valores, cadastro manual continua disponível. Nunca passar segredo de fornecedor nesses defines; backend e fornecedor continuam pendentes em API-02/04. [Contrato completo de filmes](MOVIES.md#catálogo-configurável).
+
 **A consulta remota não foi executada.** A revisão automática bloqueou a tentativa de consultar metadados de restrições/quotas no Google porque ela enviaria a chave existente para um endpoint externo sem autorização explícita para esse destino. Não foi feita tentativa alternativa para contornar o bloqueio.
 
 Retomar com autorização específica do usuário ou revisão manual por ele no console do projeto correto. Registrar somente: identificação não secreta do recurso/ambiente, APIs permitidas, restrições de aplicativo compatíveis com Android/iOS/web, limites efetivos de quota, alertas e responsável. Conferir configurações reais; não deduzir restrições pelo sucesso de uma chamada nem pela presença de um arquivo local. Referências: [restrições de API Keys](https://docs.cloud.google.com/api-keys/docs/add-restrictions-api-keys) e [quotas Service Usage](https://docs.cloud.google.com/service-usage/docs/overview).

@@ -1,5 +1,11 @@
 # Validação web com Firebase demo
 
+## Filmes manuais — 08/10/2026
+
+Build com `USE_FIREBASE_EMULATORS=true`, sem URL/fornecedor de catálogo externo. FlutterFire real usou somente `demo-bookself`, Auth 9099 e Firestore 8080; `node tool/serve-web.cjs 17361` serviu o build em loopback. Conta e filme fictícios criados pela interface. Biblioteca → Filmes abriu vazio, catálogo indisponível manteve manual e salvamento confirmou título/ano sem pôster. Detalhes mostraram criação independente, Quero assistir, Assistido sem data e posteriormente Assistido em 07/10/2026 após calendário pt-BR. Retorno preservou a categoria e filtro Assistidos exibiu o registro confirmado. Captura ignorada em `build/movies-demo.png`.
+
+Não foi executada busca real nem jornada visual de duas contas. Isolamento, sessões consentidas, concorrência, mudança de conta/vínculo e histórico após término foram cobertos pelos 426 testes Flutter e 86 Node/demo aprovados, conforme [DEVELOPMENT.md](DEVELOPMENT.md#filmes--api-04-movie-010203). Não houve produção, migração, deploy ou publicação.
+
 ## Validação local de fluxos e acessibilidade — 08/10/2026
 
 DOC-03, PROD-03, UI-03 e API-05 avançaram com avaliação exploratória pelo agente. Ambiente Windows, Flutter 3.44.0/Dart 3.12.0, navegador integrado em `127.0.0.1:17361`, Auth 9099/Firestore 8080 exclusivamente demo-bookself. Servidor `tool/serve-web.cjs` restrito a build/web e loopback. Conta e livro fictícios, sem chave Google Books. Chrome isolado do agent-browser foi bloqueado pelo Controle de Aplicativo Windows; não houve tentativa de desativar a política.

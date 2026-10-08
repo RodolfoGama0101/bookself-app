@@ -90,6 +90,8 @@ Listas e experiências ficam em Nós, como entradas próprias quando COUPLE-05/0
 
 ## Telas pequenas, grandes e retorno
 
+Em 08/10/2026, Biblioteca → Filmes foi implementada no modo demo/flag explícita, preservando Livros/Bíblia. Filmes têm páginas limitadas, filtros locais das páginas carregadas, cadastro/detalhes/status/data e ações para lista/sessão consentida em Nós. Retorno dos detalhes preserva filtro/páginas; troca de conta limpa o contexto. Catálogo real e consulta completa da biblioteca de filmes do parceiro permanecem pendentes. [Ativação e limites](MOVIES.md).
+
 - Em telas pequenas, quatro destinos principais com ícone e rótulo em português. Filtros de mídia podem rolar horizontalmente, com seleção identificável; ações/formulários e textos podem quebrar linhas e rolar verticalmente.
 - Em telas grandes, menu lateral com os mesmos destinos, ordem e nomes. Preservar a regra responsiva atual como ponto de partida (largura de 1.000 px e limite de escala do texto); o ponto de corte final deve ser verificado em UI-03.
 - A 320 px e texto 2×, os quatro destinos devem continuar alcançáveis com rótulo completo via semântica. Se a barra não comportar o conteúdo, usar menu compacto acessível com os quatro nomes; não reduzir a escala escolhida pelo usuário nem substituir títulos por ícones sem descrição. Essa alternativa precisa de teste e revisão visual em UI-03.

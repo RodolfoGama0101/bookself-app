@@ -39,6 +39,8 @@ Os testes de fontes reais sem rede e fallback estão entre os 402 Flutter aprova
 
 ## Filmes e séries
 
+Filmes têm cliente de contrato intermediário normalizado, busca/detalhes/paginação preparados e cadastro manual funcional no código local. Não há integração TMDB real, backend implantado ou fornecedor aprovado. A configuração sem segredo e os limites estão em [MOVIES.md](MOVIES.md#catálogo-configurável); API-02 e a parte externa de API-04 continuam pendentes.
+
 **TMDB** é um candidato para metadados de filmes, TV e imagens. Exige registro de credencial e concordância com termos; autenticação e limites precisam entrar no desenho, conforme a [documentação oficial](https://developer.themoviedb.org/docs/getting-started).
 
 O ensaio deve verificar português, temporadas/episódios, imagens, erros, plataformas, atribuição, condições comerciais, cache, quota e custos. Metadados de catálogo não fornecem por si acesso aos vídeos. Seleção e validação: API-02.

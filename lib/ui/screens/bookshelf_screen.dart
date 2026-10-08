@@ -23,6 +23,7 @@ class BookshelfScreen extends StatefulWidget {
     this.bookService,
     this.scope = BookshelfScope.combined,
     this.onOpenBible,
+    this.onOpenMovies,
     this.onClose,
     this.paginated = false,
   });
@@ -30,6 +31,7 @@ class BookshelfScreen extends StatefulWidget {
   final BookService? bookService;
   final BookshelfScope scope;
   final VoidCallback? onOpenBible;
+  final VoidCallback? onOpenMovies;
   final VoidCallback? onClose;
   final bool paginated;
 
@@ -458,6 +460,12 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                       avatar: Icon(Icons.library_books_outlined),
                       label: Text('Livros'),
                     ),
+                    if (widget.onOpenMovies != null)
+                      ActionChip(
+                        avatar: const Icon(Icons.movie_outlined),
+                        label: const Text('Filmes'),
+                        onPressed: widget.onOpenMovies,
+                      ),
                     if (widget.onOpenBible != null)
                       OutlinedButton.icon(
                         onPressed: widget.onOpenBible,
