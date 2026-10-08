@@ -1,6 +1,6 @@
 # Produto e expansão
 
-Revisão: 05/10/2026. **PROD-01 concluída como decisão de MVP aprovada pelo usuário.** O escopo abaixo orienta a expansão; filmes, séries e músicas continuam sem implementação.
+Revisão: 08/10/2026. **PROD-01 concluída como decisão de MVP aprovada pelo usuário; PROD-02 definida e revisada documentalmente.** O escopo abaixo orienta a expansão; filmes, séries e músicas continuam sem implementação.
 
 ## Direção solicitada
 
@@ -46,7 +46,7 @@ Os campos opcionais não impedem cadastro manual nas novas mídias. Busca depend
 
 Ficam para depois: avaliações/comentários novos, reprodução interna, letras, sessões sincronizadas, importação de histórico e playlists externas, recomendações automáticas, leitor de texto bíblico e estatísticas avançadas. Não remover campos pessoais legados por estarem fora do MVP.
 
-Continuam decisões separadas: marca (NAME-01), fornecedores e condições de acesso (API-02/03), esquema versionado (DATA-01), navegação (PROD-02) e regras detalhadas de especiais, episódios futuros, reassistir e spoilers (SERIES-01). A aprovação não escolhe silenciosamente essas alternativas nem autoriza migração, implantação ou publicação.
+Continuam decisões pendentes: marca (NAME-01), fornecedores e condições de acesso (API-02/03), esquema versionado (DATA-01) e regras detalhadas de especiais, episódios futuros, reassistir e spoilers (SERIES-01). A navegação foi definida separadamente em PROD-02, conforme [mapa v1](NAVIGATION.md). A aprovação do MVP não escolhe silenciosamente as alternativas pendentes nem autoriza migração, implantação ou publicação.
 
 ## Escopo musical escolhido — PROD-01
 
@@ -78,7 +78,9 @@ Desvinculação preserva dados pessoais e encerra acesso à biblioteca/progresso
 
 ## Navegação proposta
 
-Avaliar **Início, Biblioteca, Nós e Perfil**, com categorias na Biblioteca e Bíblia acessível em seção própria. Validar mapa e rótulos em tela pequena. Início mostra atividades e estatísticas por categoria; não soma capítulos, episódios e músicas como uma mesma medida. Nós concentra vínculo, listas e escolhas em comum.
+**PROD-02 definida e revisada documentalmente em 08/10/2026:** quatro destinos **Início, Biblioteca, Nós e Perfil**, com filtros das mídias implementadas na Biblioteca. Bíblia conserva uma jornada própria, acessível por “Acompanhar Bíblia” na Biblioteca e no Início. Nós concentra consulta do parceiro, convites, gestão do vínculo e bloqueios; listas/experiências entram quando funcionais. Início mostra atividades e estatísticas por categoria, sem somar capítulos, episódios e músicas como uma mesma medida.
+
+O [mapa v1 e os fluxos](NAVIGATION.md) detalham inclusão manual/catálogo, estados por mídia, conta sem parceiro, falha/revogação de dados compartilhados, contexto de retorno, telas pequenas/texto ampliado e entrega incremental. A conclusão é da especificação; o aplicativo ainda usa Início/Estante/Bíblia/Perfil. Implementação em UI-01 após DATA-02; protótipos/uso real e acessibilidade em PROD-03/UI-03. Não atribuir aprovação específica do desenho ao usuário nem considerar as categorias futuras já implementadas.
 
 ## Nome
 
