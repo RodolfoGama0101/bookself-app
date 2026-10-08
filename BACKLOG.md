@@ -157,7 +157,10 @@ Decisões/ensaios e ajustes de documentação podem ocorrer enquanto correções
 
 - [x] **REL-07 · P1 · Publicação:** gerar APK atualizado e publicar release no GitHub a pedido do usuário. **Dep.:** CORE-13, UI-04. **Concluído em 05/10/2026:** versão 1.1.0+2, APK universal release verificado por apksigner/aapt com assinatura debug existente; análise limpa, 283 testes Flutter e seis testes Node aprovados. Código enviado à develop e [pré-release v1.1.0](https://github.com/RodolfoGama0101/bookself-app/releases/tag/v1.1.0) publicada, tag no commit 2d92c23. APK e SHA-256 anexados, baixados de volta e conferidos; consulta pública confirmou assets, digests e estado publicado. Build, checksum e limites em `docs/ANDROID_BUILD.md`; notas em `docs/releases/v1.1.0.md`. Versão de testes; REL-02/REL-04/SEC-03/SEC-06 continuam pendentes. Sem merge em main, loja, chave de catálogo, migração ou deploy Firebase.
 
+- [ ] **REL-08 · P1 · Publicação:** gerar APK atualizado e publicar nova release no GitHub a pedido do usuário. **Dep.:** REL-07. **Em andamento em 08/10/2026:** APK 1.2.0+3 universal release compilado, pacote/versão/arquiteturas e assinatura debug existente verificados; SHA-256 gerado. Sem catálogo externo, emuladores ou flags experimentais na distribuição padrão. Publicação e verificação dos assets pendentes. [Build e limites](docs/ANDROID_BUILD.md#apk-1203-para-testes--08102026), [notas](docs/releases/v1.2.0.md).
+
 ## 13. Ideias opcionais para priorização posterior
+
 
 Estes itens são sugestões de produto, não compromissos do MVP solicitado.
 

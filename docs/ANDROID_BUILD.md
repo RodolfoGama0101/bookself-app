@@ -1,5 +1,22 @@
 # Verificação do build Android
 
+## APK 1.2.0+3 para testes — 08/10/2026
+
+A pedido do usuário, `pubspec.yaml` passou a 1.2.0+3. `flutter build apk --release --no-pub` aprovado em aproximadamente 93 s com o SDK fixado e dependências existentes, sem defines de catálogo/emuladores/ativação experimental. Firebase padrão e identidade técnica preservados; nenhuma configuração/regra remota alterada. O lockfile não teve mudança de conteúdo.
+
+| Verificação | Resultado |
+| --- | --- |
+| Pacote / versão | `com.couple.bookself.bookself_app`, `versionName` 1.2.0, `versionCode` 3 |
+| Android / arquiteturas | Mínimo API 24; alvo API 36; `armeabi-v7a`, `arm64-v8a`, `x86_64` |
+| Assinatura | `apksigner verify --verbose --print-certs` aprovado, esquema v2; Android Debug existente |
+| Certificado SHA-256 | `700cd9b4af4e88360159c03b5177464c6dcc6fc271dc8851e8823b1074c4ea36` (igual a 1.1.0) |
+| APK universal | `bookself-app-1.2.0.apk`, 60.292.840 bytes, aproximadamente 57,5 MiB |
+| APK SHA-256 | `adf9b7c31a3087b04cb2e3ad9a12787d84087b05c4d26e10644cd3bd51a26b93` |
+
+APK e checksum em `build/release/`, ignorados pelo Git. Avisos existentes de KGP, Java nativo e formato XML do SDK persistem; não impediram o build. `aapt dump badging` confirmou os metadados. A verificação de assinatura usou o runtime funcional selecionado pelo `java` do host: o launcher direto do JBR do Android Studio falhou ao abrir `jvm.cfg`; isso não foi atribuído ao código do aplicativo.
+
+O APK padrão mantém filmes e o novo espaço de listas/experiências/interesses desativados: dependem de flags e regras/índices de SEC-06. Não inclui segredo de catálogo. A entrega de código foi validada com 426 testes Flutter, 86 Node/demo, análise limpa e build web; 37 testes pertinentes passaram novamente após os últimos ajustes. Nenhum dispositivo Android executado; REL-02/REL-04/SEC-03/SEC-06 permanecem pendentes. [Notas desta pré-release](releases/v1.2.0.md).
+
 Data: 03/10/2026. REL-01: reprodução atual concluída; diagnóstico da falha histórica inconclusivo. Builds debug locais, sem execução do app, alteração de dados ou publicação.
 
 ## Resultado atual
