@@ -11,17 +11,24 @@ import 'profile_screen.dart';
 import '../../utils/error_handler.dart';
 import '../widgets/book_details_sheet.dart';
 import 'dart:convert';
+import '../widgets/content_state.dart';
+import 'bible_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.bookService});
+  const HomeScreen({super.key, this.bookService, this.onOpenBible});
 
   final BookService? bookService;
+  final VoidCallback? onOpenBible;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late final BookService _bookService = widget.bookService ?? BookService();
+  Stream<List<BookModel>>? _feed;
+  String? _feedScope;
+  int _retry = 0;
   String? _cachedUserPhotoUrl;
   MemoryImage? _cachedUserAvatarImage;
   String? _cachedPartnerPhotoUrl;
@@ -67,29 +74,40 @@ class _HomeScreenState extends State<HomeScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final bookService = widget.bookService ?? BookService();
+    final bookService = _bookService;
+    final scope = '${user.uid}/${user.partnerUid}/${user.relationshipId}';
+    if (_feedScope != scope) {
+      _feedScope = scope;
+      _feed = bookService.streamCoupleFeed(user.uid, user.partnerUid);
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Início')),
       body: StreamBuilder<List<BookModel>>(
-        key: ValueKey('${user.uid}/${user.partnerUid}/${user.relationshipId}'),
-        stream: bookService.streamCoupleFeed(user.uid, user.partnerUid),
+        key: ValueKey('$scope/$_retry'),
+        stream: _feed,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: SelectableText(
-                  'Erro ao carregar feed: ${ErrorHandler.getFriendlyErrorMessage(snapshot.error, operation: ErrorOperation.loadFeed)}',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
+            return ContentState(
+              title: 'Não foi possível carregar suas leituras',
+              message: ErrorHandler.getFriendlyErrorMessage(
+                snapshot.error,
+                operation: ErrorOperation.loadFeed,
               ),
+              icon: Icons.cloud_off_outlined,
+              actionLabel: 'Tentar novamente',
+              onAction: () => setState(() {
+                _feedScope = null;
+                _retry++;
+              }),
             );
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const ContentState(
+              title: 'Carregando suas leituras',
+              loading: true,
+            );
           }
 
           final books = snapshot.data ?? [];
@@ -269,6 +287,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: const Icon(Icons.add_rounded),
                         label: const Text('Adicionar livro'),
                       ),
+                      OutlinedButton.icon(
+                        onPressed:
+                            widget.onOpenBible ??
+                            () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const BibleScreen(),
+                              ),
+                            ),
+                        icon: const Icon(Icons.menu_book_outlined),
+                        label: const Text('Acompanhar Bíblia'),
+                      ),
                     ],
                   ),
                 ),
@@ -314,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Nenhuma leitura registrada ainda.\nAdicione livros na sua Estante para começar!',
+                            'Nenhuma leitura registrada ainda.\nAdicione livros na Biblioteca para começar!',
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: Theme.of(

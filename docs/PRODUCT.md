@@ -80,7 +80,7 @@ Desvinculação preserva dados pessoais e encerra acesso à biblioteca/progresso
 
 **PROD-02 definida e revisada documentalmente em 08/10/2026:** quatro destinos **Início, Biblioteca, Nós e Perfil**, com filtros das mídias implementadas na Biblioteca. Bíblia conserva uma jornada própria, acessível por “Acompanhar Bíblia” na Biblioteca e no Início. Nós concentra consulta do parceiro, convites, gestão do vínculo e bloqueios; listas/experiências entram quando funcionais. Início mostra atividades e estatísticas por categoria, sem somar capítulos, episódios e músicas como uma mesma medida.
 
-O [mapa v1 e os fluxos](NAVIGATION.md) detalham inclusão manual/catálogo, estados por mídia, conta sem parceiro, falha/revogação de dados compartilhados, contexto de retorno, telas pequenas/texto ampliado e entrega incremental. A conclusão é da especificação; o aplicativo ainda usa Início/Estante/Bíblia/Perfil. Implementação em UI-01 após DATA-02; protótipos/uso real e acessibilidade em PROD-03/UI-03. Não atribuir aprovação específica do desenho ao usuário nem considerar as categorias futuras já implementadas.
+O [mapa v1 e os fluxos](NAVIGATION.md) detalham inclusão manual/catálogo, estados por mídia, conta sem parceiro, falha/revogação de dados compartilhados, contexto de retorno, telas pequenas/texto ampliado e entrega incremental. UI-01/02 e BIBLE-01 implementaram em 08/10/2026 a base Início/Biblioteca/Nós/Perfil para livros/Bíblia e relação atual; categorias futuras permanecem nos próprios itens. Protótipos/uso real e revisão completa de acessibilidade ficam em PROD-03/UI-03. Não atribuir aprovação específica do desenho ao usuário nem considerar as categorias futuras já implementadas.
 
 ## Nome
 

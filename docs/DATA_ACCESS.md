@@ -1,6 +1,6 @@
 # Consultas e sincronização — DATA-04/DATA-05
 
-Implementação local de **08/10/2026**, substituível por fakes e com Firestore injetável. A interface atual conserva os streams de `BookService`/`BibleService`; ainda não usa estas páginas. A ligação às novas telas pertence à UI-01. Esta entrega não adiciona mídias, feed de eventos futuro, cache de fornecedor ou fila de sincronização offline.
+Implementação local de **08/10/2026**, substituível por fakes e com Firestore injetável. A interface atual conserva os streams de `BookService`/`BibleService`; ainda não usa estas páginas. A navegação UI-01 conserva essa compatibilidade; a ligação paginada às telas pertence à UI-05. Esta entrega não adiciona mídias, feed de eventos futuro, cache de fornecedor ou fila de sincronização offline.
 
 ## Paginação e estatísticas
 
@@ -17,7 +17,7 @@ Páginas entre 1 e 100 itens (padrão 20) leem no máximo limite + 1 documentos 
 
 Contagens usam agregação `count()` no servidor, independente da página carregada. Total e páginas são leituras diferentes, sem snapshot atômico entre ambas. Inclusões, remoções e alterações podem mudar resultados entre requisições; atualizar/recomeçar a consulta revela itens novos acima do cursor. A ordem privada multimídia usa criação imutável. No legado, `addedAt`/`activityAt` podem mudar: não se promete snapshot consistente de todas as páginas durante edição. Troca de relação/ocultação exige limpar páginas previamente carregadas, como os controles atuais de visibilidade já fazem; um cursor nunca concede autorização.
 
-Para feed do casal, consultar somente o dono e o parceiro atual separadamente, usando o mesmo início de relação e ordenação; mesclar apenas os resultados autorizados e conservar cursor/buffer de cada origem. Não usar a página parcial como fonte das estatísticas. O repositório desta entrega fornece as consultas por origem; a composição paginada da interface será feita na UI-01/COUPLE-08. Atividades multimídia ainda dependem de DATA-06 e não têm queries liberadas.
+Para feed do casal, consultar somente o dono e o parceiro atual separadamente, usando o mesmo início de relação e ordenação; mesclar apenas os resultados autorizados e conservar cursor/buffer de cada origem. Não usar a página parcial como fonte das estatísticas. O repositório desta entrega fornece as consultas por origem; a composição paginada da interface será feita na UI-05/COUPLE-08. Atividades multimídia ainda dependem de DATA-06 e não têm queries liberadas.
 
 `firestore.indexes.json` versiona oito índices: mídia/criação e mídia/estado para entradas; dono/inclusão, dono/atividade e dono/estado/conclusão para livros pessoais e projeções. Índices de campo único cobrem ordenação sem filtro de mídia e filtros isolados. O arquivo é usado pelos emuladores; índices não foram implantados. O emulador verifica execução/autorização, mas não reproduz a exigência de todos os índices de produção. Revisar/criar índices no ambiente de desenvolvimento e aguardar construção antes de ativar estas consultas remotamente.
 

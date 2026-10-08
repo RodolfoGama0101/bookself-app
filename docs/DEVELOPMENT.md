@@ -195,6 +195,16 @@ Sem `USE_FIREBASE_EMULATORS=true`, o comportamento anterior permanece: o app usa
 
 ## Dados, regras e diagnóstico
 
+### Biblioteca, Nós e Bíblia — UI-01/02, BIBLE-01 (08/10/2026)
+
+Formatação dos arquivos afetados; `flutter analyze --no-pub` sem apontamentos; `flutter test --no-pub` com **373 testes aprovados**. Nove novos widgets em `navigation_flow_test.dart` verificam filtros/testamento entre destinos e larguras, retorno da Bíblia por botão/sistema, capítulo como rota própria, ausência de apresentação do parceiro, término sem perda pessoal, erro com repetição, comparação offline independente, carregamento sem falso zero, troca de conta e menu em 320 px/texto 2×. `bible_service_test.dart` acrescenta rejeição de metadados compartilhados pendentes e recuperação por confirmação posterior, sem encerrar o stream.
+
+`node --test tool/firebase/test/migration.test.cjs`: **seis testes aprovados**, incluindo preservação integral de `bible_progress` no backup/ensaio/rollback, datas e alteração concorrente. Dados bíblicos e operações já cobertos pela suíte completa mantêm os 66 livros/1.189 capítulos, marcação/desmarcação/lote e isolamento de proprietário. Nenhuma conversão ativa de Bíblia, migração ou regra alterada nesta entrega.
+
+Build web demo com Auth 19099/Firestore 18080 aprovado, inclusive verificação preliminar Wasm. Navegador integrado e conta fictícia validaram a base, capítulo confirmado e preservado após recarga; [registro visual](WEB_VALIDATION.md#biblioteca-nós-e-bíblia--ui-0102-bible-01). Agent-browser foi tentado, mas o Controle de Aplicativos do Windows bloqueou o executável de automação (4551); usado navegador integrado existente. Não foram alteradas proteções do sistema.
+
+As novas consultas paginadas/coordenador DATA-04/05 ainda não estão ligados às telas; UI-05 registra essa adoção. Comparação com parceiro/término/offline foi validada com widgets/fakes, somando a autorização já verificada em emuladores nas entregas anteriores; não houve nova jornada real com duas contas neste turno. Android/iOS, leitor de tela/teclado completos e produção permanecem pendentes. Sem publicação, índices/regras remotos ou configuração gerada modificados.
+
 Não há exportação/importação automática. Encerrar/reiniciar os emuladores inicia uma sessão descartável. Não execute `npm test` enquanto estiver usando manualmente os mesmos emuladores: o runner exige suas portas e os testes limpam dados fictícios.
 
 `firebase.json` foi preservado; a configuração isolada fica em `firebase.emulators.json`. Regras locais não foram publicadas. DATA-04 versionou oito índices compostos para as novas consultas paginadas/agregações; streams das telas atuais ainda não usam essa paginação. Índices não foram implantados: a auditoria remota de 03/10/2026 encontrou zero índices/overrides. [Consultas e limites](DATA_ACCESS.md).

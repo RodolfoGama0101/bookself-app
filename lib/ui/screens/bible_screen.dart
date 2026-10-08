@@ -8,11 +8,13 @@ import '../../services/auth_service.dart';
 import '../../services/bible_service.dart';
 import '../../data/models/bible_progress_model.dart';
 import '../../utils/error_handler.dart';
+import '../widgets/content_state.dart';
 
 class BibleScreen extends StatefulWidget {
-  const BibleScreen({super.key, this.bibleService});
+  const BibleScreen({super.key, this.bibleService, this.onClose});
 
   final BibleService? bibleService;
+  final VoidCallback? onClose;
 
   @override
   State<BibleScreen> createState() => _BibleScreenState();
@@ -22,6 +24,9 @@ class _BibleScreenState extends State<BibleScreen>
     with TickerProviderStateMixin {
   late TabController _testamentTabController;
   late final BibleService _bibleService = widget.bibleService ?? BibleService();
+  String? _ownerScope, _partnerScope;
+  Stream<Map<String, BibleProgressModel>>? _ownStream, _partnerStream;
+  int _ownRetry = 0, _partnerRetry = 0;
 
   @override
   void initState() {
@@ -42,7 +47,21 @@ class _BibleScreenState extends State<BibleScreen>
     final partner = authService.partnerUserModel;
 
     if (user == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: ContentState(title: 'Carregando sua conta', loading: true),
+      );
+    }
+    final partnerScope =
+        '${user.uid}/${user.partnerUid}/${user.relationshipId}';
+    if (_ownerScope != user.uid) {
+      _ownerScope = user.uid;
+      _ownStream = _bibleService.streamAllProgress(user.uid);
+    }
+    if (_partnerScope != partnerScope) {
+      _partnerScope = partnerScope;
+      _partnerStream = user.partnerUid == null
+          ? Stream.value({})
+          : _bibleService.streamSharedProgress(user.partnerUid!);
     }
 
     // Filtra livros do Antigo e Novo Testamento
@@ -52,8 +71,13 @@ class _BibleScreenState extends State<BibleScreen>
     return ReadingPage(
       child: Scaffold(
         appBar: AppBar(
+          leading: widget.onClose == null
+              ? null
+              : BackButton(onPressed: widget.onClose),
           title: Text('Progresso da Bíblia'),
           bottom: TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
             controller: _testamentTabController,
             tabs: const [
               Tab(text: 'Antigo Testamento'),
@@ -62,58 +86,53 @@ class _BibleScreenState extends State<BibleScreen>
           ),
         ),
         body: StreamBuilder<Map<String, BibleProgressModel>>(
-          key: ValueKey(user.uid),
-          stream: _bibleService.streamAllProgress(user.uid),
+          key: ValueKey('${user.uid}/$_ownRetry'),
+          stream: _ownStream,
           builder: (context, userProgressSnapshot) {
             if (userProgressSnapshot.hasError) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: SelectableText(
-                    'Erro ao carregar progresso da Bíblia: ${ErrorHandler.getFriendlyErrorMessage(userProgressSnapshot.error, operation: ErrorOperation.loadBibleProgress)}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
+              return ContentState(
+                title: 'Não foi possível carregar o progresso da Bíblia',
+                message: ErrorHandler.getFriendlyErrorMessage(
+                  userProgressSnapshot.error,
+                  operation: ErrorOperation.loadBibleProgress,
                 ),
+                icon: Icons.cloud_off_outlined,
+                actionLabel: 'Tentar novamente',
+                onAction: () => setState(() {
+                  _ownerScope = null;
+                  _ownRetry++;
+                }),
+              );
+            }
+            if (userProgressSnapshot.connectionState ==
+                ConnectionState.waiting) {
+              return const ContentState(
+                title: 'Carregando progresso da Bíblia',
+                loading: true,
               );
             }
 
             final userProgress = userProgressSnapshot.data ?? {};
 
             return StreamBuilder<Map<String, BibleProgressModel>>(
-              key: ValueKey(
-                '${user.uid}/${user.partnerUid}/${user.relationshipId}',
-              ),
-              stream: partner != null
-                  ? _bibleService.streamSharedProgress(partner.uid)
-                  : Stream.value({}),
+              key: ValueKey('$partnerScope/$_partnerRetry'),
+              stream: _partnerStream,
               builder: (context, partnerProgressSnapshot) {
-                if (partnerProgressSnapshot.hasError) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: SelectableText(
-                        'Erro ao carregar progresso da Bíblia do parceiro: ${ErrorHandler.getFriendlyErrorMessage(partnerProgressSnapshot.error, operation: ErrorOperation.loadPartnerBibleProgress)}',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
-                  );
-                }
-
-                final partnerProgress = partnerProgressSnapshot.data ?? {};
-
-                return TabBarView(
+                final available =
+                    !partnerProgressSnapshot.hasError &&
+                    partnerProgressSnapshot.connectionState !=
+                        ConnectionState.waiting;
+                final partnerProgress = available
+                    ? partnerProgressSnapshot.data ??
+                          <String, BibleProgressModel>{}
+                    : <String, BibleProgressModel>{};
+                final list = TabBarView(
                   controller: _testamentTabController,
                   children: [
                     _buildBookList(
                       otBooks,
                       user.uid,
-                      partner?.uid,
+                      available ? user.partnerUid : null,
                       userProgress,
                       partnerProgress,
                       partner?.name,
@@ -121,11 +140,40 @@ class _BibleScreenState extends State<BibleScreen>
                     _buildBookList(
                       ntBooks,
                       user.uid,
-                      partner?.uid,
+                      available ? user.partnerUid : null,
                       userProgress,
                       partnerProgress,
                       partner?.name,
                     ),
+                  ],
+                );
+                return Column(
+                  children: [
+                    if (user.partnerUid != null && !available)
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Wrap(
+                          spacing: 12,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              partnerProgressSnapshot.hasError
+                                  ? 'Comparação indisponível. ${ErrorHandler.getFriendlyErrorMessage(partnerProgressSnapshot.error, operation: ErrorOperation.loadPartnerBibleProgress)}'
+                                  : 'Carregando comparação do parceiro',
+                            ),
+                            if (partnerProgressSnapshot.hasError)
+                              TextButton(
+                                onPressed: () => setState(() {
+                                  _partnerScope = null;
+                                  _partnerRetry++;
+                                }),
+                                child: const Text('Tentar novamente'),
+                              ),
+                          ],
+                        ),
+                      ),
+                    Expanded(child: list),
                   ],
                 );
               },

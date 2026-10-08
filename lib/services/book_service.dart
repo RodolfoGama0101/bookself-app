@@ -184,11 +184,12 @@ class BookService {
       .collection('shared_books')
       .where('userId', isEqualTo: uid)
       .snapshots(includeMetadataChanges: true)
-      .map(
-        (s) => s.metadata.isFromCache || s.metadata.hasPendingWrites
-            ? <BookModel>[]
-            : s.docs.map(BookModel.fromFirestore).toList(),
-      );
+      .map((s) {
+        if (s.metadata.isFromCache || s.metadata.hasPendingWrites) {
+          throw const SharedDataUnconfirmed();
+        }
+        return s.docs.map(BookModel.fromFirestore).toList();
+      });
 
   Stream<BookModel?> watchSharedBook(String id) => _firestore
       .collection('shared_books')

@@ -15,7 +15,7 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
 | [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
-| [docs/NAVIGATION.md](docs/NAVIGATION.md) | Mapa da navegação definido em PROD-02, fluxos por mídia/casal e critérios para UI-01; ainda sem implementação. |
+| [docs/NAVIGATION.md](docs/NAVIGATION.md) | Navegação atual de livros/Bíblia/Nós e mapa incremental das mídias futuras. |
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Modelo v1: base privada implementada localmente em DATA-02; episódios, escutas, experiências e migração pendentes. |
 | [docs/DATA_MIGRATION.md](docs/DATA_MIGRATION.md) | Backup/plano offline e ensaio recuperável; conversão ativa e produção separadas. |
 | [docs/DATA_ACCESS.md](docs/DATA_ACCESS.md) | Paginação, índices, agregações e sincronização; ligação das novas consultas às telas pendente. |
@@ -39,6 +39,8 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 - Busca paginada de livros no Google Books, com timeout, tratamento de resposta parcial e descarte de buscas antigas; referência do catálogo preservada em registros novos. Cadastro manual disponível sem chave ou rede.
 - Fontes Outfit/Playfair Display empacotadas para carregamento sem rede; capas em HTTPS com fallback, sem proxy externo.
 - Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
+- Navegação Início/Biblioteca/Nós/Perfil. Biblioteca reúne os livros pessoais, busca/cadastro e acesso à Bíblia; Nós reúne consulta do parceiro, comparação bíblica, convites, compartilhamento e bloqueios. Filtros/testamento são preservados entre destinos; a Bíblia retorna à origem. Filmes, séries e músicas só entrarão após seus fluxos funcionais.
+- Carregamento, vazio e falha de livros/progresso têm mensagens e ações próprias. Falha/offline da comparação retira dados alheios sem bloquear a Bíblia pessoal; ausência de apresentação do parceiro não apaga o vínculo.
 - Limpeza da data de conclusão ao mudar um livro de “Lido” para “Lendo” ou “Quero Ler”.
 - Livros lidos sem data aparecem em uma seção própria da estante, inclusive na consulta do parceiro. O dono pode informar ou corrigir a conclusão nos detalhes sem trocar o status; novas datas vão até hoje, em português e formato dia/mês/ano.
 - Convites de sete dias com código aleatório, apresentação por nome/foto, reserva, aceite explícito, recusa e cancelamento. Consulta não cria vínculo; aceite confirma as duas contas em transação, sujeito às regras locais. Relações legadas permanecem. Consulta do casal usa projeções permitidas; Perfil → Compartilhamento oculta livros/progresso por livro bíblico, preservando dados pessoais. Feed conjunto começa no aceite, sem retroatividade. Bloqueio do parceiro ativo encerra acesso; desbloquear exige novo convite. O Início atualiza feed e estatísticas pelo stream.
@@ -47,7 +49,7 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 - Pessoas e bloqueios em Convites e Compartilhamento: identificação privada por convite reservado ou término, bloqueio após recusa/desvínculo e desbloqueio independente. Convites antigos não voltam a valer; regras locais ainda dependem de SEC-06. [Contrato e limites](docs/decisions/010-bloqueios-independentes.md).
 - Perfil do parceiro usa apresentação separada com nome/foto, sem e-mail. Ausência/falha mantém consulta de leituras e desvínculo com apresentação neutra. As regras locais protegem o perfil privado; a proteção remota depende da implantação de SEC-06, conforme [SECURITY.md](docs/SECURITY.md).
 - Dados compartilhados exigem confirmação do servidor; offline/término/ocultação retiram conteúdo das telas. Persistência Firestore desabilitada e cache antigo limpo na inicialização; proteção remota ainda depende de SEC-06. [Contrato e limites](docs/COUPLE_VISIBILITY.md).
-- Design Organic com paleta areia/sálvia/musgo, tipografia Outfit, cartões flexíveis e navegação lateral em telas grandes. Login, busca, capítulos e perfil têm limites de largura; a barra inferior mantém as quatro abas em telas pequenas.
+- Design Organic com paleta areia/sálvia/musgo, tipografia Outfit, cartões flexíveis e navegação lateral em telas grandes. Login, busca, capítulos e perfil têm limites de largura; telas pequenas têm barra inferior e, abaixo de 380 px com texto acima de 1,5×, menu com os quatro destinos.
 - Fechamento seguro de busca, perfil, detalhes e diálogos durante requisições, com resultado de exclusão na estante.
 
 A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes, séries e músicas ainda não estão implementados. Convites consentidos estão prontos no código/regras locais; a implantação depende de SEC-06 e dos controles restantes de COUPLE-04.
@@ -95,7 +97,9 @@ APK Android **1.1.0+2** disponível na [pré-release v1.1.0](https://github.com/
 
 ## Validação
 
-Em **08/10/2026 — DATA-03/04/05**, foram implementados ensaio de migração preservando originais, consultas com cursores/agregações e coordenador de sincronização privado multimídia. Formatação, análise limpa, **363 testes Flutter** e **78 testes Node/emuladores demo** aprovados. Índices versionados; nenhuma migração/implantação/publicação executada. Estante/feed atuais ainda usam streams completos; integração às telas permanece em UI-01. [Contratos e limites](docs/DATA_ACCESS.md), [ensaio](docs/DATA_MIGRATION.md).
+Em **08/10/2026 — UI-01/02 e BIBLE-01**, navegação e feedback das categorias atuais implementados e progresso preservado. Análise limpa, **373 testes Flutter**, seis testes offline de migração e build web demo aprovados. Jornada visual nos emuladores incluiu Bíblia, marcação confirmada e consulta após recarga; [evidências e limites](docs/WEB_VALIDATION.md#biblioteca-nós-e-bíblia--ui-0102-bible-01). Android/iOS e produção não executados.
+
+Em **08/10/2026 — DATA-03/04/05**, foram implementados ensaio de migração preservando originais, consultas com cursores/agregações e coordenador de sincronização privado multimídia. Formatação, análise limpa, **363 testes Flutter** e **78 testes Node/emuladores demo** aprovados. Índices versionados; nenhuma migração/implantação/publicação executada. Estante/feed atuais ainda usam streams completos; integração paginada às telas permanece em UI-05/COUPLE-08. [Contratos e limites](docs/DATA_ACCESS.md), [ensaio](docs/DATA_MIGRATION.md).
 
 Em **05/10/2026**, a jornada Flutter web foi executada no navegador integrado com duas contas fictícias em Auth/Firestore demo: cadastro/perfil, livro manual sem capa, status/data, progresso bíblico, vínculo/consulta e desvínculo com dados pessoais preservados. A busca sem chave teve sua mensagem repetida corrigida; análise limpa, 275 testes Flutter e build web demo passaram. CORE-13 posteriormente corrigiu e validou a restauração automática após recarga no Chrome demo, incluindo logout/recarga; análise limpa, 283 testes Flutter, seis testes Node e builds web padrão/demo passaram. Rede/offline, capas externas, plataformas nativas e autenticação em produção continuam pendentes. O [registro web](docs/WEB_VALIDATION.md) atualiza o limite da jornada emulada nas evidências anteriores, sem validar produção ou concluir toda a matriz de release.
 

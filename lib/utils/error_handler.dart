@@ -49,6 +49,11 @@ class CatalogQuotaException extends CatalogRequestException {
   const CatalogQuotaException(super.statusCode);
 }
 
+/// Dados do parceiro só podem ser exibidos após confirmação atual do servidor.
+class SharedDataUnconfirmed implements Exception {
+  const SharedDataUnconfirmed();
+}
+
 class ErrorHandler {
   static const networkMessage =
       'Não foi possível conectar. Verifique sua conexão e tente novamente.';
@@ -159,6 +164,13 @@ class ErrorHandler {
   static ({String message, String category, String code}) _describe(
     Object? error,
   ) {
+    if (error is SharedDataUnconfirmed) {
+      return (
+        message: 'Conecte-se para consultar os dados compartilhados.',
+        category: 'network',
+        code: 'unconfirmed',
+      );
+    }
     if (error is CatalogConfigurationException) {
       return (
         message:

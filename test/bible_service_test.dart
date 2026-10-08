@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bookself_app/data/bible_data.dart';
 import 'package:bookself_app/data/models/bible_progress_model.dart';
 import 'package:bookself_app/services/bible_service.dart';
+import 'package:bookself_app/utils/error_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -24,6 +25,28 @@ void main() {
     service = BibleService(firestore: database);
   });
   tearDown(() => database.close());
+
+  test(
+    'comparação não confirma escrita pendente nem perde recuperação do servidor',
+    () async {
+      final values = <Map<String, BibleProgressModel>>[];
+      final errors = <Object>[];
+      final subscription = service
+          .streamSharedProgress('owner')
+          .listen(values.add, onError: errors.add);
+      database.allEvents.add(
+        BibleQuerySnapshot(id, progress([1]), pending: true),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(values, isEmpty);
+      expect(errors.single, isA<SharedDataUnconfirmed>());
+      database.allEvents.add(BibleQuerySnapshot(id, progress([1, 2])));
+      await Future<void>.delayed(Duration.zero);
+      expect(values.single['1 Samuel']!.readChapters, [1, 2]);
+      expect(database.allMetadata, isTrue);
+      await subscription.cancel();
+    },
+  );
 
   test(
     'capítulo aguarda commit, cria documento próprio e confirma capítulos',

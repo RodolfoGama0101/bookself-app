@@ -9,11 +9,23 @@ import 'search_screen.dart';
 import '../../utils/error_handler.dart';
 import '../widgets/book_details_sheet.dart';
 import '../widgets/completion_date_picker.dart';
+import '../widgets/content_state.dart';
+
+enum BookshelfScope { combined, personal, partner }
 
 class BookshelfScreen extends StatefulWidget {
-  const BookshelfScreen({super.key, this.bookService});
+  const BookshelfScreen({
+    super.key,
+    this.bookService,
+    this.scope = BookshelfScope.combined,
+    this.onOpenBible,
+    this.onClose,
+  });
 
   final BookService? bookService;
+  final BookshelfScope scope;
+  final VoidCallback? onOpenBible;
+  final VoidCallback? onClose;
 
   @override
   State<BookshelfScreen> createState() => _BookshelfScreenState();
@@ -26,6 +38,14 @@ class _BookshelfScreenState extends State<BookshelfScreen>
   late TabController _partnerInnerTabController;
   late final BookService _bookService = widget.bookService ?? BookService();
   final Set<String> _pendingCompletions = {};
+  final _streams = <String, Stream<List<BookModel>>>{};
+  final _retries = <String, int>{};
+
+  void _openSearch() => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => SearchScreen(bookService: _bookService),
+    ),
+  );
 
   @override
   void initState() {
@@ -269,7 +289,64 @@ class _BookshelfScreenState extends State<BookshelfScreen>
     final theme = Theme.of(context);
 
     if (user == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: ContentState(title: 'Carregando sua conta', loading: true),
+      );
+    }
+
+    if (widget.scope != BookshelfScope.combined) {
+      final personal = widget.scope == BookshelfScope.personal;
+      return Scaffold(
+        appBar: AppBar(
+          leading: widget.onClose == null
+              ? null
+              : BackButton(onPressed: widget.onClose),
+          title: Text(personal ? 'Biblioteca' : 'Biblioteca do parceiro'),
+        ),
+        body: Column(
+          children: [
+            if (personal)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    const Chip(
+                      avatar: Icon(Icons.library_books_outlined),
+                      label: Text('Livros'),
+                    ),
+                    if (widget.onOpenBible != null)
+                      OutlinedButton.icon(
+                        onPressed: widget.onOpenBible,
+                        icon: const Icon(Icons.menu_book_outlined),
+                        label: const Text('Acompanhar Bíblia'),
+                      ),
+                  ],
+                ),
+              ),
+            Expanded(
+              child: personal
+                  ? _buildShelfView(user.uid, isEditable: true)
+                  : user.partnerUid == null
+                  ? const ContentState(
+                      title: 'Nenhum vínculo ativo',
+                      message: 'Envie ou aceite um convite em Nós.',
+                      icon: Icons.favorite_border_rounded,
+                    )
+                  : _buildShelfView(user.partnerUid!, isEditable: false),
+            ),
+          ],
+        ),
+        floatingActionButton: personal
+            ? FloatingActionButton.extended(
+                onPressed: _openSearch,
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Adicionar livro'),
+              )
+            : null,
+      );
     }
 
     return Scaffold(
@@ -337,32 +414,44 @@ class _BookshelfScreenState extends State<BookshelfScreen>
   }
 
   Widget _buildShelfView(String userId, {required bool isEditable}) {
+    final scope =
+        '$userId/$isEditable/${isEditable ? "personal" : context.read<AuthService>().currentUserModel?.relationshipId}';
+    // Remove ouvintes de contas/relações anteriores; StreamBuilder cancela o
+    // stream substituído. Rebuild de tema/abas não reinicia a mesma consulta.
+    _streams.removeWhere(
+      (key, _) => key.split('/')[1] == '$isEditable' && key != scope,
+    );
+    final stream = _streams.putIfAbsent(
+      scope,
+      () => isEditable
+          ? _bookService.streamUserBooks(userId)
+          : _bookService.streamSharedBooks(userId),
+    );
     final controller = isEditable
         ? _myInnerTabController
         : _partnerInnerTabController;
     return StreamBuilder<List<BookModel>>(
-      key: ValueKey(
-        '$userId/$isEditable/${context.read<AuthService>().currentUserModel?.relationshipId}',
-      ),
-      stream: isEditable
-          ? _bookService.streamUserBooks(userId)
-          : _bookService.streamSharedBooks(userId),
+      key: ValueKey('$scope/${_retries[scope] ?? 0}'),
+      stream: stream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: SelectableText(
-                'Erro ao carregar estante: ${ErrorHandler.getFriendlyErrorMessage(snapshot.error, operation: ErrorOperation.loadLibrary)}',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
+          return ContentState(
+            title: 'Não foi possível carregar a biblioteca',
+            message: ErrorHandler.getFriendlyErrorMessage(
+              snapshot.error,
+              operation: ErrorOperation.loadLibrary,
             ),
+            icon: Icons.cloud_off_outlined,
+            actionLabel: 'Tentar novamente',
+            onAction: () => setState(() {
+              _streams.remove(scope);
+              _retries[scope] = (_retries[scope] ?? 0) + 1;
+            }),
           );
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const ContentState(title: 'Carregando livros', loading: true);
         }
 
         final books = snapshot.data ?? [];
@@ -378,6 +467,8 @@ class _BookshelfScreenState extends State<BookshelfScreen>
             Container(
               color: Theme.of(context).appBarTheme.backgroundColor,
               child: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
                 controller: controller,
                 tabs: const [
                   Tab(text: 'Lendo'),
@@ -404,7 +495,9 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                   _buildBookList(
                     wishlistBooks,
                     isEditable,
-                    emptyMessage: 'Sua lista de desejos está vazia.',
+                    emptyMessage: isEditable
+                        ? 'Sua lista de desejos está vazia.'
+                        : 'Nenhum livro compartilhado para ler.',
                   ),
                 ],
               ),
@@ -423,17 +516,13 @@ class _BookshelfScreenState extends State<BookshelfScreen>
   }) {
     final theme = Theme.of(context);
     if (books.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Text(
-            emptyMessage,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
+      return ContentState(
+        title: emptyMessage,
+        message: isEditable
+            ? 'Busque um livro ou cadastre manualmente.'
+            : 'Aqui aparecem somente os livros compartilhados com você.',
+        actionLabel: isEditable ? 'Adicionar livro' : null,
+        onAction: isEditable ? _openSearch : null,
       );
     }
 
@@ -506,16 +595,13 @@ class _BookshelfScreenState extends State<BookshelfScreen>
         .toList();
 
     if (groupedData.isEmpty && undatedBooks.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Text(
-            'Nenhuma leitura concluída ainda.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
+      return ContentState(
+        title: 'Nenhuma leitura concluída ainda.',
+        message: isEditable
+            ? 'Você pode registrar um livro que já leu.'
+            : 'Aqui aparecem somente leituras compartilhadas com você.',
+        actionLabel: isEditable ? 'Adicionar livro' : null,
+        onAction: isEditable ? _openSearch : null,
       );
     }
 

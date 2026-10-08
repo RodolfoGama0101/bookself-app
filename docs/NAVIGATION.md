@@ -2,11 +2,11 @@
 
 ## Estado e escopo
 
-Definição v1 preparada e revisada documentalmente em **08/10/2026**, a pedido do usuário para avançar na próxima tarefa. Conclui o mapa e os fluxos de PROD-02; a implementação pertence a UI-01 e suas dependências. Não representa telas já construídas, validação com usuários ou aprovação específica do desenho pelo usuário. Ajustes decorrentes de protótipos e uso real ficam em PROD-03/UI-03.
+Definição v1 preparada e revisada documentalmente em **08/10/2026**, a pedido do usuário para avançar na próxima tarefa. PROD-02 concluiu o mapa e os fluxos; a base de livros/Bíblia/relação foi posteriormente implementada em UI-01/02 e BIBLE-01, como registrado abaixo. O mapa das mídias futuras não representa telas construídas, validação com usuários ou aprovação específica do desenho pelo usuário. Ajustes decorrentes de protótipos e uso real ficam em PROD-03/UI-03.
 
 Referências: [MVP aprovado](PRODUCT.md#mvp-aprovado--prod-01), [política do casal](COUPLE_POLICY.md), [arquitetura atual](ARCHITECTURE.md) e [sistema visual](DESIGN.md). Marca, fornecedores, esquema e regras detalhadas de séries continuam decisões separadas.
 
-Hoje, `MainNavigation` oferece **Início, Estante, Bíblia e Perfil**. A estante reúne abas pessoais/do parceiro e estados de leitura; o perfil oferece convites e compartilhamento. Nada disso foi alterado nesta entrega documental.
+Na entrega documental de PROD-02, `MainNavigation` oferecia Início/Estante/Bíblia/Perfil. Em **08/10/2026**, UI-01/02 e BIBLE-01 implementaram a base **Início/Biblioteca/Nós/Perfil** para as categorias atuais. Biblioteca mostra Livros, estados de leitura, busca/cadastro e Acompanhar Bíblia; Nós reúne relação, biblioteca permitida do parceiro, comparação bíblica, convites, compartilhamento e bloqueios. Filmes/séries/músicas e listas/experiências abaixo continuam como mapa futuro, sem botões ou categorias vazias.
 
 ## Estrutura definida
 
@@ -40,9 +40,13 @@ flowchart TD
     Couple -. "após implementação" .-> Together["Listas e experiências conjuntas"]
 ```
 
-O diagrama é um mapa de destino, não uma lista de rotas já disponíveis. Mesmo os caminhos com funcionalidades atuais precisam ser conectados à nova navegação em UI-01.
+O diagrama combina caminhos atuais de livros/Bíblia/relação e destinos futuros. Listas/experiências e categorias multimídia permanecem pendentes nos respectivos itens.
 
 ## Biblioteca e inclusão individual
+
+Na base atual, Livros é a única categoria de catálogo disponível, identificada sem oferecer filtros de mídias inexistentes. Lendo/Lidos/Quero ler filtram os registros próprios; Adicionar livro abre busca e cadastro manual existentes. A consulta do parceiro fica separada em Nós e não oferece escrita. `IndexedStack` conserva filtros, rolagem e testamento entre destinos e entre barra inferior/menu lateral. Trocar conta recria o contexto; mudar/desfazer vínculo recria apenas a consulta compartilhada. A Bíblia tem botão de retorno à origem e trata o voltar do sistema quando visível na Biblioteca.
+
+`ContentState` padroniza carregamento/vazio/falha com ação alcançável e anúncio semântico. Livros e progresso pessoal têm repetição; dados compartilhados sem confirmação aparecem como indisponíveis, sem inventar vazio ou zero. A comparação bíblica usa aviso independente e preserva capítulos próprios. Busca/formulários conservam seus fallbacks e erros traduzidos. Paginação das bibliotecas/feed ainda não está ligada à interface: acompanhada em UI-05/COUPLE-08, sem confundir páginas com estatísticas.
 
 Filtros de mídia: **Todos, Livros, Filmes, Séries e Músicas**, limitados às categorias entregues. Músicas distingue **Faixas** e **Álbuns** em um filtro secundário. Todos reúne somente entradas de biblioteca, com identificação do tipo; não inclui capítulos bíblicos, episódios isolados ou registros de escuta como se fossem obras independentes.
 

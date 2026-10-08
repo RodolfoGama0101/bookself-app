@@ -4,6 +4,7 @@ import 'firebase_environment.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../data/bible_data.dart';
 import '../data/models/bible_progress_model.dart';
+import '../utils/error_handler.dart';
 
 class BibleService {
   BibleService({FirebaseFirestore? firestore}) : _database = firestore;
@@ -38,15 +39,16 @@ class BibleService {
           .collection('shared_bible_progress')
           .where('userId', isEqualTo: uid)
           .snapshots(includeMetadataChanges: true)
-          .map(
-            (s) => s.metadata.isFromCache || s.metadata.hasPendingWrites
-                ? <String, BibleProgressModel>{}
-                : {
-                    for (final d in s.docs)
-                      d.data()['bookName'] as String:
-                          BibleProgressModel.fromFirestore(d),
-                  },
-          );
+          .map((s) {
+            if (s.metadata.isFromCache || s.metadata.hasPendingWrites) {
+              throw const SharedDataUnconfirmed();
+            }
+            return {
+              for (final d in s.docs)
+                d.data()['bookName'] as String:
+                    BibleProgressModel.fromFirestore(d),
+            };
+          });
 
   Stream<BibleProgressModel?> streamSharedBookProgress(
     String uid,

@@ -100,3 +100,17 @@ Em 05/10/2026, build web demo foi servido somente em 127.0.0.1:17359, com Auth 1
 5. Nenhum erro de console observado nas duas sessões nas consultas realizadas. Processos/navegadores próprios foram encerrados e credenciais fictícias removidas; capturas permaneceram ignoradas.
 
 Análise limpa, 321 testes Flutter e 53 Auth/Firestore demo aprovados. Controle 320 × 480/texto 2× verificado em widgets; não foi uma jornada Chrome móvel. Marcador final que impede retroatividade ao mostrar item novamente foi validado por regras/unidades; jornada de duas sessões antecedeu esse ajuste final. Build final recompilado. Sem Android/iOS, produção, migração ou distribuição; cache nativo e clientes remotos permanecem verificações separadas. [Contrato e limitações](COUPLE_VISIBILITY.md).
+
+## Biblioteca, Nós e Bíblia — UI-01/02, BIBLE-01
+
+Em 08/10/2026, build final demo aprovado com Auth 19099/Firestore 18080, servido apenas em 127.0.0.1:8737. Conta fictícia criada pela interface; nenhum dado real ou escrita remota. Agent-browser bloqueado pelo Controle de Aplicativos do Windows (4551), sem modificar a proteção; inspeção pelo navegador integrado.
+
+| Cenário | Resultado observado |
+| --- | --- |
+| Biblioteca em 390 × 844 | Livros e os três estados, Acompanhar Bíblia, vazio com Adicionar e cadastro pela jornada existente; quatro destinos disponíveis. |
+| Bíblia | Gênesis abriu os 50 capítulos; marcar 1 aguardou confirmação e mostrou 1/50. |
+| Recarga no build final | Sessão restaurada; novo acesso pelo Início confirmou Gênesis 2% (1/50). |
+| Nós sem relação | Estado real Nenhum vínculo ativo; Convites/Compartilhamento/Pessoas e bloqueios disponíveis. |
+| Troca de destino/largura | Novo Testamento permaneceu selecionado ao sair para Nós e voltar pela Biblioteca, incluindo menu lateral em 1.280 × 720. |
+
+Captura desktop em `build/navigation-nos-desktop.jpg`, inspecionada e ignorada pelo Git. Regressões de 320 px/texto 2×, comparação sem apresentação, falha/offline e término são de widgets/fakes; não representam teste físico de rede nem nova jornada real com duas contas. 373 Flutter, análise limpa, seis testes offline de migração e build demo passaram. Produção, migração, publicação, Android/iOS e revisão completa de teclado/leitor de tela não executados.

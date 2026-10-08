@@ -1,6 +1,6 @@
 # Design das telas atuais
 
-Revisão de 05/10/2026, solicitada pelo usuário com a skill frontend-design. Escopo: login/cadastro, Início, estante, busca/cadastro manual, detalhes, progresso bíblico e perfil. A entrega corresponde a UI-04; UI-01/02/03 continuam com seus critérios próprios.
+Revisão de 05/10/2026, solicitada pelo usuário com a skill frontend-design. Escopo: login/cadastro, Início, estante, busca/cadastro manual, detalhes, progresso bíblico e perfil. A entrega corresponde a UI-04. Em 08/10/2026, UI-01/02 e BIBLE-01 estenderam essa direção à Biblioteca/Nós e aos estados de conteúdo; a revisão completa de acessibilidade UI-03 permanece pendente.
 
 ## Diagnóstico e direção
 
@@ -12,7 +12,7 @@ A direção **Organic** usa areia `#E8DCC7`, sálvia `#8B9D83` e musgo `#606C38`
 
 - `AppTheme` centraliza cores semânticas, texto, campos, botões, abas, navegação, diálogos e mensagens. Cinzas fixos e cores de sucesso/erro dos fluxos atuais passam a acompanhar o tema.
 - Login: formulário limitado a 460 px em telas pequenas; apresentação e formulário em duas colunas a partir de 900 px, quando a escala de texto permite. A rolagem mantém acesso aos campos e ações.
-- Navegação: Início, Estante, Bíblia e Perfil permanecem. A partir de 1.000 px e texto até 1,5×, aparece menu lateral; nas demais situações, barra inferior Material. `IndexedStack` e uma chave global preservam telas/abas ao mudar de largura.
+- Navegação atual: Início/Biblioteca/Nós/Perfil; Bíblia fica na Biblioteca com atalhos no Início/Nós e retorno à origem. A partir de 1.000 px e texto até 1,5×, aparece menu lateral; nas demais situações, barra inferior Material. Abaixo de 380 px com texto acima de 1,5×, menu com rótulos completos mantém os destinos acessíveis. `IndexedStack` e uma chave global preservam telas/abas ao mudar de largura.
 - Conteúdo principal limitado a 1.000 px; perfil a 720 px; detalhes em folha de até 680 px. As rotas de busca e capítulos também recebem limite de largura.
 - Início: saudação, contagens reais no mês/ano, atividades e ação Adicionar livro. Sem parceiro, mostra apenas estatísticas pessoais e atalho de vínculo. Nomes longos e resumos do casal podem se empilhar; no desktop, as estatísticas pessoais usam uma linha.
 - Cartões: altura determinada pelo conteúdo, título até três linhas, autor até duas, status e data em área que pode quebrar linha. Em largura menor que 380 px ou texto acima de 1,5×, ações ficam abaixo dos metadados. Capas ausentes usam um placeholder; títulos não são substituídos por conteúdo inventado.
@@ -20,7 +20,7 @@ A direção **Organic** usa areia `#E8DCC7`, sálvia `#8B9D83` e musgo `#606C38`
 - Bíblia: títulos, contagens e nomes da comparação recebem espaço flexível; percentuais ficam alinhados à direita. Progresso pessoal e capítulos continuam usando confirmação de escrita.
 - Perfil e detalhes: tipografia/paleta consistentes, botões de status com espaço horizontal e estado atual legível. Mostrar/Ocultar senha recebe tooltip.
 
-Não há mudança de marca, identidade técnica, coleções, regras, política de compartilhamento ou categorias. O vínculo permanece direto por UID; convites/ocultação e a navegação futura estão no [produto](PRODUCT.md).
+Não há mudança de marca, identidade técnica ou novas categorias nesta navegação. Convites/ocultação foram implementados nas entregas COUPLE-03/04 posteriores ao redesign; implantação das regras continua pendente. O [mapa incremental](NAVIGATION.md) distingue a base atual das mídias/listas futuras.
 
 ## Verificação
 
