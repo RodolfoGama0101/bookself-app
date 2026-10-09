@@ -629,6 +629,42 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['state', 'favorite', 'updatedAt', 'revision'])
         && request.resource.data.revision == resource.data.revision + 1;
     }
+    function seriesOwner(owner, entry) {
+      return isOwner(owner)
+        && get(/databases/$(database)/documents/libraries/$(owner)/entries/$(entry)).data.mediaType == 'series';
+    }
+    match /libraries/{owner}/series/{entry} {
+      allow read: if isOwner(owner);
+      allow create, update: if seriesOwner(owner, entry)
+        && request.resource.data.keys().hasAll(['schemaVersion','complete','ended','paused','revision','updatedAt'])
+        && request.resource.data.keys().hasOnly(['schemaVersion','complete','ended','paused','revision','updatedAt'])
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.complete is bool && request.resource.data.ended is bool
+        && request.resource.data.paused is bool && request.resource.data.updatedAt == request.time
+        && request.resource.data.revision == (exists(/databases/$(database)/documents/libraries/$(owner)/series/$(entry)) ? resource.data.revision + 1 : 1);
+      match /episodes/{id} {
+        allow read: if isOwner(owner);
+        allow create, update: if seriesOwner(owner, entry)
+          && request.resource.data.keys().hasAll(['schemaVersion','season','number','availableOn','available','watched','revision','updatedAt'])
+          && request.resource.data.keys().hasOnly(['schemaVersion','season','number','availableOn','available','watched','revision','updatedAt'])
+          && request.resource.data.schemaVersion == 1
+          && request.resource.data.season is int && request.resource.data.season >= 0 && request.resource.data.season <= 999
+          && request.resource.data.number is int && request.resource.data.number >= 1 && request.resource.data.number <= 9999
+          && request.resource.data.available is bool && request.resource.data.watched is bool
+          && mediaDate(request.resource.data.availableOn)
+          && (request.resource.data.availableOn == null || validListenDateOrFuture(request.resource.data.availableOn))
+          && (!request.resource.data.watched || (request.resource.data.availableOn == null
+            ? request.resource.data.available : validListenDate(request.resource.data.availableOn)))
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.revision == (exists(/databases/$(database)/documents/libraries/$(owner)/series/$(entry)/episodes/$(id)) ? resource.data.revision + 1 : 1);
+      }
+    }
+    function validListenDateOrFuture(value) {
+      let parts = value.split('-');
+      let year = int(parts[0]); let month = int(parts[1]); let day = int(parts[2]);
+      let date = timestamp.date(year, month, day);
+      return year >= 1 && date.year() == year && date.month() == month && date.day() == day;
+    }
     // Relações consentidas reutilizam o convite aceito imutável. Não migra legado.
     // Escutas pessoais imutáveis; parceiro e terceiros nunca recebem projeção.
     function validListenDate(value) {

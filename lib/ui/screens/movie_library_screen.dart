@@ -19,11 +19,13 @@ class MovieLibraryScreen extends StatefulWidget {
     required this.onBooks,
     this.onBible,
     this.onMusic,
+    this.onSeries,
   });
   final MovieLibraryService? service;
   final VoidCallback onBooks;
   final VoidCallback? onBible;
   final VoidCallback? onMusic;
+  final VoidCallback? onSeries;
   @override
   State<MovieLibraryScreen> createState() => _MovieLibraryScreenState();
 }
@@ -165,6 +167,7 @@ class _MovieLibraryScreenState extends State<MovieLibraryScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           LibraryDestinations(
+            onSeries: widget.onSeries,
             moviesSelected: true,
             onBooks: widget.onBooks,
             onBible: widget.onBible,

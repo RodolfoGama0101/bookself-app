@@ -337,3 +337,10 @@ completa. Agent-browser bloqueado por Controle de Aplicativo; usado navegador
 integrado. Ver [matriz de filmes](MOVIE_VALIDATION.md), [privacidade](PRIVACY.md),
 [assinatura](ANDROID_BUILD.md#assinatura-de-distribuição--rel-02--09102026) e
 [acessibilidade](ACCESSIBILITY.md#filmes--ui-03--09102026). Sem deploy/migração/produção.
+
+## Séries — SERIES-01/02 — 09/10/2026
+
+Análise limpa, 485 testes Flutter e 94 testes Node/demo aprovados.
+Testes de widgets percorrem cadastro e episódios em 320 × 640/texto 2×.
+Auth 39099/Firestore 38080, projeto demo-bookself; nenhuma escrita remota.
+[Contrato e limitações](SERIES.md). Busca real e Android/iOS pendentes.

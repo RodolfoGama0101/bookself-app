@@ -129,3 +129,9 @@ Revisão documental do mapa realizada contra o código e o MVP, sem executar est
 | Tela 320 × 480/texto 2×, 390 × 844 e desktop 1.280 × 720 | Mesmos destinos e ações; rolagem/retorno e adaptação preservam contexto. | PROD-03/UI-03; teclado e leitor de tela incluídos na implementação. |
 
 Arquivos/rotas atuais examinados: `main_navigation.dart`, `home_screen.dart`, `bookshelf_screen.dart`, `bible_screen.dart`, `profile_screen.dart` e fluxos documentados de convites/compartilhamento/bloqueios. Links locais e consistência do diff verificados. Somente documentação alterada; sem novos testes Flutter, build, mudança de dados/regras ou implantação. Atualização de 08/10/2026: DATA-01 consolidou a [proposta de esquema v1](DATA_MODEL.md) e seus exemplos; a próxima base é DATA-02, com implementação incremental e testes próprios antes da adoção do contrato.
+
+## Séries locais — 09/10/2026
+
+Biblioteca → Séries aparece nos emuladores/USE_SERIES_LIBRARY. Inclui cadastro
+manual/catálogo configurável, detalhes, episódios, pausa e estados derivados.
+Seletores de categorias preservam as páginas pessoais. [Contrato](SERIES.md).

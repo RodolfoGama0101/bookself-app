@@ -26,6 +26,7 @@ class BookshelfScreen extends StatefulWidget {
     this.onOpenBible,
     this.onOpenMovies,
     this.onOpenMusic,
+    this.onOpenSeries,
     this.onClose,
     this.paginated = false,
   });
@@ -35,6 +36,7 @@ class BookshelfScreen extends StatefulWidget {
   final VoidCallback? onOpenBible;
   final VoidCallback? onOpenMovies;
   final VoidCallback? onOpenMusic;
+  final VoidCallback? onOpenSeries;
   final VoidCallback? onClose;
   final bool paginated;
 
@@ -459,6 +461,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                       child: LibraryDestinations(
+                        onSeries: widget.onOpenSeries,
                         onMovies: widget.onOpenMovies,
                         onMusic: widget.onOpenMusic,
                         onBible: widget.onOpenBible,

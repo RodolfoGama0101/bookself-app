@@ -1,42 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../data/models/media_model.dart';
-import '../../data/models/music_record.dart';
+import '../../data/models/series_record.dart';
 import '../../services/auth_service.dart';
-import '../../services/music_library_service.dart';
+import '../../services/series_library_service.dart';
 import '../../services/library_query_service.dart';
 import '../../utils/error_handler.dart';
 import '../widgets/book_cover.dart';
 import '../widgets/content_state.dart';
 import '../widgets/design_components.dart';
-import 'music_add_screen.dart';
-import 'music_details_screen.dart';
+import 'series_add_screen.dart';
+import 'series_details_screen.dart';
 
-class MusicLibraryScreen extends StatefulWidget {
-  const MusicLibraryScreen({
+class SeriesLibraryScreen extends StatefulWidget {
+  const SeriesLibraryScreen({
     super.key,
     this.service,
     required this.onBooks,
     this.onBible,
-    this.onMovies,
-    this.onSeries,
+    this.onMusic,
   });
-  final MusicLibraryService? service;
+  final SeriesLibraryService? service;
   final VoidCallback onBooks;
   final VoidCallback? onBible;
-  final VoidCallback? onMovies;
-  final VoidCallback? onSeries;
+  final VoidCallback? onMusic;
   @override
-  State<MusicLibraryScreen> createState() => _MusicLibraryScreenState();
+  State<SeriesLibraryScreen> createState() => _SeriesLibraryScreenState();
 }
 
-class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
-  late final _service = widget.service ?? MusicLibraryService();
+class _SeriesLibraryScreenState extends State<SeriesLibraryScreen> {
+  late final _service = widget.service ?? SeriesLibraryService();
   final _filter = TextEditingController();
-  final _rows = <MusicRecord>[];
+  final _rows = <SeriesRecord>[];
   String? _owner, _error;
-  MediaType _type = MediaType.track;
-  bool _favorites = false;
+  String _status = 'all';
   LibraryCursor? _next;
   int? _total;
   bool _busy = false;
@@ -54,7 +50,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
       _error = null;
       _busy = false;
       _filter.clear();
-      _type = MediaType.track;
+      _status = 'all';
       if (owner != null) _load(reset: true);
     }
   }
@@ -78,8 +74,8 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
       _total = null;
     }
     try {
-      final page = await _service.page(owner, type: _type, after: cursor);
-      final count = await _service.count(owner, _type);
+      final page = await _service.page(owner, after: cursor);
+      final count = await _service.count(owner);
       if (!_valid(owner, generation)) return;
       setState(() {
         final ids = _rows.map((row) => row.entry.id).toSet();
@@ -99,32 +95,32 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   Future<void> _add() async {
     final owner = _owner;
     if (owner == null) return;
-    final saved = await Navigator.push<MusicRecord>(
+    final saved = await Navigator.push<SeriesRecord>(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            MusicAddScreen(owner: owner, service: _service, type: _type),
+        builder: (_) => SeriesAddScreen(owner: owner, service: _service),
       ),
     );
     if (mounted && _owner == owner && saved != null) {
+      setState(() => _status = 'all');
       await _load(reset: true);
     }
   }
 
-  Future<void> _details(MusicRecord music) async {
+  Future<void> _details(SeriesRecord series) async {
     final owner = _owner;
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => MusicDetailsScreen(music: music, service: _service),
+        builder: (_) => SeriesDetailsScreen(series: series, service: _service),
       ),
     );
     if (mounted && _owner == owner) {
       // Releitura do registro mantém páginas/posição e não perde os filtros.
       try {
         final current = await _service.read(
-          music.entry.ownerId,
-          music.entry.id,
+          series.entry.ownerId,
+          series.entry.id,
         );
         if (mounted && _owner == owner) {
           setState(() {
@@ -154,32 +150,31 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   Widget build(BuildContext context) {
     final filtered = _rows
         .where(
-          (music) =>
-              (!_favorites || music.entry.favorite) &&
-              '${music.title} ${music.artists}'.toLowerCase().contains(
+          (series) =>
+              (_status == 'all' || _status == series.status) &&
+              series.title.toLowerCase().contains(
                 _filter.text.trim().toLowerCase(),
               ),
         )
         .toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Música')),
+      appBar: AppBar(title: const Text('Séries')),
       body: ListView(
-        key: const PageStorageKey('music-library'),
+        key: const PageStorageKey('series-library'),
         padding: const EdgeInsets.all(16),
         children: [
           LibraryDestinations(
-            onSeries: widget.onSeries,
-            musicSelected: true,
+            seriesSelected: true,
             onBooks: widget.onBooks,
             onBible: widget.onBible,
-            onMovies: widget.onMovies,
+            onMusic: widget.onMusic,
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _filter,
             onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(
-              labelText: 'Filtrar seleções carregadas por título ou artista',
+              labelText: 'Filtrar séries carregados por título',
               prefixIcon: Icon(Icons.search),
             ),
           ),
@@ -188,21 +183,17 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              FilterChip(
-                label: const Text('Favoritos'),
-                selected: _favorites,
-                onSelected: (value) => setState(() => _favorites = value),
-              ),
-              for (final type in [MediaType.track, MediaType.album])
+              for (final entry in {
+                'all': 'Todos',
+                'in_progress': 'Em andamento',
+                'up_to_date': 'Em dia',
+                'completed': 'Concluídas',
+                'paused': 'Pausadas',
+              }.entries)
                 ChoiceChip(
-                  label: Text(type == MediaType.track ? 'Faixas' : 'Álbuns'),
-                  selected: _type == type,
-                  onSelected: _busy
-                      ? null
-                      : (_) {
-                          setState(() => _type = type);
-                          _load(reset: true);
-                        },
+                  label: Text(entry.value),
+                  selected: _status == entry.key,
+                  onSelected: (_) => setState(() => _status = entry.key),
                 ),
             ],
           ),
@@ -211,7 +202,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
-                'Carregadas: ${_rows.length}${_total == null ? '' : ' · Total: $_total'}',
+                '${_rows.length} carregados${_total == null ? '' : ' de $_total séries'}',
               ),
               TextButton(
                 onPressed: _busy
@@ -220,14 +211,14 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                         setState(() {});
                         _load(reset: true);
                       },
-                child: const Text('Atualizar seleções'),
+                child: const Text('Atualizar séries'),
               ),
             ],
           ),
           if (_busy)
             Semantics(
               liveRegion: true,
-              label: 'Carregando seleções. Aguarde.',
+              label: 'Carregando séries. Aguarde.',
               child: const LinearProgressIndicator(),
             ),
           if (_error != null) ...[
@@ -251,15 +242,15 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
           if (!_busy && _error == null && filtered.isEmpty)
             ContentState(
               title: _rows.isEmpty
-                  ? 'Nenhuma seleção salva'
-                  : 'Nenhuma seleção corresponde aos filtros',
+                  ? 'Nenhum série salvo'
+                  : 'Nenhum série corresponde aos filtros',
               message: _rows.isEmpty
-                  ? 'Cadastre uma faixa ou álbum para organizar suas músicas.'
-                  : 'A busca considera as seleções carregadas.',
-              actionLabel: 'Adicionar seleção',
+                  ? 'Cadastre um série para acompanhar suas sessões.'
+                  : 'A busca considera os séries carregados.',
+              actionLabel: 'Adicionar série',
               onAction: _add,
             ),
-          for (final music in filtered)
+          for (final series in filtered)
             Card(
               child: MergeSemantics(
                 child: Semantics(
@@ -269,26 +260,23 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                       width: 44,
                       height: 66,
                       child: BookCover(
-                        url: music.cover,
+                        url: series.cover,
                         placeholderBuilder: (_) =>
-                            const Icon(Icons.music_note_outlined),
+                            const Icon(Icons.tv_outlined),
                       ),
                     ),
-                    title: Text(music.title),
-                    trailing: music.entry.favorite
-                        ? const Icon(Icons.favorite, semanticLabel: 'Favorito')
-                        : null,
+                    title: Text(series.title),
                     subtitle: Text(
-                      '${music.artists} · ${music.typeLabel}${music.version == null ? '' : ' · ${music.version}'}',
+                      '${series.year?.toString() ?? 'Ano não informado'} · ${series.statusLabel}',
                     ),
-                    onTap: () => _details(music),
+                    onTap: () => _details(series),
                   ),
                 ),
               ),
             ),
           if (_next != null) ...[
             const Text(
-              'Há mais seleções. Carregue as próximas páginas para ampliar os filtros.',
+              'Há mais séries. Carregue as próximas páginas para ampliar os filtros.',
             ),
             TextButton(
               onPressed: _busy
@@ -297,14 +285,14 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                       setState(() {});
                       _load();
                     },
-              child: const Text('Carregar mais seleções'),
+              child: const Text('Carregar mais séries'),
             ),
           ],
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: _add,
             icon: const Icon(Icons.add),
-            label: const Text('Adicionar seleção'),
+            label: const Text('Adicionar série'),
           ),
         ],
       ),

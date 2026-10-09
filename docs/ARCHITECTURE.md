@@ -220,3 +220,11 @@ Trocar nome exibido não exige trocar IDs técnicos. Alterações de `applicatio
 COUPLE-04 acrescenta `isShared` opcional aos registros pessoais (ausente = visível), sem substituir IDs ou remover legado. `SharingService` publica projeções mínimas após releitura transacional; livros/Bíblia próprios permanecem privados. Salvar capítulos/livro conserva preferência e campos desconhecidos e sincroniza projeção; ocultar a remove atomicamente. A estante do parceiro consulta `shared_books`; comparação bíblica consulta `shared_bible_progress`. O feed combina streams pessoais e compartilhados separados, com cancelamento conjunto, e usa `activityAt` do servidor posterior ao aceite para atividades conjuntas. Estatísticas usam todo conteúdo permitido do período. DATA-06 preserva `addedAt` e o histórico privado; o feed atual mostra a última atividade por livro, e composição multimídia permanece em COUPLE-08.
 
 Builders usam identidade/relação como chave; detalhes abertos e capítulos acompanham revogação. Cache/offline alheio retira conteúdo; a apresentação do parceiro também exige confirmação de servidor. Bloqueio do parceiro ativo grava documento privado e término/versionamento em transação; o fluxo fora de vínculo foi implementado em COUPLE-09, conforme [registro 010](decisions/010-bloqueios-independentes.md). [Contrato completo](COUPLE_VISIBILITY.md) e [ADR 009](decisions/009-visibilidade-e-revogacao.md). Nenhuma mídia planejada foi implementada nem regra remota publicada.
+
+## Séries — SERIES-01/02 — 09/10/2026
+
+SeriesLibraryService reutiliza catálogo/entradas privados; SeriesProgressService
+concentra configuração e episódios transacionais em subcoleções privadas. Estado
+geral deriva da completude/disponibilidade, preservando pausa e especiais opcionais.
+Busca externa é contrato simulado de intermediário, com caminho manual funcional.
+[Ativação, limites e testes](SERIES.md). Sem migração ou implantação.

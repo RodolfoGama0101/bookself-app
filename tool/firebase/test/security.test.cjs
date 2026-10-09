@@ -1359,3 +1359,30 @@ for (const type of ['track','album']) test('MUSIC-03: ' + type + ' compartilha s
   for(const uid of ['b','c']) await assertFails(getDoc(doc(db(uid),'libraries/a/listens/own')));
   await assertSucceeds(getDoc(doc(db('a'),'libraries/a/listens/own')));
 });
+
+const seriesConfig = {schemaVersion:1,complete:false,ended:false,paused:false,revision:1,updatedAt:serverTimestamp()};
+const seriesEpisode = {schemaVersion:1,season:1,number:1,availableOn:null,available:true,watched:false,revision:1,updatedAt:serverTimestamp()};
+test('SERIES-02: episódios privados, calendário, novos episódios e disputa por revisão', async () => {
+  await mediaBatch(db('a'),'a','series','series','series').commit();
+  const root='libraries/a/series/series';
+  await assertSucceeds(setDoc(doc(db('a'),root),seriesConfig));
+  await assertSucceeds(setDoc(doc(db('a'),root+'/episodes/one'),seriesEpisode));
+  for(const actor of [db('b'),db('c'),env.unauthenticatedContext().firestore()]) {
+    await assertFails(getDoc(doc(actor,root)));
+    await assertFails(getDocs(collection(actor,root+'/episodes')));
+    await assertFails(setDoc(doc(actor,root+'/episodes/other'),seriesEpisode));
+  }
+  for(const data of [{availableOn:'2020-02-31'}, {availableOn:'9999-01-01',watched:true}, {season:-1}, {number:0}, {title:'Spoiler'}, {revision:3}]) {
+    await assertFails(setDoc(doc(db('a'),root+'/episodes/invalid'),{...seriesEpisode,...data}));
+  }
+  const target=doc(db('a'),root+'/episodes/one');
+  const results=await Promise.allSettled([true,false].map(watched=>updateDoc(target,{watched,revision:2,updatedAt:serverTimestamp()})));
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  const old=(await getDoc(target)).data();
+  await assertSucceeds(setDoc(doc(db('a'),root+'/episodes/new'),{...seriesEpisode,number:2}));
+  assert.deepEqual((await getDoc(target)).data(),old);
+  await assertSucceeds(updateDoc(target,{watched:false,revision:3,updatedAt:serverTimestamp()}));
+  assert.equal((await getDoc(target)).data().watched,false);
+  await assertFails(deleteDoc(target));
+  await assertFails(setDoc(doc(db('a'),'libraries/a/series/missing'),seriesConfig));
+});
