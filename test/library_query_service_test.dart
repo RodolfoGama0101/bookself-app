@@ -179,7 +179,10 @@ class _Reference extends Fake
   ]) async {
     db.lastSource = options?.source;
     final parts = path.split('/');
-    return db.rows[parts.first]!.firstWhere((d) => d.id == parts.last);
+    return db.rows[parts.take(parts.length - 1).join('/')]
+            ?.where((d) => d.id == parts.last)
+            .firstOrNull ??
+        _MissingDocument();
   }
 
   @override
@@ -209,6 +212,16 @@ class _Metadata extends Fake implements SnapshotMetadata {
   final bool isFromCache;
   @override
   bool get hasPendingWrites => false;
+}
+
+// Dublê restrito ao teste, seguindo os demais snapshots deste arquivo.
+// ignore: subtype_of_sealed_class
+class _MissingDocument extends Fake
+    implements DocumentSnapshot<Map<String, dynamic>> {
+  @override
+  bool get exists => false;
+  @override
+  SnapshotMetadata get metadata => _Metadata(false);
 }
 
 class _Snapshot extends Fake implements QuerySnapshot<Map<String, dynamic>> {
@@ -318,7 +331,36 @@ void main() {
       expect(rows.containsKey('foreign'), false);
       expect(database.lastSource, Source.server);
       expect(database.lastLimit, 100);
-      expect(database.reads, 7);
+      expect(database.reads, 8);
+    },
+  );
+  test(
+    'exportação pagina episódios mesmo quando a configuração da série ainda não existe',
+    () async {
+      final database = _Database();
+      database.rows['users'] = [
+        _Document('a', {'uid': 'a'}),
+      ];
+      database.rows['libraries/a/entries'] = [
+        _Document('series', {'ownerId': 'a', 'mediaType': 'series'}),
+      ];
+      database.rows['libraries/a/series/series/episodes'] = [
+        for (var i = 0; i < 205; i++)
+          _Document('ep-${i.toString().padLeft(3, '0')}', {'watched': i == 0}),
+      ];
+      final result = jsonDecode(
+        await PersonalExportService(
+          firestore: database,
+          currentUid: () => 'a',
+        ).export('a'),
+      )['collections'];
+      expect(result['libraries/a/series/series'], isEmpty);
+      expect(result['libraries/a/series/series/episodes'], hasLength(205));
+      expect(
+        result['libraries/a/series/series/episodes']['ep-000']['watched'],
+        true,
+      );
+      expect(database.lastSource, Source.server);
     },
   );
   test(

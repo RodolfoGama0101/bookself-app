@@ -367,3 +367,6 @@ de paginação aprovada após reforçar que contagens alheias não retornam em e
 Atualização incremental SERIES-02: análise limpa e 498 testes Flutter aprovados,
 incluindo três regressões de catálogo/progresso concorrente. Sem novo fornecedor
 ou alterações nas regras. [Contrato](SERIES.md#atualização-incremental-de-episódios--series-02--09102026).
+
+Cópia pessoal de séries (SEC-05): análise limpa, 501 Flutter e 16 testes
+direcionados de exportação/consultas aprovados. [Escopo](PRIVACY.md#séries-na-cópia-pessoal--09102026).

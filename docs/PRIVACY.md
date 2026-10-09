@@ -8,7 +8,7 @@ legal nem autorização para excluir dados ou alterar produção.
 
 Perfil → Cópia dos meus dados gera JSON somente após leituras confirmadas do
 servidor. Inclui o próprio perfil (UID, nome, e-mail, foto e criação), livros,
-progresso bíblico, catálogo, entradas privadas multimídia e escutas musicais próprias existentes. Campos de
+progresso bíblico, catálogo, entradas privadas multimídia e escutas musicais próprias existentes, configuração/progresso por episódio e preferências de ocultação de séries. Campos de
 vínculo/códigos de convite do perfil não são incluídos. Não consulta biblioteca
 alheia, projeções compartilhadas, convites, bloqueios, contatos, atividade dos
 livros, listas, experiências ou índices internos. Categorias futuras não passam
@@ -63,3 +63,17 @@ códigos no perfil exportado, limite, falha sem cópia parcial, troca de sessão
 cópia somente por ação explícita e retorno tardio. Teste de consultas percorre
 205 livros em três páginas, exclui livro alheio e exige origem servidor; cache
 é rejeitado. Fakes não substituem a jornada FlutterFire real em dispositivos.
+
+## Séries na cópia pessoal — 09/10/2026
+
+A cópia percorre entradas próprias de séries para incluir cada configuração e
+subcoleção de episódios, mesmo sem documento pai de configuração. Inclui também
+series_visibility do dono; não lê shared_series ou progresso do parceiro. Todos
+os documentos entram no limite global de 5.000; erro, cache ou troca de conta
+recusam o resultado inteiro. Timestamps conservam segundos/nanossegundos.
+
+Três regressões novas cobrem episódios/ocultação, recusa sem cópia parcial e
+205 episódios paginados sem configuração. Exclusão/retenção continuam propostas
+pendentes; esta entrega amplia somente a cópia pessoal de leitura.
+
+Validação desta ampliação: análise limpa e 501 testes Flutter aprovados.

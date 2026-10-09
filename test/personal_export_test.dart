@@ -53,6 +53,7 @@ void main() {
         'libraries/a/catalog',
         'libraries/a/entries',
         'libraries/a/listens',
+        'libraries/a/series_visibility',
       ]);
       expect(result['collections']['users/a']['a'], {
         'uid': 'a',
@@ -63,6 +64,89 @@ void main() {
         result['collections']['books']['book']['addedAt']['type'],
         'timestamp',
       );
+    },
+  );
+  test(
+    'exporta configuração, episódios mesmo sem documento pai e ocultação somente próprios',
+    () async {
+      final paths = <String>[];
+      final service = PersonalExportService(
+        currentUid: () => 'a',
+        reader: (path, _, _) async {
+          paths.add(path);
+          return switch (path) {
+            'libraries/a/entries' => {
+              'series': {'ownerId': 'a', 'mediaType': 'series'},
+            },
+            'libraries/a/series/series' => {},
+            'libraries/a/series/series/episodes' => {
+              'one': {
+                'watched': true,
+                'revision': 3,
+                'updatedAt': Timestamp(100, 123),
+              },
+            },
+            'libraries/a/series_visibility' => {
+              'series': {'visible': false, 'revision': 2},
+            },
+            _ => {},
+          };
+        },
+      );
+      final result = jsonDecode(await service.export('a'))['collections'];
+      expect(result['libraries/a/series/series'], isEmpty);
+      expect(
+        result['libraries/a/series/series/episodes']['one']['watched'],
+        true,
+      );
+      expect(
+        result['libraries/a/series/series/episodes']['one']['updatedAt']['nanoseconds'],
+        123,
+      );
+      expect(
+        result['libraries/a/series_visibility']['series']['visible'],
+        false,
+      );
+      expect(
+        paths.any((p) => p.contains('/b/') || p.startsWith('shared_')),
+        false,
+      );
+    },
+  );
+  test(
+    'falha em episódios, troca de conta e limite somado recusam cópia inteira',
+    () async {
+      for (final mode in ['failure', 'account', 'limit', 'path']) {
+        var uid = 'a';
+        final service = PersonalExportService(
+          currentUid: () => uid,
+          reader: (path, _, _) async {
+            if (path.endsWith('/entries')) {
+              return {
+                mode == 'path' ? '../b' : 'series': {
+                  'ownerId': 'a',
+                  'mediaType': 'series',
+                },
+              };
+            }
+            if (path.endsWith('/episodes')) {
+              if (mode == 'failure') throw StateError('falha');
+              if (mode == 'account') uid = 'b';
+              if (mode == 'limit') {
+                return {
+                  for (var i = 0; i < PersonalExportService.maxDocuments; i++)
+                    '$i': {'watched': false},
+                };
+              }
+            }
+            return {};
+          },
+        );
+        await expectLater(
+          service.export('a'),
+          throwsA(anyOf(isA<StateError>(), isA<FormatException>())),
+        );
+      }
     },
   );
   test(

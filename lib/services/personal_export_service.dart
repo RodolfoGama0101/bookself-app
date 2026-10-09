@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_environment.dart';
+import '../data/models/media_model.dart';
 
 typedef ExportReader =
     Future<Map<String, Map<String, dynamic>>> Function(
@@ -29,14 +30,19 @@ class PersonalExportService {
   ) async {
     if (reader != null) return reader!(path, ownerField, owner);
     final db = firestore ?? FirebaseEnvironment.firestore;
-    if (path == 'users/$owner') {
+    final profile = path == 'users/$owner';
+    if (profile ||
+        (path.startsWith('libraries/$owner/series/') &&
+            path.split('/').length == 4)) {
       final doc = await db
           .doc(path)
           .get(const GetOptions(source: Source.server));
-      if (!doc.exists ||
-          doc.metadata.hasPendingWrites ||
-          doc.metadata.isFromCache) {
+      if (doc.metadata.hasPendingWrites || doc.metadata.isFromCache) {
         throw StateError('Perfil indisponível');
+      }
+      if (!doc.exists) {
+        if (profile) throw StateError('Perfil indisponível');
+        return {};
       }
       return {doc.id: doc.data()!};
     }
@@ -75,33 +81,29 @@ class PersonalExportService {
     _checkOwner(owner);
     final collections = <String, dynamic>{};
     var total = 0;
-    for (final source in <String, String?>{
-      'users/$owner': null,
-      'books': 'userId',
-      'bible_progress': 'userId',
-      'libraries/$owner/catalog': null,
-      'libraries/$owner/entries': null,
-      'libraries/$owner/listens': null,
-    }.entries) {
+    Future<void> collect(
+      String path,
+      String? ownerField, {
+      bool scoped = false,
+    }) async {
       _checkOwner(owner);
       final rows = await _read(
-        source.key,
-        source.value,
+        path,
+        ownerField,
         owner,
       ).timeout(const Duration(seconds: 30));
       _checkOwner(owner);
       total += rows.length;
       if (total > maxDocuments) throw StateError('Exportação muito grande');
-      final ownerField =
-          source.value ??
-          (source.key.startsWith('libraries/') ? 'ownerId' : 'uid');
-      if (rows.values.any((row) => row[ownerField] != owner)) {
+      final field =
+          ownerField ?? (path.startsWith('libraries/') ? 'ownerId' : 'uid');
+      if (!scoped && rows.values.any((row) => row[field] != owner)) {
         throw StateError('Dono divergente');
       }
-      collections[source.key] = rows.map(
+      collections[path] = rows.map(
         (id, data) => MapEntry(
           id,
-          source.key == 'users/$owner'
+          path == 'users/$owner'
               ? {
                   for (final key in [
                     'uid',
@@ -115,6 +117,28 @@ class PersonalExportService {
               : data,
         ),
       );
+    }
+
+    for (final source in <String, String?>{
+      'users/$owner': null,
+      'books': 'userId',
+      'bible_progress': 'userId',
+      'libraries/$owner/catalog': null,
+      'libraries/$owner/entries': null,
+      'libraries/$owner/listens': null,
+    }.entries) {
+      await collect(source.key, source.value);
+    }
+    await collect('libraries/$owner/series_visibility', null, scoped: true);
+    final entries =
+        collections['libraries/$owner/entries'] as Map<String, dynamic>;
+    for (final entry in entries.entries.where(
+      (e) => e.value['mediaType'] == 'series',
+    )) {
+      requireDocumentId(entry.key);
+      final path = 'libraries/$owner/series/${entry.key}';
+      await collect(path, null, scoped: true);
+      await collect('$path/episodes', null, scoped: true);
     }
     return const JsonEncoder.withIndent('  ').convert({
       'schemaVersion': 1,
