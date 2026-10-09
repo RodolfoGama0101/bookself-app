@@ -30,12 +30,15 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/CATALOG_TRIALS.md](docs/CATALOG_TRIALS.md) | Ensaio de fornecedores, comandos sem segredos e pendências TMDB/MusicBrainz/Spotify. |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Configuração isolada de Auth/Firestore, comandos e clientes por plataforma. |
 | [docs/SECURITY.md](docs/SECURITY.md) | Auditoria remota, regras candidatas, concorrência de vínculo e implantação pendente. |
+| [docs/PRIVACY.md](docs/PRIVACY.md) | Cópia pessoal parcial em JSON; exclusão e retenção ainda propostas. |
 | [docs/decisions/README.md](docs/decisions/README.md) | Alternativas, escolhas técnicas implementadas e pendências. |
 | [docs/ANDROID_BUILD.md](docs/ANDROID_BUILD.md) | Builds Android atuais, log histórico e limites de distribuição. |
 | [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | Inventário sem valores, configuração Google Books por ambiente e auditoria pendente. |
 | [docs/IOS_VALIDATION.md](docs/IOS_VALIDATION.md) | Permissões de foto e verificação Apple ainda pendente. |
 
 ## Funcionalidades implementadas
+
+- Perfil → Cópia dos meus dados: JSON parcial de perfil e biblioteca pessoais, copiado por ação explícita após leitura do servidor. Não inclui histórico do casal nem oferece restauração/exclusão de conta. [Escopo e limites](docs/PRIVACY.md).
 
 - Interesses em comum na lista do vínculo ativo: compara seleções adicionadas pelos dois, explica coincidências e permite destacar próxima opção sem alterar progresso. Sem consultas pessoais adicionais. Ativação acompanha as listas locais; [contrato](docs/COUPLE_WORKSPACE.md#interesses-em-comum--couple-07).
 

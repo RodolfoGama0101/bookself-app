@@ -1,5 +1,7 @@
 import 'package:bookself_app/data/models/media_model.dart';
 import 'package:bookself_app/services/library_query_service.dart';
+import 'package:bookself_app/services/personal_export_service.dart';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,6 +12,9 @@ class _Database extends Fake implements FirebaseFirestore {
   int? lastLimit;
   Source? lastSource;
   bool cache = false;
+  @override
+  DocumentReference<Map<String, dynamic>> doc(String path) =>
+      _Reference(this, path);
   @override
   CollectionReference<Map<String, dynamic>> collection(String path) =>
       _Query(this, path);
@@ -136,6 +141,10 @@ class _Query extends Fake implements CollectionReference<Map<String, dynamic>> {
     cap: cap,
   );
   @override
+  Query<Map<String, dynamic>> startAfterDocument(
+    DocumentSnapshot<Object?> snapshot,
+  ) => startAfter([snapshot.id]);
+  @override
   Query<Map<String, dynamic>> limit(int value) => _Query(
     db,
     path,
@@ -164,6 +173,15 @@ class _Reference extends Fake
   @override
   final String path;
   @override
+  Future<DocumentSnapshot<Map<String, dynamic>>> get([
+    GetOptions? options,
+  ]) async {
+    db.lastSource = options?.source;
+    final parts = path.split('/');
+    return db.rows[parts.first]!.firstWhere((d) => d.id == parts.last);
+  }
+
+  @override
   CollectionReference<Map<String, dynamic>> collection(String name) =>
       _Query(db, '$path/$name');
 }
@@ -178,6 +196,10 @@ class _Document extends Fake
   final Map<String, dynamic> value;
   @override
   Map<String, dynamic> data() => value;
+  @override
+  bool get exists => true;
+  @override
+  SnapshotMetadata get metadata => _Metadata(false);
 }
 
 class _Metadata extends Fake implements SnapshotMetadata {
@@ -233,6 +255,46 @@ Map<String, dynamic> entry(String type) => {
   'legacyRef': null,
 };
 void main() {
+  test(
+    'exportação lê mais de 100 registros com cursor e somente do servidor',
+    () async {
+      final database = _Database();
+      database.rows['users'] = [
+        _Document('a', {'uid': 'a'}),
+      ];
+      database.rows['books'] = [
+        for (var i = 0; i < 205; i++)
+          _Document('book-${i.toString().padLeft(3, '0')}', {'userId': 'a'}),
+        _Document('foreign', {'userId': 'b'}),
+      ];
+      final json = await PersonalExportService(
+        firestore: database,
+        currentUid: () => 'a',
+      ).export('a');
+      final rows = jsonDecode(json)['collections']['books'] as Map;
+      expect(rows, hasLength(205));
+      expect(rows.containsKey('foreign'), false);
+      expect(database.lastSource, Source.server);
+      expect(database.lastLimit, 100);
+      expect(database.reads, 6);
+    },
+  );
+  test(
+    'exportação recusa resultado do cache em vez de oferecer cópia incompleta',
+    () async {
+      final database = _Database()..cache = true;
+      database.rows['users'] = [
+        _Document('a', {'uid': 'a'}),
+      ];
+      await expectLater(
+        PersonalExportService(
+          firestore: database,
+          currentUid: () => 'a',
+        ).export('a'),
+        throwsStateError,
+      );
+    },
+  );
   late _Database db;
   late LibraryQueryRepository repository;
   setUp(() {

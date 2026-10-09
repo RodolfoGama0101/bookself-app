@@ -1,4 +1,5 @@
 import 'sharing_screen.dart';
+import 'personal_export_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -694,6 +695,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 24),
               // Card Segurança
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.download_outlined),
+                  title: const Text('Cópia dos meus dados'),
+                  subtitle: const Text(
+                    'Gerar JSON pessoal de perfil e biblioteca',
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PersonalExportScreen(),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               Text(
                 'Segurança',
                 style: theme.textTheme.labelLarge?.copyWith(
