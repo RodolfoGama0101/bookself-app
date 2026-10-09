@@ -47,3 +47,46 @@ Regressões Dart em `test/couple_workspace_service_test.dart` e `test/couple_wor
 Emuladores e fakes não comprovam proteção remota nem uso Android/iOS. Não houve implantação, migração, publicação ou escrita de produção. Validar os clientes/documentos e implantar as regras pelo processo separado de [SEC-06](SECURITY.md#implantação-pendente) antes de habilitar a funcionalidade remotamente.
 
 O acesso em Nós fica habilitado automaticamente somente com `USE_FIREBASE_EMULATORS=true`. Depois de implantar/verificar as regras em outro ambiente, `USE_COUPLE_WORKSPACE=true` habilita explicitamente a tela. O define não publica regras. Sem ele, o cliente distribuído conserva a navegação anterior, até a ativação autorizada.
+
+## Atividades e contagens por mídia — COUPLE-08 — 09/10/2026
+
+Início e Nós abrem Atividades do casal no ambiente habilitado. A entrega reúne
+experiências consentidas de livros, filmes, séries/episódios, faixas e álbuns.
+A unidade de cada total é experiência confirmada pelos dois na revisão atual;
+faixas e álbuns permanecem separados. Não soma progresso pessoal nem apresenta
+favoritos/escutas privados. Compartilhar deliberadamente uma seleção de obra
+oculta continua independente da visibilidade da biblioteca.
+
+Cada experiência tem uma projeção em couple_relationships/{relation}/activity/{id}
+com seleção mínima, mediaType, confirmed, occurredOn, revision, sourceVersion,
+createdAt e updatedAt. Domínio, auditoria e projeção são atômicos. Regras conferem
+seleção/versão/timestamps e derivam confirmed das duas respostas atuais; não se
+pode inventar evento, somar duas confirmações ou manter confirmação de revisão
+antiga. Correção/retirada/reconfirmação atualiza o mesmo ID. O feed descreve a
+última atualização da experiência, sem apresentar todo o histórico como eventos
+novos. Datas civis não se confundem com o timestamp da atualização.
+
+Janela viva de 20 + marcador, ordenação updatedAt/ID e cursor ligado à relação e
+filtro. Carregar mais amplia o conjunto; nova atualização viva reinicia a janela
+sem perder o filtro, descartando páginas antigas. Totais usam agregações completas
+por tipo/confirmed, independentes das páginas; consultas não são snapshot atômico
+entre todas as agregações. Dois índices adicionados, sem implantação.
+
+Acesso do feed exige vínculo consentido ativo; erro/offline/término/troca retira
+conteúdo e invalida contagens/páginas atrasadas. Histórico encerrado continua na
+tela existente de experiências, com acesso restrito aos participantes antigos.
+Experiências antigas sem projeção não são migradas automaticamente: se a contagem
+de originais divergir da de projeções, métricas ficam indisponíveis, sem zero
+falso. Nova alteração válida de uma experiência atualiza sua projeção.
+
+COUPLE-08 permanece parcial: este feed reúne experiências, enquanto eventos de
+estado pessoal de filmes/séries e projeções multimídia de biblioteca para feed
+continuam pendentes. Feed de leituras do Início é preservado. Não extrapolar
+experiências confirmadas como obras concluídas, episódios pessoais ou escutas.
+
+Validação local: análise limpa, 491 Flutter, 98 Node/demo e build web demo
+aprovados. Testes cobrem 27 experiências/páginas/timestamps empatados, agregações,
+correção/reconfirmação/retirada, terceiro/término, filtros/páginas atrasadas e
+limpeza em erro. Regras reduziram avaliações redundantes para permanecer no
+limite Firestore de 1.000 expressões, mantendo validação de domínio/auditoria/
+projeção na mesma transação. Sem migração, produção, nativos ou implantação SEC-06.

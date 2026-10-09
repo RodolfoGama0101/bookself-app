@@ -1,3 +1,4 @@
+import 'couple_activity_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -92,6 +93,15 @@ class _CoupleScreenState extends State<CoupleScreen> {
               ],
               if (CoupleWorkspaceService.enabled || user.partnerUid != null)
                 const SectionHeading('Compartilhar momentos'),
+              if (CoupleWorkspaceService.enabled &&
+                  user.partnerUid != null &&
+                  user.relationshipId != null)
+                DestinationCard(
+                  icon: Icons.timeline,
+                  title: 'Atividades do casal',
+                  subtitle: 'Experiências e contagens por mídia.',
+                  onTap: () => _open(const CoupleActivityScreen()),
+                ),
               if (CoupleWorkspaceService.enabled)
                 DestinationCard(
                   icon: Icons.playlist_add_check,

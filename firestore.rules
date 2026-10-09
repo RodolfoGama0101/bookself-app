@@ -827,7 +827,30 @@ service cloud.firestore {
     }
     function audited(rid,id,d) {
       let audit = /databases/$(database)/documents/couple_relationships/$(rid)/experiences/$(id)/history/$(string(d.version));
-      return !exists(audit) && getAfter(audit).data == d;
+      let activity = getAfter(/databases/$(database)/documents/couple_relationships/$(rid)/activity/$(id)).data;
+      return !exists(audit) && getAfter(audit).data == d
+        && activity.sourceVersion == d.version && activity.updatedAt == d.updatedAt;
+    }
+    function jointlyConfirmed(d) {
+      let a = d.responses.get(d.participantIds[0], {});
+      let b = d.responses.get(d.participantIds[1], {});
+      return a.get('decision','') == 'confirmed' && b.get('decision','') == 'confirmed'
+        && a.get('revision',0) == d.revision && b.get('revision',0) == d.revision;
+    }
+    function activityMatches(rid,id) {
+      let d = getAfter(experiencePath(rid,id)).data;
+      let p = getAfter(/databases/$(database)/documents/couple_relationships/$(rid)/activity/$(id)).data;
+      return p.keys().hasAll(['schemaVersion','mediaType','selection','confirmed','occurredOn','revision','sourceVersion','createdAt','updatedAt'])
+        && p.keys().hasOnly(['schemaVersion','mediaType','selection','confirmed','occurredOn','revision','sourceVersion','createdAt','updatedAt'])
+        && p.schemaVersion == 1 && p.selection == d.selection && p.mediaType == d.selection.mediaType
+        && p.confirmed == jointlyConfirmed(d) && p.occurredOn == d.occurredOn
+        && p.revision == d.revision && p.sourceVersion == d.version
+        && p.createdAt == d.createdAt && p.updatedAt == d.updatedAt;
+    }
+    match /couple_relationships/{rid}/activity/{id} {
+      allow read: if jointActive(rid);
+      allow create, update: if jointMember(rid) && activityMatches(rid,id);
+      allow delete: if false;
     }
     match /couple_relationships/{rid}/experiences/{id} {
       allow read: if jointMember(rid);
@@ -842,7 +865,7 @@ service cloud.firestore {
         && request.resource.data.version == resource.data.version + 1
         && ownResponse(request.resource.data) && audited(rid,id,request.resource.data)
         && (
-          (jointActive(rid) && resource.data.authorId == request.auth.uid
+          (resource.data.authorId == request.auth.uid && jointActive(rid)
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['selection','occurredOn','revision','responses','updatedAt','version'])
             && request.resource.data.revision == resource.data.revision + 1
             && request.resource.data.responses.diff(resource.data.responses).affectedKeys().hasOnly([request.auth.uid])

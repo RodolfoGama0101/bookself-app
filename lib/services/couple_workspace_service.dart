@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../data/models/couple_record.dart';
 import '../data/models/media_model.dart';
 import 'firebase_environment.dart';
+import 'couple_activity_service.dart';
 
 class CoupleWorkspaceService {
   static const enabled =
@@ -122,6 +123,10 @@ class CoupleWorkspaceService {
         tx.set(ref, next);
         if (audit) {
           tx.set(ref.collection('history').doc('${next['version']}'), next);
+          tx.set(
+            _relation(relationshipId).collection('activity').doc(ref.id),
+            activityProjection(CoupleRecord(ref.id, next)),
+          );
         }
         for (var i = 0; i < indexes.length; i++) {
           if (!snapshots[i].exists) {

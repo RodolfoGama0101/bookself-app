@@ -104,6 +104,7 @@ async function jointWrite(database,rid,id,data,audit=true) {
   const batch=writeBatch(database), target=jointPath(rid,id);
   batch.set(doc(database,target),data);
   if(audit) batch.set(doc(database,`${target}/history/${data.version}`),data);
+  batch.set(doc(database,`couple_relationships/${rid}/activity/${id}`),jointActivity(data));
   return batch.commit();
 }
 async function jointRespond(database,uid,rid,decision,expected) {
@@ -114,6 +115,7 @@ async function jointRespond(database,uid,rid,decision,expected) {
     const next={...data,version:data.version+1,updatedAt:serverTimestamp(),responses:{...data.responses,
       [uid]:{revision:data.revision,decision,respondedAt:serverTimestamp()}}};
     tx.set(ref,next); tx.set(doc(database,`${jointPath(rid)}/history/${next.version}`),next);
+    tx.set(doc(database,`couple_relationships/${rid}/activity/experience`),jointActivity(next));
   });
 }
 test('COUPLE-05: autoria, dupla confirmação por revisão e auditoria obrigatória',async()=>{
@@ -1447,4 +1449,56 @@ test('SERIES-03: sessões confirmadas não marcam episódios pessoais e não her
   await assertSucceeds(getDoc(doc(db('b'),jointPath(rid))));
   await assertFails(jointRespond(db('b'),'b',rid,'confirmed'));
   await assertSucceeds(jointRespond(db('b'),'b',rid,'withdrawn'));
+});
+
+function jointActivity(data) {
+ return {schemaVersion:1,mediaType:data.selection.mediaType,selection:data.selection,confirmed:data.participantIds.every(uid=>data.responses[uid]?.decision==='confirmed'&&data.responses[uid]?.revision===data.revision),
+   occurredOn:data.occurredOn,revision:data.revision,sourceVersion:data.version,createdAt:data.createdAt,updatedAt:data.updatedAt};
+}
+
+test('COUPLE-08: projeção atômica, confirmação por revisão e contagem única por experiência',async()=>{
+ const rid=await jointRelation(),path='couple_relationships/'+rid+'/activity/experience';
+ await jointWrite(db('a'),rid,'experience',jointExperience());
+ assert.equal((await getDoc(doc(db('a'),path))).data().confirmed,false);
+ await assertFails(updateDoc(doc(db('a'),path),{confirmed:true}));
+ await assertFails(updateDoc(doc(db('b'),path),{selection:{...jointSelection,title:'Inventado'}}));
+ await assertSucceeds(jointRespond(db('b'),'b',rid,'confirmed'));
+ const count=async()=> (await getCountFromServer(query(collection(db('a'),'couple_relationships/'+rid+'/activity'),where('mediaType','==','movie'),where('confirmed','==',true)))).data().count;
+ assert.equal(await count(),1);
+ await jointRespond(db('b'),'b',rid,'confirmed');assert.equal(await count(),1);
+ const data=(await getDoc(doc(db('a'),jointPath(rid)))).data();
+ await jointWrite(db('a'),rid,'experience',{...data,revision:2,version:data.version+1,updatedAt:serverTimestamp(),responses:{...data.responses,a:{revision:2,decision:'confirmed',respondedAt:serverTimestamp()}}});
+ assert.equal(await count(),0);
+ await jointRespond(db('b'),'b',rid,'confirmed');assert.equal(await count(),1);
+ await jointRespond(db('a'),'a',rid,'withdrawn');assert.equal(await count(),0);
+ await assertFails(deleteDoc(doc(db('a'),path)));
+ await assertFails(getDoc(doc(db('c'),path)));
+ await assertFails(getDocs(collection(db('c'),'couple_relationships/'+rid+'/activity')));
+ await pair(db('a'),'a','b',false);
+ await assertFails(getDoc(doc(db('b'),path)));
+ await assertFails(getCountFromServer(collection(db('a'),'couple_relationships/'+rid+'/activity')));
+ await assertSucceeds(getDoc(doc(db('b'),jointPath(rid))));
+});
+test('COUPLE-08: páginas com empate, filtros e totais completos além da primeira página',async()=>{
+ const rid=await jointRelation();
+ // Fixture histórica tipada; timestamp empatado testa o desempate por ID.
+ await env.withSecurityRulesDisabled(async context=>{
+  const database=context.firestore(),batch=writeBatch(database);
+  for(let i=0;i<27;i++) {
+   const type=['book','movie','series','track','album'][i%5],id='fixture-'+String(i).padStart(2,'0');
+   const data={...jointExperience(),selection:{...jointSelection,mediaType:type,subtitle:(type==='track'||type==='album')?'Artista':''},responses:{a:{revision:1,decision:'confirmed',respondedAt:stamp},b:{revision:1,decision:'confirmed',respondedAt:stamp}},createdAt:stamp,updatedAt:stamp};
+   batch.set(doc(database,'couple_relationships/'+rid+'/experiences/'+id),data);
+   batch.set(doc(database,'couple_relationships/'+rid+'/activity/'+id),jointActivity(data));
+  }
+  await batch.commit();
+ });
+ const base=collection(db('a'),'couple_relationships/'+rid+'/activity');
+ const first=await getDocs(query(base,orderBy('updatedAt','desc'),orderBy(documentId(),'desc'),limit(20)));
+ const last=first.docs.at(-1);
+ const second=await getDocs(query(base,orderBy('updatedAt','desc'),orderBy(documentId(),'desc'),startAfter(last.data().updatedAt,last.id),limit(20)));
+ assert.equal(new Set([...first.docs,...second.docs].map(d=>d.id)).size,27);
+ const count=(await getCountFromServer(query(base,where('mediaType','==','book'),where('confirmed','==',true)))).data().count;
+ assert.equal(count,6);
+ const filtered=await getDocs(query(base,where('mediaType','==','track'),orderBy('updatedAt','desc'),orderBy(documentId(),'desc'),limit(21)));
+ assert.equal(filtered.size,5);
 });

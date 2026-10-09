@@ -344,3 +344,9 @@ Análise limpa, 485 testes Flutter e 94 testes Node/demo aprovados.
 Testes de widgets percorrem cadastro e episódios em 320 × 640/texto 2×.
 Auth 39099/Firestore 38080, projeto demo-bookself; nenhuma escrita remota.
 [Contrato e limitações](SERIES.md). Busca real e Android/iOS pendentes.
+
+## Atividades do casal — COUPLE-08 — 09/10/2026
+
+Análise limpa, 491 Flutter, 98 Node/demo e build web aprovados. Testes incluem
+27 experiências/paginação/contagem completa, correção/retirada/reconfirmação e
+limpeza em falha/término, sem dados reais. [Contrato](COUPLE_WORKSPACE.md#atividades-e-contagens-por-mídia--couple-08--09102026).

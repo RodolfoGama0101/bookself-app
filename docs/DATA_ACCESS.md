@@ -63,3 +63,10 @@ Estado pessoal previamente confirmado pode continuar disponível enquanto outra 
 Inicialização já desabilita persistência Firestore e limpa cache antigo antes dos serviços (COUPLE-04). Isso não elimina cache em memória, cópias externas ou dados entregues em versões antigas. Não há fila própria durável ou promessa de confirmação offline. Uma transação offline falha; escritas SDK que ainda aguardem rede permanecem pendentes até resposta. Resolução uniforme por revisão não é retroativamente aplicada ao contrato legado.
 
 DATA-05 consolida acesso centralizado e a estratégia por operação; novos widgets devem usar estes serviços/repositórios. Execução nativa e proteção remota continuam nas tarefas QA/REL/SEC; novas mídias não ganham compartilhamento por existirem tipos privados. [Evidências](DEVELOPMENT.md#preparação-paginação-e-sincronização--data-030405), [migração](DATA_MIGRATION.md).
+
+## Atividades consentidas por mídia — COUPLE-08
+
+CoupleActivityService oferece janela/páginas de 20 com cursor updatedAt/ID
+vinculado ao filtro/relação e agregações por mídia/confirmed, fora do tamanho da
+página. Novos índices activity(mediaType,updatedAt,ID) e activity(mediaType,confirmed)
+versionados, sem implantação. [Contrato e limites](COUPLE_WORKSPACE.md#atividades-e-contagens-por-mídia--couple-08--09102026).

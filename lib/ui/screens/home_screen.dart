@@ -1,3 +1,5 @@
+import '../../services/couple_workspace_service.dart';
+import 'couple_activity_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -269,6 +271,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: const Icon(Icons.menu_book_outlined),
                             label: const Text('Acompanhar Bíblia'),
                           ),
+                          if (CoupleWorkspaceService.enabled &&
+                              user.partnerUid != null &&
+                              user.relationshipId != null)
+                            OutlinedButton.icon(
+                              icon: const Icon(Icons.timeline),
+                              label: const Text('Atividades do casal'),
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CoupleActivityScreen(),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                       const SizedBox(height: 24),

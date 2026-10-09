@@ -8,7 +8,9 @@
     {"collectionGroup":"books","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"finishedDate","order":"ASCENDING"}]},
     {"collectionGroup":"shared_books","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"addedAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}]},
     {"collectionGroup":"shared_books","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"activityAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}]},
-    {"collectionGroup":"shared_books","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"finishedDate","order":"ASCENDING"}]}
+    {"collectionGroup":"shared_books","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"finishedDate","order":"ASCENDING"}]},
+    {"collectionGroup":"activity","queryScope":"COLLECTION","fields":[{"fieldPath":"mediaType","order":"ASCENDING"},{"fieldPath":"updatedAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}]},
+    {"collectionGroup":"activity","queryScope":"COLLECTION","fields":[{"fieldPath":"mediaType","order":"ASCENDING"},{"fieldPath":"confirmed","order":"ASCENDING"}]}
   ],
   "fieldOverrides": []
 }
