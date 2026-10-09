@@ -37,6 +37,7 @@ class BookPageController extends ChangeNotifier {
   Object? error;
   int _generation = 0, _visible = 0;
   bool _loadedBefore = false;
+  int _countRevision = 0;
   Stream<List<BookModel>> asStream() {
     late StreamController<List<BookModel>> output;
     void emit() {
@@ -174,6 +175,7 @@ class BookPageController extends ChangeNotifier {
                 if (_disposed || generation != _generation) return;
                 if (busy) return;
                 final visible = window.items;
+                origin.failure = null;
                 origin.done = window.next == null;
                 origin.cursor = window.next;
                 origin.rows
@@ -189,6 +191,8 @@ class BookPageController extends ChangeNotifier {
               },
               onError: (Object failure) {
                 if (_disposed || generation != _generation) return;
+                origin.failure = failure;
+                _countRevision++;
                 if (origin.shared) {
                   origin.rows.clear();
                   counts.removeWhere((k, _) => k.startsWith('${entry.key}/'));
@@ -216,11 +220,22 @@ class BookPageController extends ChangeNotifier {
   }
 
   Future<void> _refreshCounts(int generation) async {
+    final revision = ++_countRevision;
     try {
-      await _counts(generation);
-      if (generation == _generation) _notify();
+      await _counts(generation, revision: revision);
+      if (!_disposed &&
+          generation == _generation &&
+          revision == _countRevision) {
+        error = _origins.values
+            .map((o) => o.failure)
+            .whereType<Object>()
+            .firstOrNull;
+        _notify();
+      }
     } catch (failure) {
-      if (!_disposed && generation == _generation) {
+      if (!_disposed &&
+          generation == _generation &&
+          revision == _countRevision) {
         for (final entry in _origins.entries.where((e) => e.value.shared)) {
           entry.value.rows.clear();
           counts.removeWhere((k, _) => k.startsWith('${entry.key}/'));
@@ -231,10 +246,11 @@ class BookPageController extends ChangeNotifier {
     }
   }
 
-  Future<void> _counts(int generation) async {
+  Future<void> _counts(int generation, {int? revision}) async {
     final now = DateTime.now();
     final result = <String, int>{};
     for (final entry in _origins.entries) {
+      if (entry.value.failure != null) continue;
       final uid = entry.key, shared = entry.value.shared;
       result['$uid/total'] = await repository.countBooks(uid, shared: shared);
       if (feed) {
@@ -254,7 +270,9 @@ class BookPageController extends ChangeNotifier {
         );
       }
     }
-    if (!_disposed && generation == _generation) {
+    if (!_disposed &&
+        generation == _generation &&
+        (revision == null || revision == _countRevision)) {
       counts
         ..clear()
         ..addAll(result);
@@ -281,5 +299,6 @@ class _Origin {
   LibraryCursor? cursor;
   bool done = false;
   int loaded = 0;
+  Object? failure;
   StreamSubscription<LibraryPage<BookModel>>? subscription;
 }

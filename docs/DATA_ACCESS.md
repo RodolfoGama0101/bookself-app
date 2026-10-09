@@ -70,3 +70,17 @@ CoupleActivityService oferece janela/páginas de 20 com cursor updatedAt/ID
 vinculado ao filtro/relação e agregações por mídia/confirmed, fora do tamanho da
 página. Novos índices activity(mediaType,updatedAt,ID) e activity(mediaType,confirmed)
 versionados, sem implantação. [Contrato e limites](COUPLE_WORKSPACE.md#atividades-e-contagens-por-mídia--couple-08--09102026).
+
+## Recuperação da janela compartilhada — QA-03, 09/10/2026
+
+BookPageController guarda falha por origem. Uma janela confirmada recupera apenas
+a origem correspondente; contagens de uma origem indisponível não retornam por
+causa de atualizações da outra. Agregações atrasadas são invalidadas por revisão.
+Erro transitório deixa de prender a tela quando todas as origens e contagens
+voltam confirmadas. A regressão percorre falha, atualização própria, janela
+alheia vazia confirmada e cancelamento. Nenhuma regra de acesso foi relaxada.
+
+No ensaio web demo atual, conta recém-criada sem parceiro abriu Início vazio
+normalmente antes da correção. O sintoma anterior em contas vazias não foi
+reproduzido nesse estado; a falha de recuperação após erro compartilhado foi
+comprovada por teste controlado. Não atribuir todos os erros de rede à mesma causa.

@@ -66,6 +66,40 @@ BookModel pageBook(String uid, int day) => BookModel(
 
 void main() {
   test(
+    'janela confirmada recupera erro sem reexibir outra origem ainda indisponível',
+    () async {
+      final repository = PageRepository()
+        ..rows['a'] = [pageBook('a', 1)]
+        ..rows['b'] = [pageBook('b', 1)];
+      final own = StreamController<LibraryPage<BookModel>>.broadcast();
+      final partner = StreamController<LibraryPage<BookModel>>.broadcast();
+      final page = BookPageController(
+        repository: repository,
+        watch: (_, shared, _, _) => shared ? partner.stream : own.stream,
+        owner: 'a',
+        partner: 'b',
+        feed: true,
+      );
+      await page.start();
+      partner.addError(StateError('sem confirmação'));
+      await Future<void>.delayed(Duration.zero);
+      expect(page.error, isNotNull);
+      expect(page.items.any((b) => b.userId == 'b'), false);
+      own.add(LibraryPage([pageBook('a', 2)], null));
+      await Future<void>.delayed(Duration.zero);
+      expect(page.error, isNotNull);
+      expect(page.items.any((b) => b.userId == 'b'), false);
+      expect(page.counts.keys.any((key) => key.startsWith('b/')), false);
+      partner.add(LibraryPage([], null));
+      await Future<void>.delayed(Duration.zero);
+      expect(page.error, isNull);
+      expect(page.items.single.userId, 'a');
+      page.dispose();
+      await own.close();
+      await partner.close();
+    },
+  );
+  test(
     'janela viva conserva timestamp exato e não perde itens deslocados por inclusão',
     () async {
       final repository = PageRepository()

@@ -357,3 +357,9 @@ Análise limpa, 494 Flutter, 99 Node/demo e build web aprovados. Navegador
 agent-browser com duas sessões Chrome isoladas, Auth 49099/Firestore 48080 e
 servidor loopback 17362. Testes de regras separados nas portas 39099/38080.
 [Resultados e limites](SERIES_VALIDATION.md); sem dados reais ou implantação.
+
+## Recuperação do feed — QA-03 — 09/10/2026
+
+Análise limpa e 495 testes Flutter aprovados; regressão dirigida de cinco casos
+de paginação aprovada após reforçar que contagens alheias não retornam em erro.
+[Comportamento e limites](DATA_ACCESS.md#recuperação-da-janela-compartilhada--qa-03-09102026).
