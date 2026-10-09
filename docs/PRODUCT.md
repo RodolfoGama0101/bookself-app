@@ -1,6 +1,6 @@
 # Produto e expansão
 
-Revisão: 08/10/2026. **PROD-01 concluída como decisão de MVP aprovada pelo usuário; PROD-02 definida e DATA-01 consolidada como especificação proposta v1.** O escopo abaixo orienta a expansão; filmes, séries e músicas continuam sem implementação.
+Revisão: 08/10/2026. **PROD-01 concluída como decisão de MVP aprovada pelo usuário; PROD-02 definida e DATA-01 consolidada como especificação proposta v1.** O escopo abaixo orienta a expansão; filmes e música têm entregas locais incrementais; séries continuam pendentes.
 
 ## Direção solicitada
 
@@ -66,7 +66,7 @@ A tabela abaixo detalha a escolha, posteriormente aprovada junto do MVP completo
 
 Ficam para depois: reprodução, letras, sincronização externa, playlists de fornecedor, recomendações automáticas e estatísticas avançadas. Registro de experiência conjunta depende de COUPLE-05; não altera escuta/favorito do parceiro automaticamente. API-03 deve comparar os fornecedores para faixas **e** álbuns, incluindo versões, imagens e acesso, antes de escolher um.
 
-PROD-01 está concluída como decisão: escopo, estados gerais, campos obrigatórios/opcionais, critérios e adiamentos foram aprovados e registrados acima. Filmes, séries e música continuam ausentes do aplicativo atual; conclusão da decisão libera suas dependências, sem concluir implementação.
+PROD-01 está concluída como decisão: escopo, estados gerais, campos obrigatórios/opcionais, critérios e adiamentos foram aprovados e registrados acima. Filmes e música têm implementações incrementais condicionadas ao ambiente, descritas em [MOVIES.md](MOVIES.md) e [MUSIC.md](MUSIC.md); séries continuam pendentes; conclusão da decisão libera suas dependências, sem concluir implementação.
 
 ## Compartilhamento
 

@@ -4,7 +4,7 @@ Aplicativo de organização de leituras para uso individual e em casal, desenvol
 
 O produto está em fase de MVP. A evolução planejada inclui filmes, séries e músicas. **Entrelace** é a proposta inicial de novo nome; a escolha e a aplicação da marca ainda estão pendentes. O aplicativo continua se chamando Bookself App no código.
 
-O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/10/2026: preserva livros/Bíblia e define filmes, séries, faixas/álbuns, cadastro manual e experiências do casal. Essa é uma decisão de produto; as novas categorias ainda precisam ser implementadas.
+O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/10/2026: preserva livros/Bíblia e define filmes, séries, faixas/álbuns, cadastro manual e experiências do casal. Essa é uma decisão de produto; filmes e música têm entregas locais incrementais; séries ainda precisam ser implementadas.
 
 ## Documentação
 
@@ -54,7 +54,7 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 - Mesma referência Google Books reencontra o livro pessoal sem substituir progresso; edições diferentes e cadastros manuais deliberados permanecem independentes. Metadados manuais podem ser corrigidos pelo dono; filtros combinam título/autor, status e período de inclusão/conclusão.
 - Datas de inclusão preservadas em mudanças de status; criação/atualização e histórico privado com timestamps do servidor. O Início usa a última atividade explícita por livro, sem reconstruir acontecimentos antigos. [Contrato e limites](docs/BOOK_LIBRARY.md).
 - Estante com os estados “Quero Ler”, “Lendo” e “Lido”, data de conclusão e histórico por mês e ano.
-- Navegação Início/Biblioteca/Nós/Perfil. Biblioteca reúne os livros pessoais, busca/cadastro e acesso à Bíblia; Nós reúne consulta do parceiro, comparação bíblica, convites, compartilhamento e bloqueios. Filtros/testamento são preservados entre destinos; a Bíblia retorna à origem. Filmes, séries e músicas só entrarão após seus fluxos funcionais.
+- Navegação Início/Biblioteca/Nós/Perfil. Biblioteca reúne os livros pessoais, busca/cadastro e acesso à Bíblia; Nós reúne consulta do parceiro, comparação bíblica, convites, compartilhamento e bloqueios. Filtros/testamento são preservados entre destinos; a Bíblia retorna à origem. Filmes e música têm destinos locais condicionados ao ambiente; séries ainda aguardam seus fluxos funcionais.
 - Carregamento, vazio e falha de livros/progresso têm mensagens e ações próprias. Falha/offline da comparação retira dados alheios sem bloquear a Bíblia pessoal; ausência de apresentação do parceiro não apaga o vínculo.
 - Limpeza da data de conclusão ao mudar um livro de “Lido” para “Lendo” ou “Quero Ler”.
 - Livros lidos sem data aparecem em uma seção própria da estante, inclusive na consulta do parceiro. O dono pode informar ou corrigir a conclusão nos detalhes sem trocar o status; novas datas vão até hoje, em português e formato dia/mês/ano.
@@ -67,7 +67,7 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 - Design Organic com paleta areia/sálvia/musgo, tipografia Outfit, cartões flexíveis e navegação lateral em telas grandes. Login, busca, capítulos e perfil têm limites de largura; telas pequenas têm barra inferior e, abaixo de 380 px com texto acima de 1,5×, menu com os quatro destinos.
 - Fechamento seguro de busca, perfil, detalhes e diálogos durante requisições, com resultado de exclusão na estante.
 
-A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes têm cadastro manual, detalhes, biblioteca/status/data e seleção para listas/sessões do casal no código local, habilitados nos emuladores. A busca externa aguarda fornecedor aprovado e intermediário; séries e músicas ainda não estão implementadas. [Ativação, contrato e limites de filmes](docs/MOVIES.md). Convites consentidos estão prontos no código/regras locais; a implantação depende de SEC-06 e dos controles restantes de COUPLE-04.
+A seção da Bíblia registra progresso: **não contém textos ou versículos para leitura**. Filmes têm cadastro manual, detalhes, biblioteca/status/data e seleção para listas/sessões do casal no código local, habilitados nos emuladores. A busca externa aguarda fornecedor aprovado e intermediário; música tem biblioteca/cadastro manual e detalhes locais; séries ainda não estão implementadas. [Contrato musical](docs/MUSIC.md). [Ativação, contrato e limites de filmes](docs/MOVIES.md). Convites consentidos estão prontos no código/regras locais; a implantação depende de SEC-06 e dos controles restantes de COUPLE-04.
 
 Sem preferência salva, o tema inicial continua escuro. “Sistema” acompanha o brilho do dispositivo; Claro/Escuro explícitos permanecem fixos. A preferência é do app no dispositivo/navegador, vale também no login e permanece após logout; outros dispositivos têm escolhas independentes. Limpar os dados locais remove a preferência. A tela de carregamento da inicialização mantém a aparência escura; a interface principal abre após a leitura da escolha salva.
 

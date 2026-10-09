@@ -6,6 +6,8 @@ import 'bible_screen.dart';
 import 'bookshelf_screen.dart';
 import '../../services/movie_library_service.dart';
 import 'movie_library_screen.dart';
+import 'music_library_screen.dart';
+import '../../services/music_library_service.dart';
 
 /// Bíblia e livros conservam estado enquanto a pessoa troca de destino.
 class LibraryScreen extends StatefulWidget {
@@ -17,6 +19,7 @@ class LibraryScreen extends StatefulWidget {
     this.onOpenBible,
     this.onCloseBible,
     this.movieService,
+    this.musicService,
   });
   final ValueNotifier<bool> showBible;
   final BookService? bookService;
@@ -24,13 +27,16 @@ class LibraryScreen extends StatefulWidget {
   final VoidCallback? onOpenBible;
   final VoidCallback? onCloseBible;
   final MovieLibraryService? movieService;
+  final MusicLibraryService? musicService;
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
-  bool _movies = false;
+  int _destination = 0;
+  bool get _musicEnabled =>
+      MusicLibraryService.enabled || widget.musicService != null;
   bool get _enabled =>
       MovieLibraryService.enabled || widget.movieService != null;
 
@@ -41,16 +47,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget build(BuildContext context) => ValueListenableBuilder<bool>(
     valueListenable: widget.showBible,
     builder: (context, bible, _) => IndexedStack(
-      index: bible
-          ? 1
-          : _movies && _enabled
-          ? 2
-          : 0,
+      index: bible ? 1 : _destination,
       children: [
         BookshelfScreen(
           scope: BookshelfScope.personal,
           bookService: widget.bookService,
-          onOpenMovies: _enabled ? () => setState(() => _movies = true) : null,
+          onOpenMusic: _musicEnabled
+              ? () => setState(() => _destination = 3)
+              : null,
+          onOpenMovies: _enabled
+              ? () => setState(() => _destination = 2)
+              : null,
           onOpenBible:
               widget.onOpenBible ?? () => widget.showBible.value = true,
         ),
@@ -58,7 +65,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
         if (_enabled)
           MovieLibraryScreen(
             service: widget.movieService,
-            onBooks: () => setState(() => _movies = false),
+            onBooks: () => setState(() => _destination = 0),
+            onBible: widget.onOpenBible ?? () => widget.showBible.value = true,
+          )
+        else
+          const SizedBox.shrink(),
+        if (_musicEnabled)
+          MusicLibraryScreen(
+            service: widget.musicService,
+            onBooks: () => setState(() => _destination = 0),
             onBible: widget.onOpenBible ?? () => widget.showBible.value = true,
           ),
       ],

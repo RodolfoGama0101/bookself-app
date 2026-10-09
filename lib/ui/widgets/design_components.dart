@@ -112,11 +112,15 @@ class LibraryDestinations extends StatelessWidget {
   const LibraryDestinations({
     super.key,
     this.moviesSelected = false,
+    this.musicSelected = false,
+    this.onMusic,
     this.onBooks,
     this.onMovies,
     this.onBible,
   });
   final bool moviesSelected;
+  final bool musicSelected;
+  final VoidCallback? onMusic;
   final VoidCallback? onBooks;
   final VoidCallback? onMovies;
   final VoidCallback? onBible;
@@ -130,7 +134,7 @@ class LibraryDestinations extends StatelessWidget {
       ChoiceChip(
         avatar: const Icon(Icons.library_books_outlined, size: 20),
         label: const Text('Livros'),
-        selected: !moviesSelected,
+        selected: !moviesSelected && !musicSelected,
         onSelected: (_) => onBooks?.call(),
       ),
       if (onMovies != null || moviesSelected)
@@ -139,6 +143,13 @@ class LibraryDestinations extends StatelessWidget {
           label: const Text('Filmes'),
           selected: moviesSelected,
           onSelected: (_) => onMovies?.call(),
+        ),
+      if (onMusic != null || musicSelected)
+        ChoiceChip(
+          avatar: const Icon(Icons.music_note_outlined, size: 20),
+          label: const Text('Música'),
+          selected: musicSelected,
+          onSelected: (_) => onMusic?.call(),
         ),
       if (onBible != null)
         TextButton.icon(
