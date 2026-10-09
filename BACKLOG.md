@@ -136,7 +136,7 @@ Decisões/ensaios e ajustes de documentação podem ocorrer enquanto correções
 
 ## 10. Séries
 
-- [ ] **SERIES-01 · P1 · Decisão:** definir estados, temporadas especiais, séries em andamento, reassistir e spoilers. **Dep.:** PROD-01, API-02. **Concluir quando:** regras diferenciarem em dia de concluída, episódios futuros de disponíveis e progresso pessoal de conjunto.
+- [x] **SERIES-01 · P1 · Decisão:** definir estados, temporadas especiais, séries em andamento, reassistir e spoilers. **Dep.:** PROD-01, API-02. **Concluir quando:** regras diferenciarem em dia de concluída, episódios futuros de disponíveis e progresso pessoal de conjunto. **Concluída como decisão em 09/10/2026:** usuário aprovou especiais opcionais na temporada 0, disponibilidade sem episódios futuros, Em dia distinto de Concluída, pausa pessoal, reassistir fora do MVP e comparação sem títulos/sinopses de episódios. [Regras e limites](docs/SERIES.md). API-02 permanece pendente para catálogo real; caminho manual pode avançar sem fornecedor. Links e consistência com MVP/modelo/política revisados; sem código ou implantação.
 - [ ] **SERIES-02 · P1 · Evolução:** implementar catálogo de séries e progresso por temporada/episódio. **Dep.:** SERIES-01, DATA-02, API-04, UI-01. **Concluir quando:** marcar/desmarcar persistir corretamente, ausência de metadados for tratada e novos episódios não apagarem progresso; aplicar API-04 ao fornecedor audiovisual.
 - [ ] **SERIES-03 · P1 · Evolução:** comparar progresso do casal e registrar episódios vistos juntos. **Dep.:** SERIES-02, COUPLE-04, COUPLE-05. **Concluir quando:** telas respeitarem a regra de spoilers, mostrarem diferenças úteis e ações não alterarem progresso do parceiro sem consentimento.
 
