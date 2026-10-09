@@ -1,5 +1,40 @@
 # Verificação do build Android
 
+## Assinatura de distribuição — REL-02 — 09/10/2026
+
+O build `release` agora usa configuração própria e falha sem os quatro campos
+locais; não há fallback para debug. O alias `androiddebugkey` também é recusado.
+Debug continua independente de credenciais. Verificado neste host: build debug
+aprovado; release sem configuração recusada antes da compilação, com mensagem
+em português. Nenhuma chave de distribuição foi criada e nenhum APK publicado.
+REL-02 permanece em andamento até um build com a chave definitiva e conferência
+do certificado. REL-01 mantém seu diagnóstico histórico inconclusivo.
+
+1. Crie ou recupere a chave de distribuição sob responsabilidade do mantenedor,
+   seguindo a [documentação Android de assinatura](https://developer.android.com/studio/publish/app-signing).
+   Mantenha a keystore fora do checkout, em armazenamento privado com backup
+   criptografado independente e acesso restrito. Não reutilize a chave debug.
+2. Copie `android/key.properties.example` para `android/key.properties`, ignorado
+   pelo Git. Preencha `storeFile` (caminho absoluto com `/`), `storePassword`,
+   `keyAlias` e `keyPassword` somente no arquivo local. Não passe senhas na linha
+   de comando nem imprima esse arquivo em logs. Em `.properties`, caracteres
+   especiais seguem o escape de Java Properties, inclusive barras invertidas.
+3. Execute `flutter build apk --release --no-pub` ou
+   `flutter build appbundle --release --no-pub`. Confira APK com
+   `apksigner verify --verbose --print-certs <apk>` e compare o certificado com
+   o inventário privado do mantenedor. Um alias diferente sozinho não comprova
+   que o certificado é de distribuição: a conferência continua obrigatória.
+4. Registre no inventário privado o certificado público, alias, responsável,
+   localização dos backups e procedimento de restauração. Guarde as senhas em
+   gerenciador de segredos separado; ensaie recuperação antes da distribuição.
+   Se usar Play App Signing, diferencie chave de upload e chave de assinatura.
+
+APKs de testes anteriores usaram certificado debug. Uma assinatura nova pode
+impedir atualização direta desses APKs: não oriente desinstalação sem verificar
+sincronização/recuperação dos dados. IDs Android/Firebase foram preservados.
+Publicação, cadastro em loja e custódia definitiva da chave são etapas separadas.
+Arquivos `.jks`, `.keystore` e configuração local são ignorados pelo Git.
+
 ## APK 1.3.0+4 para testes — 09/10/2026
 
 APK com o redesign de UI-06, gerado a pedido do usuário por `flutter build apk --release --no-pub` em aproximadamente 124 s. SDK fixado e dependências existentes; sem defines de catálogo, emuladores ou funcionalidades experimentais. Firebase e identidade técnica preservados; nenhuma implantação remota.
