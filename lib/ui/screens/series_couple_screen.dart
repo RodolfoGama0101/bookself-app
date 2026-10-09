@@ -87,8 +87,9 @@ class _SeriesCoupleScreenState extends State<SeriesCoupleScreen> {
   Widget build(BuildContext context) {
     context.watch<AuthService>();
     if (!_active) {
-      return const Scaffold(
-        body: ContentState(
+      return Scaffold(
+        appBar: AppBar(title: const Text('Seleção do casal')),
+        body: const ContentState(
           title: 'O vínculo mudou',
           message: 'Volte à Biblioteca. Sua série pessoal foi preservada.',
         ),

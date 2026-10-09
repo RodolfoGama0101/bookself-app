@@ -151,8 +151,9 @@ class _SeriesDetailsScreenState extends State<SeriesDetailsScreen> {
   Widget build(BuildContext context) {
     final user = context.watch<AuthService>().currentUserModel;
     if (user?.uid != _series.entry.ownerId) {
-      return const Scaffold(
-        body: ContentState(
+      return Scaffold(
+        appBar: AppBar(title: const Text('Detalhes da série')),
+        body: const ContentState(
           title: 'Sua conta mudou',
           message: 'Volte à Biblioteca para continuar.',
         ),

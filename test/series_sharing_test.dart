@@ -8,7 +8,10 @@ import 'package:bookself_app/services/series_progress_service.dart';
 import 'package:bookself_app/services/series_sharing_service.dart';
 import 'package:bookself_app/ui/screens/series_comparison_screen.dart';
 import 'package:bookself_app/ui/screens/series_couple_screen.dart';
+import 'package:bookself_app/ui/screens/series_add_screen.dart';
+import 'package:bookself_app/ui/screens/series_details_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'couple_workspace_ui_test.dart' show JointAuth;
@@ -42,6 +45,159 @@ void main() {
       'a',
       MediaMetadata(MediaType.series, {'title': 'Série fictícia'}),
     ),
+  );
+  for (final route in ['comparison', 'couple', 'details', 'add']) {
+    testWidgets(
+      'retorno por botão continua disponível após troca de conta: $route',
+      (tester) async {
+        final row = await create(), auth = JointAuth(), sharing = SharingFake();
+        await tester.pumpWidget(
+          ChangeNotifierProvider<AuthService>.value(
+            value: auth,
+            child: MaterialApp(
+              home: Builder(
+                builder: (context) => Scaffold(
+                  body: TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => switch (route) {
+                          'comparison' => SeriesComparisonScreen(
+                            series: row,
+                            partner: 'b',
+                            relation: 'relation',
+                            service: sharing,
+                          ),
+                          'couple' => SeriesCoupleScreen(
+                            series: row,
+                            relation: 'relation',
+                            experience: true,
+                          ),
+                          'details' => SeriesDetailsScreen(
+                            series: row,
+                            service: service,
+                          ),
+                          _ => SeriesAddScreen(owner: 'a', service: service),
+                        },
+                      ),
+                    ),
+                    child: const Text('Abrir série'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('Abrir série'));
+        await tester.pump();
+        auth.change();
+        await tester.pumpAndSettle();
+        expect(find.byType(BackButton), findsOneWidget);
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+        expect(find.text('Abrir série'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+        auth.dispose();
+        await sharing.selections.close();
+        await sharing.progress.close();
+      },
+    );
+  }
+  testWidgets(
+    'comparação expõe seleção única e permite escolher série por Tab e Enter em tela pequena',
+    (tester) async {
+      final semantics = tester.ensureSemantics();
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final row = await create(), auth = JointAuth(), sharing = SharingFake();
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AuthService>.value(
+          value: auth,
+          child: MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(2)),
+              child: child!,
+            ),
+            home: SeriesComparisonScreen(
+              series: row,
+              partner: 'b',
+              relation: 'relation',
+              service: sharing,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.scrollUntilVisible(
+        find.byType(StreamBuilder<List<SharedSeries>>),
+        150,
+        scrollable: find.byType(Scrollable).first,
+      );
+      sharing.selections.add([
+        SharedSeries('series', 'Série compartilhada', 'manual-reference'),
+      ]);
+      await tester.pumpAndSettle();
+      final card = find.widgetWithText(ListTile, 'Série compartilhada');
+      await tester.scrollUntilVisible(
+        card,
+        150,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.ensureVisible(card);
+      var focused = false;
+      for (var i = 0; i < 15; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        if (tester
+                .getSemantics(card)
+                .getSemanticsData()
+                .flagsCollection
+                .isFocused
+                .toBoolOrNull() ==
+            true) {
+          focused = true;
+          break;
+        }
+      }
+      expect(focused, true);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(
+        tester
+            .getSemantics(card)
+            .getSemanticsData()
+            .flagsCollection
+            .isSelected
+            .toBoolOrNull(),
+        true,
+      );
+      sharing.progress.addError(StateError('offline'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.textContaining('Progresso indisponível.'),
+        150,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(
+        tester
+            .getSemantics(find.textContaining('Progresso indisponível.'))
+            .getSemanticsData()
+            .flagsCollection
+            .isLiveRegion,
+        true,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      semantics.dispose();
+      auth.dispose();
+      await sharing.selections.close();
+      await sharing.progress.close();
+    },
   );
   test(
     'ocultação sobrevive ao retry de inclusão e marcação mantém projeção mínima',

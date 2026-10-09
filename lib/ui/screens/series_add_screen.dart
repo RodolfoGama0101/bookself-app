@@ -161,8 +161,9 @@ class _SeriesAddScreenState extends State<SeriesAddScreen> {
   @override
   Widget build(BuildContext context) {
     if (context.watch<AuthService>().currentUserModel?.uid != widget.owner) {
-      return const Scaffold(
-        body: ContentState(
+      return Scaffold(
+        appBar: AppBar(title: const Text('Adicionar série')),
+        body: const ContentState(
           title: 'Sua conta mudou',
           message: 'Volte à Biblioteca para continuar.',
         ),

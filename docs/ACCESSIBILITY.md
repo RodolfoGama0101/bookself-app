@@ -61,3 +61,18 @@ botões aninhados com o mesmo nome. MergeSemantics agora reúne cartão/lista em
 por Tab/Enter e seleção. Cadastro manual e mudança para Assistido foram executados
 no navegador integrado com conta fictícia. Agent-browser foi tentado, mas o Chrome
 foi bloqueado pelo Controle de Aplicativo Windows; usado navegador integrado.
+
+## Séries — UI-03 — 09/10/2026
+
+As rotas de cadastro, detalhes, comparação e seleção conjunta mantêm AppBar
+com retorno quando a conta ou vínculo muda. Retiram dados antigos sem prender
+a pessoa numa tela sem saída. Comparação reúne o botão numa ação semântica,
+anuncia seleção e falhas, e nomeia carregamento de séries/episódios.
+
+Cinco regressões adicionais verificam retorno nas quatro rotas após troca de
+conta e seleção de série por Tab/Enter em 320 × 640 com texto 2×, incluindo
+anúncio de falha sem progresso alheio. Não demonstram leitor de tela real;
+NVDA/TalkBack/VoiceOver e matriz humana continuam pendentes.
+
+Verificação desta entrega: análise sem apontamentos, 506 testes Flutter e oito
+casos direcionados de compartilhamento/navegação de séries aprovados.

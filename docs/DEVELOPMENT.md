@@ -370,3 +370,7 @@ ou alterações nas regras. [Contrato](SERIES.md#atualização-incremental-de-ep
 
 Cópia pessoal de séries (SEC-05): análise limpa, 501 Flutter e 16 testes
 direcionados de exportação/consultas aprovados. [Escopo](PRIVACY.md#séries-na-cópia-pessoal--09102026).
+
+Acessibilidade de séries (UI-03): análise limpa e 506 testes Flutter aprovados;
+cinco regressões novas para quatro retornos e Tab/Enter em texto 2×.
+[Limites](ACCESSIBILITY.md#séries--ui-03--09102026).

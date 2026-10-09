@@ -32,8 +32,9 @@ class _SeriesComparisonScreenState extends State<SeriesComparisonScreen> {
     if (user?.uid != widget.series.entry.ownerId ||
         user?.partnerUid != widget.partner ||
         user?.relationshipId != widget.relation) {
-      return const Scaffold(
-        body: ContentState(
+      return Scaffold(
+        appBar: AppBar(title: const Text('Comparar episódios')),
+        body: const ContentState(
           title: 'O vínculo mudou',
           message: 'Seu progresso pessoal foi preservado.',
         ),
@@ -56,13 +57,20 @@ class _SeriesComparisonScreenState extends State<SeriesComparisonScreen> {
               stream: _series,
               builder: (context, s) {
                 if (s.hasError) {
-                  return const ContentState(
-                    title: 'Compartilhamento indisponível',
-                    message:
-                        'Verifique a conexão e o vínculo. Volte e tente novamente.',
+                  return Semantics(
+                    liveRegion: true,
+                    child: const ContentState(
+                      title: 'Compartilhamento indisponível',
+                      message:
+                          'Verifique a conexão e o vínculo. Volte e tente novamente.',
+                    ),
                   );
                 }
-                if (!s.hasData) return const LinearProgressIndicator();
+                if (!s.hasData) {
+                  return const LinearProgressIndicator(
+                    semanticsLabel: 'Carregando séries compartilhadas',
+                  );
+                }
                 if (s.data!.isEmpty) {
                   return const Text(
                     'Nenhuma série compartilhada pelo parceiro.',
@@ -71,21 +79,27 @@ class _SeriesComparisonScreenState extends State<SeriesComparisonScreen> {
                 return Column(
                   children: [
                     for (final item in s.data!)
-                      ListTile(
-                        title: Text(item.title),
-                        selected: _selected?.id == item.id,
-                        leading: Icon(
-                          _selected?.id == item.id
-                              ? Icons.check_circle
-                              : Icons.tv_outlined,
+                      MergeSemantics(
+                        child: Semantics(
+                          button: true,
+                          selected: _selected?.id == item.id,
+                          child: ListTile(
+                            title: Text(item.title),
+                            selected: _selected?.id == item.id,
+                            leading: Icon(
+                              _selected?.id == item.id
+                                  ? Icons.check_circle
+                                  : Icons.tv_outlined,
+                            ),
+                            onTap: () => setState(() {
+                              _selected = item;
+                              _episodes = _service.episodes(
+                                widget.partner,
+                                item.id,
+                              );
+                            }),
+                          ),
                         ),
-                        onTap: () => setState(() {
-                          _selected = item;
-                          _episodes = _service.episodes(
-                            widget.partner,
-                            item.id,
-                          );
-                        }),
                       ),
                     if (_selected != null &&
                         s.data!.any((e) => e.id == _selected!.id))
@@ -94,12 +108,18 @@ class _SeriesComparisonScreenState extends State<SeriesComparisonScreen> {
                         stream: _episodes,
                         builder: (context, p) {
                           if (p.hasError) {
-                            return const Text(
-                              'Progresso indisponível. A série pode ter sido ocultada ou o vínculo encerrado.',
+                            return Semantics(
+                              liveRegion: true,
+                              child: const Text(
+                                'Progresso indisponível. A série pode ter sido ocultada ou o vínculo encerrado.',
+                              ),
                             );
                           }
                           if (!p.hasData) {
-                            return const LinearProgressIndicator();
+                            return const LinearProgressIndicator(
+                              semanticsLabel:
+                                  'Carregando episódios compartilhados',
+                            );
                           }
                           if (p.data!.isEmpty) {
                             return const Text(
