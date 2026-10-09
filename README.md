@@ -17,6 +17,7 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
 | [docs/BRAND.md](docs/BRAND.md) | Escolha de Lume, conflitos preliminares e aplicação local da marca. |
+| [docs/releases/primeira-distribuicao-lume.md](docs/releases/primeira-distribuicao-lume.md) | Checklist e notas preliminares da primeira distribuição com Lume; publicação pendente. |
 | [docs/EXTERNAL_LINKS.md](docs/EXTERNAL_LINKS.md) | Avaliação de links externos, disponibilidade regional e reprodução. |
 | [docs/BOOK_LIBRARY.md](docs/BOOK_LIBRARY.md) | Identidade de livros, datas, histórico privado, edição manual e filtros pessoais. |
 | [docs/NAVIGATION.md](docs/NAVIGATION.md) | Navegação atual de livros/Bíblia/Nós e mapa incremental das mídias futuras. |
