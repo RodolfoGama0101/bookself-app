@@ -91,6 +91,21 @@ class SeriesProgressService {
         return;
       }
       if (revision != episode.revision) throw const MediaRevisionConflict();
+      final projection = _db
+          .collection('shared_series')
+          .doc(owner)
+          .collection('entries')
+          .doc(entry)
+          .collection('episodes')
+          .doc(episode.id);
+      tx.set(projection, {
+        'schemaVersion': 1,
+        'season': episode.season,
+        'number': episode.number,
+        'watched': watched,
+        'revision': revision + 1,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
       tx.set(ref, {
         'schemaVersion': 1,
         ...values,

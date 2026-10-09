@@ -1366,23 +1366,85 @@ test('SERIES-02: episódios privados, calendário, novos episódios e disputa po
   await mediaBatch(db('a'),'a','series','series','series').commit();
   const root='libraries/a/series/series';
   await assertSucceeds(setDoc(doc(db('a'),root),seriesConfig));
-  await assertSucceeds(setDoc(doc(db('a'),root+'/episodes/one'),seriesEpisode));
+  await assertSucceeds(seriesWrite(db('a'),root,'one',seriesEpisode));
   for(const actor of [db('b'),db('c'),env.unauthenticatedContext().firestore()]) {
     await assertFails(getDoc(doc(actor,root)));
     await assertFails(getDocs(collection(actor,root+'/episodes')));
     await assertFails(setDoc(doc(actor,root+'/episodes/other'),seriesEpisode));
   }
   for(const data of [{availableOn:'2020-02-31'}, {availableOn:'9999-01-01',watched:true}, {season:-1}, {number:0}, {title:'Spoiler'}, {revision:3}]) {
-    await assertFails(setDoc(doc(db('a'),root+'/episodes/invalid'),{...seriesEpisode,...data}));
+    await assertFails(seriesWrite(db('a'),root,'invalid',{...seriesEpisode,...data}));
   }
   const target=doc(db('a'),root+'/episodes/one');
-  const results=await Promise.allSettled([true,false].map(watched=>updateDoc(target,{watched,revision:2,updatedAt:serverTimestamp()})));
+  const results=await Promise.allSettled([true,false].map(watched=>seriesWrite(db('a'),root,'one',{...seriesEpisode,watched,revision:2,updatedAt:serverTimestamp()})));
   assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
   const old=(await getDoc(target)).data();
-  await assertSucceeds(setDoc(doc(db('a'),root+'/episodes/new'),{...seriesEpisode,number:2}));
+  await assertSucceeds(seriesWrite(db('a'),root,'new',{...seriesEpisode,number:2}));
   assert.deepEqual((await getDoc(target)).data(),old);
-  await assertSucceeds(updateDoc(target,{watched:false,revision:3,updatedAt:serverTimestamp()}));
+  await assertSucceeds(seriesWrite(db('a'),root,'one',{...seriesEpisode,watched:false,revision:3,updatedAt:serverTimestamp()}));
   assert.equal((await getDoc(target)).data().watched,false);
   await assertFails(deleteDoc(target));
   await assertFails(setDoc(doc(db('a'),'libraries/a/series/missing'),seriesConfig));
+});
+
+function seriesWrite(database, root, id, data) {
+  const batch=writeBatch(database);
+  batch.set(doc(database,root+'/episodes/'+id),data);
+  const parts=root.split('/');
+  batch.set(doc(database,'shared_series/'+parts[1]+'/entries/'+parts[3]+'/episodes/'+id),{
+    schemaVersion:1, season:data.season,number:data.number,watched:data.watched,revision:data.revision,updatedAt:data.updatedAt,
+  });
+  return batch.commit();
+}
+
+async function seriesVisibleWrite(database, owner, visible, revision=1) {
+  const batch=writeBatch(database),root='libraries/'+owner+'/series_visibility/series';
+  batch.set(doc(database,root),{schemaVersion:1,visible,revision,updatedAt:serverTimestamp()});
+  const projection=doc(database,'shared_series/'+owner+'/entries/series');
+  if(visible) batch.set(projection,{schemaVersion:1,title:'Obra fictícia',reference:mediaKey('series',mediaIdentity),updatedAt:serverTimestamp()});
+  else batch.delete(projection);
+  return batch.commit();
+}
+test('SERIES-03: projeção mínima, ocultação concorrente e término revogam episódios',async()=>{
+  await jointRelation();
+  await mediaBatch(db('a'),'a','series','series','series').commit();
+  await assertSucceeds(seriesVisibleWrite(db('a'),'a',true));
+  await seriesWrite(db('a'),'libraries/a/series/series','one',seriesEpisode);
+  const path='shared_series/a/entries/series/episodes/one';
+  const data=(await assertSucceeds(getDoc(doc(db('b'),path)))).data();
+  assert.deepEqual(Object.keys(data).sort(),['schemaVersion','season','number','watched','revision','updatedAt'].sort());
+  for(const actor of [db('c'),env.unauthenticatedContext().firestore()]) {
+    await assertFails(getDoc(doc(actor,path)));
+    await assertFails(getDocs(collection(actor,'shared_series/a/entries')));
+  }
+  await assertFails(updateDoc(doc(db('b'),path),{watched:true}));
+  await assertFails(updateDoc(doc(db('a'),'libraries/a/series/series/episodes/one'),{watched:true,revision:2,updatedAt:serverTimestamp()}));
+  await Promise.all([seriesVisibleWrite(db('a'),'a',false,2),seriesWrite(db('a'),'libraries/a/series/series','one',{...seriesEpisode,watched:true,revision:2})]);
+  await assertFails(getDoc(doc(db('b'),path)));
+  assert.equal((await getDocs(collection(db('b'),'shared_series/a/entries'))).size,0);
+  await assertFails(setDoc(doc(db('a'),'shared_series/a/entries/series'),{schemaVersion:1,title:'Obra fictícia',reference:mediaKey('series',mediaIdentity),updatedAt:serverTimestamp()}));
+  await seriesVisibleWrite(db('a'),'a',true,3);
+  assert.equal((await getDoc(doc(db('b'),path))).data().watched,true);
+  await pair(db('a'),'a','b',false);
+  await assertFails(getDoc(doc(db('b'),path)));
+  await assertFails(getDocs(collection(db('b'),'shared_series/a/entries')));
+  await assertSucceeds(getDoc(doc(db('a'),'libraries/a/series/series/episodes/one')));
+});
+test('SERIES-03: sessões confirmadas não marcam episódios pessoais e não herdam novo vínculo',async()=>{
+  const rid=await jointRelation();
+  for(const owner of ['a','b']) {
+    await mediaBatch(db(owner),owner,'series','series','series').commit();
+    await seriesWrite(db(owner),'libraries/'+owner+'/series/series','one',seriesEpisode);
+  }
+  const selection={...jointSelection,mediaType:'series',episode:{id:'one',season:1,number:1}};
+  await jointWrite(db('a'),rid,'experience',{...jointExperience(),selection});
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'confirmed'));
+  for(const owner of ['a','b']) assert.equal((await getDoc(doc(db(owner),'libraries/'+owner+'/series/series/episodes/one'))).data().watched,false);
+  await assertFails(jointWrite(db('a'),rid,'spoiler',{...jointExperience(),selection:{...selection,episode:{...selection.episode,title:'Spoiler'}}}));
+  await pair(db('a'),'a','b',false);
+  await pair(db('a'),'a','c');
+  await assertFails(getDoc(doc(db('c'),jointPath(rid))));
+  await assertSucceeds(getDoc(doc(db('b'),jointPath(rid))));
+  await assertFails(jointRespond(db('b'),'b',rid,'confirmed'));
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'withdrawn'));
 });

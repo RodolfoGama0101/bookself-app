@@ -656,7 +656,8 @@ service cloud.firestore {
           && (!request.resource.data.watched || (request.resource.data.availableOn == null
             ? request.resource.data.available : validListenDate(request.resource.data.availableOn)))
           && request.resource.data.updatedAt == request.time
-          && request.resource.data.revision == (exists(/databases/$(database)/documents/libraries/$(owner)/series/$(entry)/episodes/$(id)) ? resource.data.revision + 1 : 1);
+          && request.resource.data.revision == (exists(/databases/$(database)/documents/libraries/$(owner)/series/$(entry)/episodes/$(id)) ? resource.data.revision + 1 : 1)
+          && seriesEpisodeProjection(owner, entry, id);
       }
     }
     function validListenDateOrFuture(value) {
@@ -664,6 +665,46 @@ service cloud.firestore {
       let year = int(parts[0]); let month = int(parts[1]); let day = int(parts[2]);
       let date = timestamp.date(year, month, day);
       return year >= 1 && date.year() == year && date.month() == month && date.day() == day;
+    }
+    function seriesEpisodeProjection(owner, entry, id) {
+      let p = getAfter(/databases/$(database)/documents/shared_series/$(owner)/entries/$(entry)/episodes/$(id)).data;
+      let s = getAfter(/databases/$(database)/documents/libraries/$(owner)/series/$(entry)/episodes/$(id)).data;
+      return p.schemaVersion == 1 && p.season == s.season && p.number == s.number
+        && p.watched == s.watched && p.revision == s.revision && p.updatedAt == s.updatedAt;
+    }
+    function seriesVisible(owner, entry) {
+      return get(/databases/$(database)/documents/libraries/$(owner)/series_visibility/$(entry)).data.visible == true;
+    }
+    function consentedSeriesReader(owner) {
+      let relation = get(userPath(owner)).data.get('relationshipId', null);
+      return isOwner(owner) || (relation is string && isPartner(owner) && jointActive(relation));
+    }
+    match /libraries/{owner}/series_visibility/{entry} {
+      allow read: if isOwner(owner);
+      allow create, update: if seriesOwner(owner,entry)
+        && request.resource.data.keys().hasOnly(['schemaVersion','visible','revision','updatedAt'])
+        && request.resource.data.schemaVersion == 1 && request.resource.data.visible is bool
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.revision == (exists(/databases/$(database)/documents/libraries/$(owner)/series_visibility/$(entry)) ? resource.data.revision + 1 : 1)
+        && request.resource.data.visible == existsAfter(/databases/$(database)/documents/shared_series/$(owner)/entries/$(entry));
+    }
+    match /shared_series/{owner}/entries/{entry} {
+      allow read: if consentedSeriesReader(owner);
+      allow create, update: if seriesOwner(owner, entry)
+        && request.resource.data.keys().hasOnly(['schemaVersion','title','reference','updatedAt'])
+        && request.resource.data.schemaVersion == 1 && request.resource.data.updatedAt == request.time
+        && getAfter(/databases/$(database)/documents/libraries/$(owner)/series_visibility/$(entry)).data.visible
+        && request.resource.data.title == get(/databases/$(database)/documents/libraries/$(owner)/catalog/$(get(/databases/$(database)/documents/libraries/$(owner)/entries/$(entry)).data.catalogId)).data.metadata.title
+        && request.resource.data.reference == get(/databases/$(database)/documents/libraries/$(owner)/catalog/$(get(/databases/$(database)/documents/libraries/$(owner)/entries/$(entry)).data.catalogId)).data.catalogKey;
+      allow delete: if isOwner(owner)
+        && !getAfter(/databases/$(database)/documents/libraries/$(owner)/series_visibility/$(entry)).data.visible;
+      match /episodes/{id} {
+        allow read: if consentedSeriesReader(owner) && seriesVisible(owner,entry)
+          && exists(/databases/$(database)/documents/shared_series/$(owner)/entries/$(entry));
+        allow create, update: if seriesOwner(owner,entry)
+          && request.resource.data.keys().hasOnly(['schemaVersion','season','number','watched','revision','updatedAt'])
+          && seriesEpisodeProjection(owner,entry,id);
+      }
     }
     // Relações consentidas reutilizam o convite aceito imutável. Não migra legado.
     // Escutas pessoais imutáveis; parceiro e terceiros nunca recebem projeção.

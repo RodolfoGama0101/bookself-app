@@ -64,3 +64,36 @@ novos episódios. Busca real depende de API-02/API-04; caminho manual está pron
 Android/iOS, catálogo real e implantação SEC-06 permanecem pendentes.
 
 Suíte completa: 485 testes Flutter aprovados e build web demo concluído, incluindo verificação preliminar Wasm. Sem jornada visual nova em navegador nesta etapa.
+
+## Comparação e sessões — SERIES-03
+
+Biblioteca → Séries → Detalhes → Comparar episódios permite escolher uma série
+compartilhada do parceiro ativo. Referência externa igual compara IDs estáveis;
+cadastros manuais escolhidos explicitamente comparam temporada/número, com aviso
+sobre edição desconhecida. Ausência de episódio próprio fica não cadastrado.
+Não são enviados títulos/sinopses de episódios, mesmo quando já vistos.
+
+Ao salvar uma série, inicialização única publica nome/referência para o parceiro
+consentido atual, conforme a política padrão. Detalhes permite ocultar/mostrar.
+Retry de inclusão preserva ocultação. libraries/{owner}/series_visibility/{entry}
+controla a presença do pai shared_series/{owner}/entries/{entry}; filhos episodes
+espelham somente temporada/número/watched/revisão/timestamp na mesma transação
+privada, inclusive ocultos. Pai oculto impede leitura/queries dos filhos.
+Acesso exige convite aceito, reciprocidade da relação atual e ausência de bloqueio;
+parceiro não edita. Erro/cache/offline/troca de vínculo retiram comparação.
+Projeções de séries não modificam isShared da entrada-base privada.
+
+Detalhes adiciona série à lista e propõe sessão de episódio disponível com data
+explícita/consentimento. O parceiro confirma em Nós; correção exige confirmação
+da nova revisão. Sessão não marca progresso pessoal. Histórico consentido mantém
+regras anteriores; novo parceiro não herda sessões antigas. Os números dos
+episódios são a única identificação episódica compartilhada na sessão.
+
+Validação: 96 testes Node/demo aprovados, incluindo escrita privada sem projeção
+recusada, terceiro/sem autenticação, ocultação concorrente com marcação,
+reexibição atrasada recusada, término e sessões sem alteração pessoal. Testes
+Flutter cobrem projeção mínima, ocultação preservada no retry, consentimento,
+erro/ocultação/troca de conta e descarte de sucesso tardio.
+Sem implantação SEC-06, migração ou validação Android/iOS.
+
+Suíte completa após SERIES-03: análise limpa e 488 testes Flutter aprovados.

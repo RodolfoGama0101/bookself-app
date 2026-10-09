@@ -1,3 +1,6 @@
+import '../../services/couple_workspace_service.dart';
+import 'series_couple_screen.dart';
+import 'series_comparison_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/series_record.dart';
@@ -24,6 +27,43 @@ class _SeriesDetailsScreenState extends State<SeriesDetailsScreen> {
   late SeriesRecord _series = widget.series;
   bool _busy = false, _conflict = false;
   String? _error;
+  bool? _visible;
+  @override
+  void initState() {
+    super.initState();
+    _loadVisibility();
+  }
+
+  Future<void> _loadVisibility() async {
+    try {
+      final value = await widget.service.sharing.visible(
+        _series.entry.ownerId,
+        _series.entry.id,
+      );
+      if (_current) setState(() => _visible = value);
+    } catch (e) {
+      if (_current) {
+        setState(() => _error = ErrorHandler.getFriendlyErrorMessage(e));
+      }
+    }
+  }
+
+  Future<void> _share(bool experience, [SeriesEpisode? episode]) async {
+    final user = context.read<AuthService>().currentUserModel;
+    if (!_current || user?.relationshipId == null || _busy) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SeriesCoupleScreen(
+          series: _series,
+          episode: episode,
+          relation: user!.relationshipId!,
+          experience: experience,
+        ),
+      ),
+    );
+  }
+
   final _season = TextEditingController(text: '1'),
       _number = TextEditingController(text: '1');
   SeriesEpisode? _prepared;
@@ -140,9 +180,55 @@ class _SeriesDetailsScreenState extends State<SeriesDetailsScreen> {
             if (_error != null)
               Semantics(liveRegion: true, child: Text(_error!)),
             TextButton(
-              onPressed: _busy ? null : () => _run(() async {}),
+              onPressed: _busy
+                  ? null
+                  : () async {
+                      await _run(() async {});
+                      await _loadVisibility();
+                    },
               child: const Text('Recarregar progresso'),
             ),
+            if (_visible != null)
+              SwitchListTile(
+                title: const Text('Compartilhar nome e progresso da série'),
+                subtitle: const Text(
+                  'Somente o parceiro do vínculo consentido atual pode consultar. Ocultar retira o acesso.',
+                ),
+                value: _visible!,
+                onChanged: disabled
+                    ? null
+                    : (v) async {
+                        await _run(
+                          () => widget.service.sharing.setVisible(_series, v),
+                        );
+                        await _loadVisibility();
+                      },
+              ),
+            if (user?.partnerUid != null && user?.relationshipId != null)
+              OutlinedButton.icon(
+                icon: const Icon(Icons.compare_arrows),
+                label: const Text('Comparar episódios'),
+                onPressed: _busy
+                    ? null
+                    : () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SeriesComparisonScreen(
+                            series: _series,
+                            partner: user!.partnerUid!,
+                            relation: user.relationshipId!,
+                            service: widget.service.sharing,
+                          ),
+                        ),
+                      ),
+              ),
+            if (CoupleWorkspaceService.enabled &&
+                user?.partnerUid != null &&
+                user?.relationshipId != null)
+              OutlinedButton(
+                onPressed: _busy ? null : () => _share(false),
+                child: const Text('Adicionar à lista do casal'),
+              ),
             SwitchListTile(
               title: const Text('Pausar série'),
               value: _series.progress.paused,
@@ -161,7 +247,7 @@ class _SeriesDetailsScreenState extends State<SeriesDetailsScreen> {
               value: _series.progress.ended,
               onChanged: disabled ? null : (v) => _configure(ended: v),
             ),
-            for (final e in _series.progress.episodes)
+            for (final e in _series.progress.episodes) ...[
               CheckboxListTile(
                 title: Text(e.label),
                 value: e.watched,
@@ -181,6 +267,17 @@ class _SeriesDetailsScreenState extends State<SeriesDetailsScreen> {
                         ),
                       ),
               ),
+              if (CoupleWorkspaceService.enabled &&
+                  user?.partnerUid != null &&
+                  user?.relationshipId != null &&
+                  e.released(DateTime.now()))
+                TextButton(
+                  onPressed: _busy ? null : () => _share(true, e),
+                  child: Text(
+                    'Propor sessão: temporada ${e.season}, episódio ${e.number}',
+                  ),
+                ),
+            ],
             const SizedBox(height: 24),
             Text(
               'Adicionar episódio disponível',

@@ -38,6 +38,7 @@ class ProfileFirestoreFake extends Fake implements FirebaseFirestore {
         'books',
         'bible_progress',
         'shared_books',
+        'shared_series',
         'shared_bible_progress',
         'couple_relationships',
       ]),

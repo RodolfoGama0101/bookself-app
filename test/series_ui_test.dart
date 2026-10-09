@@ -50,12 +50,13 @@ void main() {
         .position
         .jumpTo(0);
     await tester.pump();
-    if (find.text(label).evaluate().isEmpty)
+    if (find.text(label).evaluate().isEmpty) {
       await tester.scrollUntilVisible(
         find.text(label),
         160,
         scrollable: find.byType(Scrollable).first,
       );
+    }
     await tester.ensureVisible(find.text(label).last);
     await tester.pumpAndSettle();
     await tester.tap(find.text(label).last);

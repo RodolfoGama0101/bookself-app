@@ -1,3 +1,4 @@
+import 'series_sharing_service.dart';
 import '../data/models/media_model.dart';
 import '../data/models/series_record.dart';
 import 'media_library_repository.dart';
@@ -14,14 +15,18 @@ class SeriesLibraryService {
     LibraryQueryRepository? queries,
     SeriesCatalog? catalog,
     SeriesProgressService? progress,
+    SeriesSharingService? sharing,
   }) : repository = repository ?? FirestoreMediaLibraryRepository(),
        queries = queries ?? FirestoreLibraryQueryRepository(),
        catalog = catalog ?? SeriesCatalog.configured(),
-       progress = progress ?? SeriesProgressService();
+       progress = progress ?? SeriesProgressService(),
+       sharing =
+           sharing ?? SeriesSharingService(firestore: progress?.firestore);
   final MediaLibraryRepository repository;
   final LibraryQueryRepository queries;
   final SeriesCatalog catalog;
   final SeriesProgressService progress;
+  final SeriesSharingService sharing;
 
   CatalogItem prepare(
     String owner,
@@ -43,7 +48,9 @@ class SeriesLibraryService {
     if (prepared.identity.mediaType != MediaType.series) {
       throw const FormatException('Cadastro de outra mídia');
     }
-    return _record(await repository.save(prepared));
+    final row = await _record(await repository.save(prepared));
+    await sharing.initialize(row.entry, row.catalog);
+    return row;
   }
 
   Future<SeriesRecord> _record(LibraryEntry entry) async {

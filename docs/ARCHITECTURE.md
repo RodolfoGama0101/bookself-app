@@ -228,3 +228,8 @@ concentra configuração e episódios transacionais em subcoleções privadas. E
 geral deriva da completude/disponibilidade, preservando pausa e especiais opcionais.
 Busca externa é contrato simulado de intermediário, com caminho manual funcional.
 [Ativação, limites e testes](SERIES.md). Sem migração ou implantação.
+
+SeriesSharingService inicializa visibilidade uma vez e mantém pai mínimo público
+ao parceiro consentido; filhos episódicos espelhados em transação, sem spoilers.
+Ocultação remove pai e revoga filhos; comparação exige confirmação do servidor.
+[Contrato de SERIES-03](SERIES.md#comparação-e-sessões--series-03).
