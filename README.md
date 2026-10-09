@@ -76,7 +76,7 @@ Há projetos para Android, iOS e web, com opções Firebase para essas plataform
 
 ## Configuração e execução
 
-APK Android **1.2.0+3** disponível na [pré-release v1.2.0](https://github.com/RodolfoGama0101/bookself-app/releases/tag/v1.2.0), com arquivo SHA-256. Versão para testes com assinatura debug; catálogo sem chave Google Books, mantendo cadastro manual de livros. Filmes e o novo espaço de listas/experiências/interesses permanecem desativados no APK padrão, até ativação explícita e regras/índices implantados. [Notas e limites](docs/releases/v1.2.0.md).
+APK Android **1.3.0+4** com o novo design disponível na [pré-release v1.3.0](https://github.com/RodolfoGama0101/bookself-app/releases/tag/v1.3.0), com arquivo SHA-256. Versão para testes com assinatura debug; catálogo sem chave Google Books, mantendo cadastro manual de livros. Filmes e o novo espaço de listas/experiências/interesses permanecem desativados no APK padrão, até ativação explícita e regras/índices implantados. [Notas e limites](docs/releases/v1.3.0.md).
 
 1. Selecione Flutter 3.44.0/Dart 3.12.0, na revisão registrada em `tool/flutter-sdk.json`. Instalação e conferência do SDK estão em [DEVELOPMENT.md](docs/DEVELOPMENT.md#selecionar-o-sdk-reproduzível).
 2. Na raiz do repositório, instale as dependências:

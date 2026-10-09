@@ -15,7 +15,7 @@ APK com o redesign de UI-06, gerado a pedido do usuário por `flutter build apk 
 
 APK e `.sha256` em `build/release/`, ignorados pelo Git. `aapt dump badging` confirmou os metadados; verificação de assinatura com `java` funcional do host. Avisos existentes de KGP/Java/formato XML do SDK persistem, sem impedir o build. Lockfile sem mudança de conteúdo. Redesign já validado com análise limpa, 430 testes Flutter, build web demo e inspeção integrada em navegador. Nenhuma alteração Dart adicional nesta preparação.
 
-Publicação no GitHub em preparação. [Notas e limites](releases/v1.3.0.md). APK padrão sem filmes/novo espaço de listas/experiências/interesses habilitados; sem segredo de catálogo. Nenhum dispositivo Android executado; REL-02/REL-04/SEC-03/SEC-06 permanecem pendentes.
+A [pré-release v1.3.0](https://github.com/RodolfoGama0101/bookself-app/releases/tag/v1.3.0) foi publicada em 09/10/2026 às 14:23:32 UTC; tag no commit `a1ec225`, enviado à `develop`. Consulta pública confirmou publicação, estado de pré-release e ambos os assets. APK e checksum baixados de volta correspondem ao original; digest remoto também confere. [CI remoto](https://github.com/RodolfoGama0101/bookself-app/actions/runs/37943746070) em execução no momento desta conferência. Sem merge em `main`, loja, migração ou deploy Firebase. [Notas e limites](releases/v1.3.0.md). APK padrão sem filmes/novo espaço de listas/experiências/interesses habilitados; sem segredo de catálogo. Nenhum dispositivo Android executado; REL-02/REL-04/SEC-03/SEC-06 permanecem pendentes.
 
 ## APK 1.2.0+3 para testes — 08/10/2026
 
