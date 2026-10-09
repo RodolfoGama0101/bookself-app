@@ -70,4 +70,10 @@ Consultas em 08/10/2026 às 18:22 UTC, sem credenciais/dados pessoais. Amostra p
 
 **Recomendação provisória:** MusicBrainz é o candidato mais compatível com catálogo sem conta musical para o MVP, condicionada à validação de detalhes/edições/capas, infraestrutura e condições de uso. A pergunta de preferência musical desta sessão ainda não teve resposta; nenhum fornecedor foi escolhido silenciosamente.
 
+### Reensaio público — 09/10/2026
+
+`node tool/catalog/trial.cjs musicbrainz` foi repetido com acesso de rede e sem credencial. Duas buscas de gravações e duas de álbuns foram tentadas: Águas de Março, Clube da Esquina e Abbey Road responderam HTTP 200; Tempo Perdido respondeu HTTP 503. O grupo exato de **Clube da Esquina** não foi o primeiro resultado. Desta vez os detalhes do grupo retornaram **13 edições**; uma edição de 1972 retornou **21 faixas**, metadados de capa disponíveis e o Cover Art Archive respondeu com **11 imagens**. Os resultados observados confirmam que o caminho grupo → edição → faixas/capa pode funcionar, mas a falha 503 reforça a necessidade de erro parcial e de limite global de requisições. Cabeçalhos CORS `*` foram vistos nas respostas bem-sucedidas; isso ainda não comprova a execução no Flutter web nem direitos de uso das imagens.
+
+Os quatro testes locais de falha parcial, redação de erros, arquivo local e redirecionamento de capa passaram. A primeira tentativa da rodada, na rede restrita do sandbox, falhou antes de qualquer resposta externa e não foi confundida com indisponibilidade do MusicBrainz. Esta amostra pequena não estima cobertura nem SLA. A decisão de fornecedor continua dependente de escolha explícita do usuário e de desenho de infraestrutura/uso pretendido.
+
 Para fechar API-03: repetir detalhes/capas quando acessíveis, validar uma edição com faixas e casos incompletos, verificar jornada web e custo/termos do uso pretendido, obter decisão explícita. Spotify não foi ensaiado com credenciais; as restrições documentadas justificam adiar esse acesso, sem alegar cobertura experimental equivalente.
