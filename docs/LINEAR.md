@@ -2,7 +2,7 @@
 
 Importação realizada em **09/10/2026**, pelo plugin Linear, no projeto [Bookself-App](https://linear.app/rodolfo-gama/project/bookself-app-70f4cc7d7b97).
 
-[BACKLOG.md](../BACKLOG.md) permanece a fonte central. A importação é uma cópia pontual, sem sincronização automática: alterações posteriores precisam ser conciliadas explicitamente pelo ID estável. Antes de criar tarefas novamente, consulte a correspondência abaixo para evitar duplicatas.
+[BACKLOG.md](../BACKLOG.md) permanece a fonte central. A importação inicial foi uma cópia pontual. A partir de 09/10/2026, o [AGENTS.md](../AGENTS.md#sincronização-automática-das-tarefas-com-o-linear) exige sincronização pelo plugin Linear durante a criação e atualização das tarefas, sem novo pedido do usuário, incluindo atribuição ao solicitante, estado, prioridade, conteúdo e dependências. Antes de criar tarefas novamente, consulte a correspondência abaixo para evitar duplicatas. Não há serviço em segundo plano: mudanças fora das execuções dos agentes precisam ser conciliadas na próxima execução pertinente.
 
 Foram importados os **87 itens** existentes na leitura inicial: **31 abertos em Backlog** e **56 concluídos em Done**, preservando descrições, critérios, avanços, evidências e limites. Todos foram atribuídos ao usuário solicitante no Linear. IDs originais aparecem nos títulos e nas descrições. P0/P1/P2/P3 correspondem a Urgent/High/Medium/Low; 133 dependências foram registradas como relações de bloqueio, inclusive quando a tarefa dependente ou predecessora já estava concluída.
 

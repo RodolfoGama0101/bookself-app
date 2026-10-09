@@ -17,6 +17,17 @@ Leia `README.md`, as tarefas relacionadas em `BACKLOG.md` e os documentos releva
 - Registre decisões pendentes como propostas. Não escolha silenciosamente marca definitiva, fornecedor musical ou política de compartilhamento.
 - Use português brasileiro na documentação e interface, mantendo os identificadores em inglês usados no código.
 
+## Sincronização automática das tarefas com o Linear
+
+- Ao criar, iniciar, atualizar, bloquear, reabrir ou concluir uma tarefa, sincronize automaticamente o item de `BACKLOG.md` com o projeto **Bookself-App** pelo plugin Linear, sem aguardar novo pedido do usuário. Faça isso durante o trabalho e confira a sincronização antes de anunciar a entrega.
+- `BACKLOG.md` permanece a fonte central. Antes de trabalhar em uma tarefa, leia sua issue no Linear e consulte a [correspondência de IDs](docs/LINEAR.md). Preserve o ID estável no título e na descrição; procure por esse ID no projeto antes de criar uma issue e registre novas correspondências no documento para evitar duplicatas.
+- Atribua as tarefas a **Rodolfo Gama**, salvo orientação explícita diferente do usuário. Sincronize título, descrição, critérios, prioridade, dependências, andamento, impedimentos, evidências de validação e limites de implantação/migração/publicação. Não envie segredos ou dados pessoais de teste.
+- Mapeie P0/P1/P2/P3 para Urgent/High/Medium/Low. Use Backlog para itens ainda não iniciados, In Progress para trabalho iniciado e Done somente quando o critério de conclusão estiver cumprido com evidência; ao reabrir, retire Done. Registre bloqueios na descrição, mantendo o estado coerente com o andamento real.
+- Converta dependências em relações de bloqueio entre as issues correspondentes e ajuste essas relações quando as dependências do item mudarem. Preserve referências documentais com links acessíveis a partir do Linear e não confunda implementação local com implantação concluída.
+- Releia a issue após a escrita e confirme responsável, estado, prioridade, conteúdo e dependências. Preserve comentários e alterações alheias; se houver mudança conflitante no Linear, registre a divergência e esclareça o ponto com o usuário antes de sobrescrever o campo em conflito, continuando o trabalho independente.
+- Se o plugin estiver indisponível ou a escrita falhar, preserve a atualização local, registre os IDs e campos pendentes em `docs/LINEAR.md` e relate a limitação na entrega. Na próxima execução com acesso, reconcilie as pendências antes de novas alterações nas mesmas tarefas; não declare sincronização sem confirmação.
+- Esta sincronização é executada pelos agentes durante as tarefas. A edição deste arquivo não instala um serviço em segundo plano nem sincroniza alterações feitas fora de uma execução do agente.
+
 ## Código e arquitetura
 
 - Siga a separação atual: modelos em `lib/data/models`, serviços em `lib/services`, interface em `lib/ui` e utilitários em `lib/utils`.

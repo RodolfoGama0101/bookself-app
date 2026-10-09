@@ -4,7 +4,7 @@ Atualizado em **09/10/2026**. Nome atual: **Bookself App**. Proposta de novo nom
 
 Este arquivo centraliza as tarefas identificadas na análise do repositório e no planejamento solicitado de filmes, séries e músicas para casais. Novas descobertas devem entrar aqui. A lista não significa que todos os itens estejam aprovados para implementação imediata.
 
-As tarefas foram copiadas para o projeto Bookself-App no Linear em 09/10/2026. [Correspondência de IDs e limites da importação](docs/LINEAR.md). Este arquivo permanece a fonte central; não há sincronização automática.
+As tarefas foram copiadas para o projeto Bookself-App no Linear em 09/10/2026. [Correspondência de IDs e limites da importação](docs/LINEAR.md). Este arquivo permanece a fonte central; os agentes devem sincronizar automaticamente as tarefas durante o trabalho, conforme o [AGENTS.md](AGENTS.md#sincronização-automática-das-tarefas-com-o-linear).
 
 ## Como usar
 
