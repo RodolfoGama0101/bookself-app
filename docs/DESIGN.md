@@ -1,5 +1,7 @@
 # Design das telas atuais
 
+O padrão vigente está em [DESIGN.md](../DESIGN.md), na raiz. Este documento preserva o histórico e as evidências. A versão 2, de 09/10/2026, adota Material Design 3 como base de interação, conserva a direção Organic e acompanha sua implementação em UI-06.
+
 Revisão de 05/10/2026, solicitada pelo usuário com a skill frontend-design. Escopo: login/cadastro, Início, estante, busca/cadastro manual, detalhes, progresso bíblico e perfil. A entrega corresponde a UI-04. Em 08/10/2026, UI-01/02 e BIBLE-01 estenderam essa direção à Biblioteca/Nós e aos estados de conteúdo; a revisão completa de acessibilidade UI-03 permanece pendente.
 
 ## Diagnóstico e direção

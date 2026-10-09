@@ -23,7 +23,8 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/COUPLE_INVITATIONS.md](docs/COUPLE_INVITATIONS.md) | Jornada, contrato local e limites de convites consentidos. |
 | [docs/COUPLE_POLICY.md](docs/COUPLE_POLICY.md) | Política de consentimento aprovada para a evolução e critérios de implementação. |
 | [docs/COUPLE_WORKSPACE.md](docs/COUPLE_WORKSPACE.md) | Listas e experiências consentidas, revisões, autoria e histórico restrito. |
-| [docs/DESIGN.md](docs/DESIGN.md) | Sistema visual, layouts responsivos e validação do redesign das telas atuais. |
+| [DESIGN.md](DESIGN.md) | Sistema de design Material 3, tokens, componentes, navegação e padrões de interface. |
+| [docs/DESIGN.md](docs/DESIGN.md) | Histórico e evidências das revisões visuais. |
 | [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) | Correções de contraste/semântica/teclado, roteiro de avaliação humana e limites por plataforma. |
 | [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integrações atuais e candidatas, com fontes oficiais. |
 | [docs/CATALOG_TRIALS.md](docs/CATALOG_TRIALS.md) | Ensaio de fornecedores, comandos sem segredos e pendências TMDB/MusicBrainz/Spotify. |
