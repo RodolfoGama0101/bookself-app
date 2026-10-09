@@ -363,3 +363,7 @@ servidor loopback 17362. Testes de regras separados nas portas 39099/38080.
 Análise limpa e 495 testes Flutter aprovados; regressão dirigida de cinco casos
 de paginação aprovada após reforçar que contagens alheias não retornam em erro.
 [Comportamento e limites](DATA_ACCESS.md#recuperação-da-janela-compartilhada--qa-03-09102026).
+
+Atualização incremental SERIES-02: análise limpa e 498 testes Flutter aprovados,
+incluindo três regressões de catálogo/progresso concorrente. Sem novo fornecedor
+ou alterações nas regras. [Contrato](SERIES.md#atualização-incremental-de-episódios--series-02--09102026).

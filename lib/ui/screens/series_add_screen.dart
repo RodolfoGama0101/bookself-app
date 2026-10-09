@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/media_model.dart';
-import '../../data/models/series_record.dart';
 import '../../services/auth_service.dart';
 import '../../services/series_catalog.dart';
 import '../../services/series_library_service.dart';
@@ -143,40 +142,9 @@ class _SeriesAddScreenState extends State<SeriesAddScreen> {
             }),
         identity: _selected?.identity,
       );
-      final saved = await widget.service.save(_prepared!);
+      var saved = await widget.service.save(_prepared!);
       if (_selected != null) {
-        for (final e in _selected!.episodes) {
-          final latest = await widget.service.progress.read(
-            widget.owner,
-            saved.entry.id,
-          );
-          final old = latest.episodes.where((x) => x.id == e.id).firstOrNull;
-          await widget.service.progress.saveEpisode(
-            widget.owner,
-            saved.entry.id,
-            SeriesEpisode(
-              id: e.id,
-              season: e.season,
-              number: e.number,
-              availableOn: e.availableOn,
-              available: e.available,
-              revision: old?.revision ?? 0,
-            ),
-            watched: old?.watched ?? false,
-          );
-        }
-        final latest = await widget.service.progress.read(
-          widget.owner,
-          saved.entry.id,
-        );
-        await widget.service.progress.configure(
-          widget.owner,
-          saved.entry.id,
-          latest,
-          complete: _selected!.complete,
-          ended: _selected!.ended,
-          paused: latest.paused,
-        );
+        saved = await widget.service.applyEpisodes(saved, _selected!);
       }
       if (mounted && _current) Navigator.pop(context, saved);
     } catch (error) {

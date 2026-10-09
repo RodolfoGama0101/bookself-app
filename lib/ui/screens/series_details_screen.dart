@@ -188,6 +188,17 @@ class _SeriesDetailsScreenState extends State<SeriesDetailsScreen> {
                     },
               child: const Text('Recarregar progresso'),
             ),
+            if (!_series.catalog.identity.isManual &&
+                widget.service.catalog.available)
+              OutlinedButton.icon(
+                icon: const Icon(Icons.sync),
+                label: const Text('Atualizar episódios do catálogo'),
+                onPressed: disabled
+                    ? null
+                    : () => _run(() async {
+                        await widget.service.refreshEpisodes(_series);
+                      }),
+              ),
             if (_visible != null)
               SwitchListTile(
                 title: const Text('Compartilhar nome e progresso da série'),

@@ -102,3 +102,23 @@ Suíte completa após SERIES-03: análise limpa e 488 testes Flutter aprovados.
 
 A [matriz de validação](SERIES_VALIDATION.md) registra duas jornadas automatizadas,
 correções encontradas com duas contas na web demo e limites de catálogo/plataforma.
+
+## Atualização incremental de episódios — SERIES-02 — 09/10/2026
+
+Detalhes de série externa com catálogo configurado oferece Atualizar episódios
+do catálogo. Usa a mesma importação do cadastro, com referência exata e limite
+de 500 episódios no conjunto. Conserva vistos, pausa, ocultação, inclusão e
+episódios ausentes; novos episódios entram não vistos. Uma resposta que omite
+episódios regulares existentes não pode declarar a lista completa. Correção que
+torna indisponível um episódio visto é recusada sem apagar sua marcação.
+
+Escritas por episódio usam revisão otimista e projeção atômica; conflito exige
+releitura. A importação inteira não é atômica: falha pode deixar parte dos
+episódios atualizados, e repetir conserva IDs/marcações. Título/ano/capa do
+registro existente não são sobrescritos por esta operação. Datas/estado geral
+continuam conservadores quando metadados faltam. Não implementa catálogo real.
+
+Três regressões adicionais validam preservação/omissões, futuro/referência/rede
+e marcação concorrente durante importação.
+
+Após esta entrega: análise sem apontamentos e 498 testes Flutter aprovados.
