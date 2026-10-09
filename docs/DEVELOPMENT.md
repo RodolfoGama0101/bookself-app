@@ -1,5 +1,26 @@
 # Desenvolvimento com emuladores
 
+## Iniciar web demo com um comando — DOC-03
+
+Instale o SDK registrado em `tool/flutter-sdk.json`, Node.js 20 ou superior e Java 21 ou superior no PATH. Instale as ferramentas Firebase com `npm --prefix tool/firebase ci --no-audit --no-fund`. Na raiz do repositório:
+
+```sh
+node tool/dev-web.cjs --check
+node tool/dev-web.cjs
+```
+
+O primeiro comando confere SDK, Java, versões locais das ferramentas e portas, sem iniciar serviços ou gerar build. O segundo resolve dependências pelo lockfile, compila o Flutter web com emuladores e inicia Auth/Firestore locais, seguidos do servidor em **http://127.0.0.1:17360**. Use contas fictícias e encerre com `q` + Enter ou Ctrl+C; os dados emulados são descartáveis. Não exige login Firebase, chave de fornecedor ou alteração de `firebase_options.dart`.
+
+O projeto é fixo em **demo-bookself**, com serviços no loopback e configuração temporária própria. Não há opção de projeto remoto, deploy ou importação de dados. Portas ocupadas interrompem o início sem encerrar processos existentes. Para evitar colisões com outros serviços locais, informe portas distintas em todos os serviços necessários; os mesmos valores são enviados ao build e aos emuladores:
+
+```sh
+node tool/dev-web.cjs --auth-port=49299 --firestore-port=48280 --web-port=17364 --hub-port=44420 --logging-port=44520 --websocket-port=9152
+```
+
+Também é possível acrescentar `--check` a esse comando. O build ocorre antes de iniciar emuladores; a primeira execução pode precisar baixar dependências e o emulador Firestore. O launcher encerra somente seus processos e remove sua configuração temporária. No Windows, o runtime Java real é resolvido para permitir o encerramento do filho correto. Outra sessão pode ocupar uma porta entre a verificação e o início; nesse caso, escolha outra porta e repita. Não execute testes que limpam dados nas portas de uma demonstração em uso. Use uma demonstração por checkout: `build/web` é compartilhado, e recompilar com outras portas muda os arquivos servidos por qualquer servidor desse checkout.
+
+Verificação em **09/10/2026**: dois testes Node de argumentos/colisão passaram, preflight e execução completa em portas alternativas passaram; build web demo e verificação preliminar Wasm aprovados. Cadastro e leitura/escrita pessoais foram exercitados no Chrome com conta fictícia. Encerramento por `q` + Enter, remoção da configuração temporária e liberação das portas foram conferidos. Interrupções forçadas do terminal podem impedir a limpeza da configuração temporária. Reprodução independente por outra pessoa e validação Android/iOS continuam pendentes; DOC-03 permanece aberto. Os comandos manuais abaixo continuam disponíveis.
+
 ## Filmes — API-04, MOVIE-01/02/03
 
 Em **08/10/2026**, arquivos Dart afetados formatados, análise sem apontamentos e **426 testes Flutter aprovados** (24 novos de catálogo/persistência/interface). **86 testes Node/demo aprovados**, incluindo jornada de duas bibliotecas de filmes, seleção mínima em lista, dupla confirmação de sessão e revogação/histórico após desvínculo. O build web demo e a verificação preliminar Wasm passaram. Não houve novas dependências, alteração de regras/índices ou arquivos Firebase gerados.
@@ -253,7 +274,7 @@ Cadastre duas contas fictícias pela interface; cada cadastro cria seu perfil. N
 
 Os adaptadores FlutterFire também mapeiam loopback para `10.0.2.2` no Android; informar o alias deixa a intenção explícita. Hosts aceitos: `127.0.0.1`, `localhost` e `10.0.2.2`. Dispositivos físicos via LAN e hosts remotos não estão habilitados. Windows/macOS/Linux como apps Flutter nativos continuam sem configuração de produção e não foram validados.
 
-Para portas alternativas, altere `firebase.emulators.json` e passe também `--dart-define=FIREBASE_AUTH_EMULATOR_PORT=<porta>` e `--dart-define=FIRESTORE_EMULATOR_PORT=<porta>` ao Flutter. Portas devem ser válidas e distintas.
+Para portas alternativas no web, prefira o launcher acima, que cria configuração temporária. No fluxo manual, use uma cópia temporária de `firebase.emulators.json` e passe também `--dart-define=FIREBASE_AUTH_EMULATOR_PORT=<porta>` e `--dart-define=FIRESTORE_EMULATOR_PORT=<porta>` ao Flutter. Portas devem ser válidas e distintas.
 
 Sem `USE_FIREBASE_EMULATORS=true`, o comportamento anterior permanece: o app usa `lib/firebase_options.dart` e o projeto já distribuído. Reinicie completamente ao trocar o modo; não reutilize hot reload/hot restart para alterar destinos. A preferência de tema continua local ao app, independente do projeto Firebase.
 
