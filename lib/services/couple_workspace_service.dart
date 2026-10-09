@@ -91,14 +91,11 @@ class CoupleWorkspaceService {
         if (!members.contains(uid)) throw StateError('Participante inválido');
         final own = (await tx.get(_db.collection('users').doc(uid))).data();
         final other = members.firstWhere((id) => id != uid);
-        final partner = (await tx.get(
-          _db.collection('users').doc(other),
-        )).data();
+        // O perfil alheio é privado. Reciprocidade e bloqueios são validados
+        // atomicamente pelas regras, inclusive se mudarem durante o commit.
         final active =
             own?['partnerUid'] == other &&
-            partner?['partnerUid'] == uid &&
-            own?['relationshipId'] == relationshipId &&
-            partner?['relationshipId'] == relationshipId;
+            own?['relationshipId'] == relationshipId;
         if (!active && !withdrawal) throw StateError('Vínculo encerrado');
         final current = (await tx.get(ref)).data();
         if ((expected == null && current != null) ||

@@ -99,6 +99,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           const SizedBox.shrink(),
         if (_seriesEnabled)
           SeriesLibraryScreen(
+            onMovies: _enabled ? () => setState(() => _destination = 2) : null,
             service: widget.seriesService,
             onBooks: () => setState(() => _destination = 0),
             onMusic: _musicEnabled

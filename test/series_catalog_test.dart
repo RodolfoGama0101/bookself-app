@@ -95,7 +95,7 @@ void main() {
       endpoint,
       'example_video',
       client: MockClient((request) async {
-        expect(request.url.pathSegments, ['catalog', 'seriess', 'a/b?é']);
+        expect(request.url.pathSegments, ['catalog', 'series', 'a/b?é']);
         return http.Response(
           jsonEncode({
             'provider': 'example_video',
@@ -121,7 +121,7 @@ void main() {
       );
       expect((await catalog.search(' ')).items, isEmpty);
       expect(requests, 0);
-      expect((await catalog.search('filme')).nextCursor, isNull);
+      expect((await catalog.search('série')).nextCursor, isNull);
     },
   );
   for (final status in [302, 429, 503]) {
@@ -132,7 +132,7 @@ void main() {
         client: MockClient((_) async => http.Response('{}', status)),
       );
       await expectLater(
-        catalog.search('filme'),
+        catalog.search('série'),
         throwsA(
           status == 429
               ? isA<CatalogQuotaException>()
@@ -149,7 +149,7 @@ void main() {
       client: MockClient((_) => Completer<http.Response>().future),
     );
     await expectLater(
-      catalog.search('filme'),
+      catalog.search('série'),
       throwsA(isA<TimeoutException>()),
     );
   });
@@ -161,9 +161,9 @@ void main() {
         (_) async => http.Response('{"provider":"other","items":[]}', 200),
       ),
     );
-    await expectLater(catalog.search('filme'), throwsFormatException);
+    await expectLater(catalog.search('série'), throwsFormatException);
     await expectLater(
-      catalog.search('filme', cursor: ''),
+      catalog.search('série', cursor: ''),
       throwsFormatException,
     );
   });

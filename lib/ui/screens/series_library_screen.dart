@@ -17,11 +17,13 @@ class SeriesLibraryScreen extends StatefulWidget {
     this.service,
     required this.onBooks,
     this.onBible,
+    this.onMovies,
     this.onMusic,
   });
   final SeriesLibraryService? service;
   final VoidCallback onBooks;
   final VoidCallback? onBible;
+  final VoidCallback? onMovies;
   final VoidCallback? onMusic;
   @override
   State<SeriesLibraryScreen> createState() => _SeriesLibraryScreenState();
@@ -167,6 +169,7 @@ class _SeriesLibraryScreenState extends State<SeriesLibraryScreen> {
             seriesSelected: true,
             onBooks: widget.onBooks,
             onBible: widget.onBible,
+            onMovies: widget.onMovies,
             onMusic: widget.onMusic,
           ),
           const SizedBox(height: 16),
@@ -174,7 +177,7 @@ class _SeriesLibraryScreenState extends State<SeriesLibraryScreen> {
             controller: _filter,
             onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(
-              labelText: 'Filtrar séries carregados por título',
+              labelText: 'Filtrar séries carregadas por título',
               prefixIcon: Icon(Icons.search),
             ),
           ),
@@ -184,7 +187,7 @@ class _SeriesLibraryScreenState extends State<SeriesLibraryScreen> {
             runSpacing: 8,
             children: [
               for (final entry in {
-                'all': 'Todos',
+                'all': 'Todas',
                 'in_progress': 'Em andamento',
                 'up_to_date': 'Em dia',
                 'completed': 'Concluídas',
@@ -202,7 +205,7 @@ class _SeriesLibraryScreenState extends State<SeriesLibraryScreen> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
-                '${_rows.length} carregados${_total == null ? '' : ' de $_total séries'}',
+                '${_rows.length} carregadas${_total == null ? '' : ' de $_total séries'}',
               ),
               TextButton(
                 onPressed: _busy
@@ -242,11 +245,11 @@ class _SeriesLibraryScreenState extends State<SeriesLibraryScreen> {
           if (!_busy && _error == null && filtered.isEmpty)
             ContentState(
               title: _rows.isEmpty
-                  ? 'Nenhum série salvo'
-                  : 'Nenhum série corresponde aos filtros',
+                  ? 'Nenhuma série salva'
+                  : 'Nenhuma série corresponde aos filtros',
               message: _rows.isEmpty
-                  ? 'Cadastre um série para acompanhar suas sessões.'
-                  : 'A busca considera os séries carregados.',
+                  ? 'Cadastre uma série para acompanhar seus episódios.'
+                  : 'A busca considera as séries carregadas.',
               actionLabel: 'Adicionar série',
               onAction: _add,
             ),

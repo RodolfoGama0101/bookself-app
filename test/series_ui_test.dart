@@ -2,16 +2,29 @@ import 'dart:async';
 import 'package:bookself_app/data/models/media_model.dart';
 import 'package:bookself_app/services/auth_service.dart';
 import 'package:bookself_app/services/media_library_repository.dart';
+import 'package:bookself_app/services/library_query_service.dart';
+import 'package:bookself_app/data/models/series_record.dart';
 import 'package:bookself_app/services/series_library_service.dart';
 import 'package:bookself_app/services/series_progress_service.dart';
 import 'package:bookself_app/ui/screens/series_add_screen.dart';
 import 'package:bookself_app/ui/screens/series_details_screen.dart';
+import 'package:bookself_app/ui/screens/series_library_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'couple_workspace_ui_test.dart' show JointAuth;
 import 'support/profile_firestore_fake.dart';
 import 'support/test_fonts.dart';
+
+class EmptySeriesLibrary extends SeriesLibraryService {
+  @override
+  Future<LibraryPage<SeriesRecord>> page(
+    String owner, {
+    LibraryCursor? after,
+  }) async => LibraryPage([], null);
+  @override
+  Future<int> count(String owner) async => 0;
+}
 
 void main() {
   setUpAll(useBundledTestFonts);
@@ -67,6 +80,33 @@ void main() {
         .jumpTo(0);
     await tester.pumpAndSettle();
   }
+
+  testWidgets(
+    'biblioteca vazia orienta episódios e oferece acesso direto a filmes',
+    (tester) async {
+      var movies = 0;
+      await show(
+        tester,
+        SeriesLibraryScreen(
+          service: EmptySeriesLibrary(),
+          onBooks: () {},
+          onMovies: () => movies++,
+        ),
+      );
+      await tap(tester, 'Filmes');
+      expect(movies, 1);
+      await tester.scrollUntilVisible(
+        find.text('Nenhuma série salva'),
+        160,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(
+        find.text('Cadastre uma série para acompanhar seus episódios.'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets(
     'cadastro manual sem API em tela pequena exige título e confirma escrita',

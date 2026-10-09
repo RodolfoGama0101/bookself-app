@@ -118,6 +118,32 @@ async function jointRespond(database,uid,rid,decision,expected) {
     tx.set(doc(database,`couple_relationships/${rid}/activity/experience`),jointActivity(next));
   });
 }
+
+test('QA-03: transação de sessão lê somente perfil próprio e marcadores da relação conhecida', async () => {
+  const rid = await jointRelation(), database = db('a');
+  const indexes = ['a','b'].map(uid => doc(database,`users/${uid}/couple_history/${rid}`));
+  await assertSucceeds(runTransaction(database,async tx => {
+    const invitation = (await tx.get(doc(database,'partner_invites',rid))).data();
+    const own = (await tx.get(doc(database,'users/a'))).data();
+    assert.equal(own.relationshipId,rid);
+    assert.equal(invitation.status,'accepted');
+    const history = await Promise.all(indexes.map(ref => tx.get(ref)));
+    const data = jointExperience();
+    tx.set(doc(database,jointPath(rid)),data);
+    tx.set(doc(database,`${jointPath(rid)}/history/1`),data);
+    tx.set(doc(database,`couple_relationships/${rid}/activity/experience`),jointActivity(data));
+    indexes.forEach((ref,i) => {if (!history[i].exists()) tx.set(ref,{relationshipId:rid,createdAt:serverTimestamp()});});
+  }));
+  await assertFails(getDoc(doc(database,'users/b')));
+  await assertFails(getDocs(collection(database,'users/b/couple_history')));
+  await assertFails(getDoc(doc(db('c'),`users/b/couple_history/${rid}`)));
+  await assertFails(getDoc(doc(database,'users/b/couple_history/unknown')));
+  await assertSucceeds(getDoc(indexes[1]));
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'confirmed'));
+  await pair(db('a'),'a','b',false);
+  await assertFails(jointRespond(db('b'),'b',rid,'confirmed'));
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'withdrawn'));
+});
 test('COUPLE-05: autoria, dupla confirmação por revisão e auditoria obrigatória',async()=>{
   const rid=await jointRelation();
   await assertFails(jointWrite(db('a'),rid,'experience',jointExperience(),false));

@@ -1,3 +1,4 @@
+import '../../services/series_library_service.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -291,6 +292,12 @@ class _PartnerInvitationScreenState extends State<PartnerInvitationScreen> {
         const Text(
           'Você pode ocultar livros e progresso por livro bíblico em Perfil → Compartilhamento, antes ou depois do aceite. Itens ocultos permanecem privados; atividades anteriores ao vínculo não entram no feed.',
         ),
+        if (SeriesLibraryService.enabled) ...[
+          const Text(
+            'Séries ficam visíveis por padrão, incluindo episódios já marcados. Você pode ocultar cada série nos detalhes da sua biblioteca. A comparação mostra apenas temporada, número e marcação, sem títulos ou sinopses de episódios. Sessões do casal exigem confirmação de ambos e não alteram seu progresso individual.',
+          ),
+          const SizedBox(height: 12),
+        ],
         Material(
           type: MaterialType.transparency,
           child: CheckboxListTile(

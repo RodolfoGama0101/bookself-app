@@ -17,7 +17,7 @@ class SeriesCatalogItem {
     if (identity.isManual ||
         identity.mediaType != MediaType.series ||
         metadata.mediaType != MediaType.series) {
-      throw const FormatException('Referência de filme inválida');
+      throw const FormatException('Referência de série inválida');
     }
   }
   final CatalogIdentity identity;
@@ -104,7 +104,7 @@ class HttpSeriesCatalog extends SeriesCatalog {
     final uri = endpoint.replace(
       pathSegments: [
         ...endpoint.pathSegments.where((part) => part.isNotEmpty),
-        'seriess',
+        'series',
         ...segments,
       ],
       queryParameters: query,

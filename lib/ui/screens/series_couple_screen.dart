@@ -90,7 +90,7 @@ class _SeriesCoupleScreenState extends State<SeriesCoupleScreen> {
       return const Scaffold(
         body: ContentState(
           title: 'O vínculo mudou',
-          message: 'Volte à Biblioteca. Sua série pessoal foi preservado.',
+          message: 'Volte à Biblioteca. Sua série pessoal foi preservada.',
         ),
       );
     }
@@ -156,7 +156,7 @@ class _SeriesCoupleScreenState extends State<SeriesCoupleScreen> {
                 final lists = snapshot.data!;
                 if (lists.isEmpty) {
                   return const Text(
-                    'Crie uma lista em Nós → Listas e experiências antes de adicionar um série.',
+                    'Crie uma lista em Nós → Listas e experiências antes de adicionar uma série.',
                   );
                 }
                 return Column(

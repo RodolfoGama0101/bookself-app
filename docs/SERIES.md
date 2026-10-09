@@ -97,3 +97,8 @@ erro/ocultação/troca de conta e descarte de sucesso tardio.
 Sem implantação SEC-06, migração ou validação Android/iOS.
 
 Suíte completa após SERIES-03: análise limpa e 488 testes Flutter aprovados.
+
+## Jornada encadeada — QA-03
+
+A [matriz de validação](SERIES_VALIDATION.md) registra duas jornadas automatizadas,
+correções encontradas com duas contas na web demo e limites de catálogo/plataforma.

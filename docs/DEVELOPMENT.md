@@ -350,3 +350,10 @@ Auth 39099/Firestore 38080, projeto demo-bookself; nenhuma escrita remota.
 Análise limpa, 491 Flutter, 98 Node/demo e build web aprovados. Testes incluem
 27 experiências/paginação/contagem completa, correção/retirada/reconfirmação e
 limpeza em falha/término, sem dados reais. [Contrato](COUPLE_WORKSPACE.md#atividades-e-contagens-por-mídia--couple-08--09102026).
+
+## Jornada de séries — QA-03 — 09/10/2026
+
+Análise limpa, 494 Flutter, 99 Node/demo e build web aprovados. Navegador
+agent-browser com duas sessões Chrome isoladas, Auth 49099/Firestore 48080 e
+servidor loopback 17362. Testes de regras separados nas portas 39099/38080.
+[Resultados e limites](SERIES_VALIDATION.md); sem dados reais ou implantação.

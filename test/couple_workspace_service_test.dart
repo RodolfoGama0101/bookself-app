@@ -62,6 +62,7 @@ void main() {
         2,
       );
       expect(database.documents['users/b/couple_history/relation'], isNotNull);
+      expect(database.readPaths, isNot(contains('b')));
     },
   );
   test(

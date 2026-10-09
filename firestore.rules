@@ -761,7 +761,11 @@ service cloud.firestore {
           && s.episode.season is int && s.episode.season >= 0 && s.episode.number is int && s.episode.number > 0));
     }
     match /users/{uid}/couple_history/{rid} {
-      allow read: if isOwner(uid);
+      allow list: if isOwner(uid);
+      // Apenas o marcador mínimo desta relação conhecida, nunca o histórico
+      // inteiro nem o perfil privado do outro participante.
+      allow get: if isOwner(uid) || (jointMember(rid)
+        && uid in [get(invitePath(rid)).data.senderUid, get(invitePath(rid)).data.recipientUid]);
       allow create: if jointMember(rid)
         && uid in [get(invitePath(rid)).data.senderUid, get(invitePath(rid)).data.recipientUid]
         && request.resource.data.keys().hasAll(['relationshipId','createdAt'])

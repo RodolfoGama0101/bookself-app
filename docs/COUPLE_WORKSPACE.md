@@ -90,3 +90,8 @@ correção/reconfirmação/retirada, terceiro/término, filtros/páginas atrasad
 limpeza em erro. Regras reduziram avaliações redundantes para permanecer no
 limite Firestore de 1.000 expressões, mantendo validação de domínio/auditoria/
 projeção na mesma transação. Sem migração, produção, nativos ou implantação SEC-06.
+
+QA-03 corrigiu a transação que lia o perfil privado alheio. O marcador mínimo
+de uma relação aceita conhecida admite get por seus dois participantes, mantendo
+a listagem do histórico exclusiva do dono. Reciprocidade/bloqueio continuam
+validados pelas regras no commit. [Regressão e limites](SERIES_VALIDATION.md).

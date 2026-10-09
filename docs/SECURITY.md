@@ -104,3 +104,12 @@ A consulta do parceiro não usa cache/offline. Inicialização limpa persistênc
 As regras candidatas protegem `books/{id}/activity/{eventId}`: eventos atômicos com o livro, timestamps do servidor, autoria própria e histórico sem alteração/exclusão pelo cliente. Parceiro, ex-parceiro e terceiros não podem consultar o histórico. `addedAt` e criação comprovada são imutáveis; registros modernos exigem evento em mudança de status. As projeções recebem somente o último marcador permitido. Concorrência, consultas e desvínculo foram validados nos emuladores; a implantação remota continua pendente.
 
 SEC-06 deve revisar clientes antigos que mudam `addedAt` ou alteram status sem evento. A compatibilidade com documentos legados não autoriza novos clientes a inventar criação histórica. Exclusão de livro não elimina automaticamente subcoleções; retenção e limpeza integral dependem de SEC-05. [Contrato, evidências e limites](BOOK_LIBRARY.md).
+
+## Marcador mínimo de relação — QA-03
+
+O get específico de users/{member}/couple_history/{relationshipId} admite os
+dois participantes da relação aceita conhecida, exclusivamente para preservar
+a inicialização idempotente dos índices. Contém apenas ID e criação; não concede
+listagem do histórico do outro nem leitura de seu perfil. Regras de sessão
+continuam exigindo vínculo ativo, exceto retirada de confirmação após término.
+99 testes Node/demo aprovados; sem alteração remota. [Evidências](SERIES_VALIDATION.md).

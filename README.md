@@ -13,11 +13,12 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [BACKLOG.md](BACKLOG.md) | Fonte central de tarefas, prioridades, dependências e critérios de conclusão. |
 | [AGENTS.md](AGENTS.md) | Orientações para trabalhar neste repositório. |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
+| [docs/SERIES_VALIDATION.md](docs/SERIES_VALIDATION.md) | Jornadas locais de séries, casal e limites de validação. |
 | [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
 | [docs/BOOK_LIBRARY.md](docs/BOOK_LIBRARY.md) | Identidade de livros, datas, histórico privado, edição manual e filtros pessoais. |
 | [docs/NAVIGATION.md](docs/NAVIGATION.md) | Navegação atual de livros/Bíblia/Nós e mapa incremental das mídias futuras. |
-| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Modelo v1 e contratos locais: base privada, listas/experiências; progresso episódico, escutas pessoais e migração ativa pendentes. |
+| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Modelo v1 e contratos locais: base privada, listas/experiências; progresso episódico e escutas com contratos locais; migração ativa pendente. |
 | [docs/DATA_MIGRATION.md](docs/DATA_MIGRATION.md) | Backup/plano offline e ensaio recuperável; conversão ativa e produção separadas. |
 | [docs/DATA_ACCESS.md](docs/DATA_ACCESS.md) | Paginação, índices, agregações e sincronização; telas de livros habilitadas no demo e ativação remota separada. |
 | [docs/COUPLE_INVITATIONS.md](docs/COUPLE_INVITATIONS.md) | Jornada, contrato local e limites de convites consentidos. |
