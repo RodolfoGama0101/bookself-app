@@ -1,8 +1,8 @@
 # Integrações
 
-Referências revisadas em 02/10/2026. Revalidar requisitos, limites e termos antes de implementar. Nenhum fornecedor novo está aprovado ou integrado nesta versão.
+Referências revisadas até 09/10/2026. Revalidar requisitos, limites e termos antes de implementar. MusicBrainz foi aprovado para metadados musicais em API-03, mas ainda não está integrado; fornecedor audiovisual permanece pendente.
 
-**Atualização de 08/10/2026 — API-02/03:** [comparação e ensaios reproduzíveis](CATALOG_TRIALS.md) revisam fontes oficiais, limitações comerciais/cache/backend e mostram resultados reais de buscas MusicBrainz com falha 503 nos detalhes. Credencial TMDB ainda ausente, Spotify sem acesso autenticado e fornecedor musical não escolhido. Não representam adaptadores implementados nem conclusão dos ensaios.
+**Atualização de 09/10/2026 — API-02/03:** [comparação e ensaios reproduzíveis](CATALOG_TRIALS.md) revisam fontes oficiais, limitações comerciais/cache/backend e mostram resultados reais de buscas MusicBrainz, detalhes/edição/capa e uma falha HTTP 503 parcial. MusicBrainz foi escolhido explicitamente para metadados da primeira integração musical; credencial TMDB ainda ausente e Spotify sem acesso autenticado. A escolha não representa adaptador implementado, infraestrutura, licença comercial ou streaming.
 
 ## Integrações atuais
 
@@ -56,7 +56,7 @@ A [documentação do Spotify](https://developer.spotify.com/documentation/web-ap
 
 A [documentação do MusicBrainz](https://musicbrainz.org/doc/MusicBrainz_API) informa consultas gerais sem chave, identificação por `User-Agent` e limite de uma chamada por segundo por aplicativo. Uso não comercial do serviço é gratuito; uso comercial exige avaliar condições/planos. Não é streaming. No navegador, validar identificação e eventual necessidade de intermediário.
 
-Proposta: escolher primeiro catálogo para busca e registros próprios. Contas externas, histórico automático e sincronização de playlists são escopos posteriores. Decisão e ensaio: API-03; sincronização opcional: IDEA-03.
+Decisão de API-03: usar MusicBrainz primeiro para busca e referências próprias de faixas/álbuns, sujeito a intermediário, limite global, campos/capas opcionais e condições do uso pretendido. Contas externas, histórico automático e sincronização de playlists são escopos posteriores em IDEA-03.
 
 ## Contrato proposto
 

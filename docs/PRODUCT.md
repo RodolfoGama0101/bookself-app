@@ -48,7 +48,7 @@ Os campos opcionais não impedem cadastro manual nas novas mídias. Busca depend
 
 Ficam para depois: avaliações/comentários novos, reprodução interna, letras, sessões sincronizadas, importação de histórico e playlists externas, recomendações automáticas, leitor de texto bíblico e estatísticas avançadas. Não remover campos pessoais legados por estarem fora do MVP.
 
-Lume foi escolhido como nome exibido em NAME-01, com disponibilidade ainda em verificação em NAME-02. Continuam pendentes os fornecedores e condições de acesso (API-02/03). As regras de especiais, episódios futuros, reassistir e spoilers foram definidas em SERIES-01 para a proposta de séries; sua implementação permanece separada. A navegação foi definida em PROD-02, conforme [mapa v1](NAVIGATION.md); o esquema foi consolidado como [proposta v1 em DATA-01](DATA_MODEL.md), ainda sem contrato ativo completo ou aprovação específica de migração. A aprovação do MVP não autoriza migração, implantação ou publicação.
+Lume foi escolhido como nome exibido em NAME-01, com disponibilidade ainda em verificação em NAME-02. O fornecedor audiovisual e suas condições de acesso permanecem pendentes em API-02; MusicBrainz foi escolhido em API-03 somente para metadados musicais, com implantação/licença separadas. As regras de especiais, episódios futuros, reassistir e spoilers foram definidas em SERIES-01 para a proposta de séries; sua implementação permanece separada. A navegação foi definida em PROD-02, conforme [mapa v1](NAVIGATION.md); o esquema foi consolidado como [proposta v1 em DATA-01](DATA_MODEL.md), ainda sem contrato ativo completo ou aprovação específica de migração. A aprovação do MVP não autoriza migração, implantação ou publicação.
 
 ### Leitor bíblico — BIBLE-03
 

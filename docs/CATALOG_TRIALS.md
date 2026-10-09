@@ -1,6 +1,6 @@
 # Ensaios de catálogo — API-02/03
 
-Revisão em **08/10/2026**. Investigação de desenvolvimento, sem fornecedor novo integrado ao Flutter. API-02/03 permanecem abertas; não há aprovação definitiva de fornecedor, contratação, backend ou distribuição comercial.
+Revisão em **09/10/2026**. Investigação de desenvolvimento, sem fornecedor novo integrado ao Flutter. API-02 permanece aberta. O usuário aprovou MusicBrainz para **metadados da primeira integração musical** em API-03; não houve contratação, backend ou distribuição comercial.
 
 ## Execução reproduzível
 
@@ -70,7 +70,7 @@ Consultas em 08/10/2026 às 18:22 UTC, sem credenciais/dados pessoais. Amostra p
 | Detalhes de álbum | HTTP 503. Ensaio seguinte às 18:23 UTC também teve 503 nas buscas de álbuns. Não atribuir causa ao fornecedor/rede/limite sem evidência adicional. |
 | Capas e web real | Não alcançados após falha nos detalhes. CORS observado nas buscas não valida imagens nem execução no navegador. |
 
-**Recomendação provisória:** MusicBrainz é o candidato mais compatível com catálogo sem conta musical para o MVP, condicionada à validação de detalhes/edições/capas, infraestrutura e condições de uso. A pergunta de preferência musical desta sessão ainda não teve resposta; nenhum fornecedor foi escolhido silenciosamente.
+**Decisão do usuário em 09/10/2026:** “MusicBrainz para metadados (recomendado)”. A escolha cobre busca e referência de gravações, grupos de lançamentos e edições no MVP. **Spotify não foi escolhido** para esta etapa; a decisão não inclui reprodução, login musical, playlists externas, importação de histórico ou direitos de capa.
 
 ### Reensaio público — 09/10/2026
 
@@ -78,4 +78,4 @@ Consultas em 08/10/2026 às 18:22 UTC, sem credenciais/dados pessoais. Amostra p
 
 Os quatro testes locais de falha parcial, redação de erros, arquivo local e redirecionamento de capa passaram. A primeira tentativa da rodada, na rede restrita do sandbox, falhou antes de qualquer resposta externa e não foi confundida com indisponibilidade do MusicBrainz. Esta amostra pequena não estima cobertura nem SLA. A decisão de fornecedor continua dependente de escolha explícita do usuário e de desenho de infraestrutura/uso pretendido.
 
-Para fechar API-03: repetir detalhes/capas quando acessíveis, validar uma edição com faixas e casos incompletos, verificar jornada web e custo/termos do uso pretendido, obter decisão explícita. Spotify não foi ensaiado com credenciais; as restrições documentadas justificam adiar esse acesso, sem alegar cobertura experimental equivalente.
+**Conclusão de API-03 como decisão e verificação:** o ensaio público pequeno cobriu buscas de duas gravações e dois álbuns, identificou versões/edições e campos ausentes, confirmou em uma execução detalhes de grupo, uma edição com faixas e metadados de capa, e observou HTTP 503 parcial. A [API oficial](https://musicbrainz.org/doc/MusicBrainz_API) dispensa chave para leitura pública, exige identificação do aplicativo e no máximo uma chamada por segundo por aplicativo. A [licença oficial](https://musicbrainz.org/doc/About/Data_License) distingue dados centrais CC0 de dados suplementares com condições próprias; o serviço público é gratuito para uso não comercial e requer [acordo/plano](https://metabrainz.org/supporters/account-type) para uso comercial. Capa pertence ao [Cover Art Archive](https://musicbrainz.org/doc/Cover_Art_Archive/API) e exige análise de direitos separada. No web, o cabeçalho CORS observado não resolve identificação por `User-Agent` nem limite global; o adaptador de API-04 deve prever intermediário e fallback manual, com cache/atribuição definidos para os campos usados. O preço aplicável ao projeto e a condição comercial não foram contratados: essa verificação é um gate de implantação, não uma promessa de uso comercial. Spotify foi comparado documentalmente, sem credenciais; não se alega cobertura experimental equivalente.
