@@ -211,11 +211,19 @@ class _MovieLibraryScreenState extends State<MovieLibraryScreen> {
               ),
             ],
           ),
-          if (_busy) const LinearProgressIndicator(),
+          if (_busy)
+            Semantics(
+              liveRegion: true,
+              label: 'Carregando filmes. Aguarde.',
+              child: const LinearProgressIndicator(),
+            ),
           if (_error != null) ...[
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
             TextButton(
               onPressed: _busy
@@ -240,22 +248,28 @@ class _MovieLibraryScreenState extends State<MovieLibraryScreen> {
             ),
           for (final movie in filtered)
             Card(
-              child: ListTile(
-                leading: SizedBox(
-                  width: 44,
-                  height: 66,
-                  child: BookCover(
-                    url: movie.cover,
-                    placeholderBuilder: (_) => const Icon(Icons.movie_outlined),
+              child: MergeSemantics(
+                child: Semantics(
+                  button: true,
+                  child: ListTile(
+                    leading: SizedBox(
+                      width: 44,
+                      height: 66,
+                      child: BookCover(
+                        url: movie.cover,
+                        placeholderBuilder: (_) =>
+                            const Icon(Icons.movie_outlined),
+                      ),
+                    ),
+                    title: Text(movie.title),
+                    subtitle: Text(
+                      '${movie.year?.toString() ?? 'Ano não informado'} · ${movie.statusLabel}'
+                      '${movie.watchedOn == null ? '' : '\n${DateFormat('dd/MM/yyyy').format(DateTime.parse(movie.watchedOn!))}'}',
+                    ),
+                    isThreeLine: movie.watchedOn != null,
+                    onTap: () => _details(movie),
                   ),
                 ),
-                title: Text(movie.title),
-                subtitle: Text(
-                  '${movie.year?.toString() ?? 'Ano não informado'} · ${movie.statusLabel}'
-                  '${movie.watchedOn == null ? '' : '\n${DateFormat('dd/MM/yyyy').format(DateTime.parse(movie.watchedOn!))}'}',
-                ),
-                isThreeLine: movie.watchedOn != null,
-                onTap: () => _details(movie),
               ),
             ),
           if (_next != null) ...[

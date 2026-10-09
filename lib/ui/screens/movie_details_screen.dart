@@ -195,13 +195,23 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
             Text(
               'Incluído em ${DateFormat('dd/MM/yyyy').format(_movie.entry.createdAt.toLocal())}',
             ),
-            if (_busy) const LinearProgressIndicator(),
+            if (_busy)
+              Semantics(
+                liveRegion: true,
+                label: 'Atualizando filme. Aguarde.',
+                child: const LinearProgressIndicator(),
+              ),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ),
               ),
             if (_conflict)

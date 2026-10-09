@@ -12,6 +12,8 @@ import 'package:bookself_app/ui/screens/movie_couple_screen.dart';
 import 'package:bookself_app/ui/screens/movie_details_screen.dart';
 import 'package:bookself_app/ui/screens/movie_library_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'couple_workspace_ui_test.dart' show JointAuth;
@@ -96,11 +98,123 @@ void main() {
   }
 
   Future<void> tap(WidgetTester tester, String label) async {
+    if (find.text(label).evaluate().isEmpty) {
+      await tester.scrollUntilVisible(find.text(label), 160);
+    }
     final target = find.text(label).last;
     await tester.ensureVisible(target);
+    await tester.pumpAndSettle();
     await tester.tap(target);
     await tester.pump();
   }
+
+  testWidgets('filme é anunciado como botão e abre detalhes pelo teclado', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final original = await movie();
+    final paged = PagedMovies(FirestoreMediaLibraryRepository(firestore: db), [
+      original,
+    ]);
+    await show(tester, MovieLibraryScreen(service: paged, onBooks: () {}));
+    await tester.ensureVisible(find.text(original.title));
+    await tester.pumpAndSettle();
+    final card = find.bySemanticsLabel(
+      RegExp('Filme fictício.*', dotAll: true),
+    );
+    expect(
+      tester.getSemantics(card).getSemanticsData().flagsCollection.isButton,
+      isTrue,
+    );
+    var duplicateButtons = 0;
+    void inspect(SemanticsNode node) {
+      node.visitChildren((child) {
+        if (!child.isMergedIntoParent &&
+            child.getSemanticsData().flagsCollection.isButton) {
+          duplicateButtons++;
+        }
+        inspect(child);
+        return true;
+      });
+    }
+
+    inspect(tester.getSemantics(card));
+    expect(duplicateButtons, 0, reason: 'O cartão deve expor uma única ação.');
+    // Percorre a ordem real de Tab, sem chamar o callback de abertura.
+    var focused = false;
+    for (var i = 0; i < 20; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      if (tester
+              .getSemantics(card)
+              .getSemanticsData()
+              .flagsCollection
+              .isFocused
+              .toBoolOrNull() ==
+          true) {
+        focused = true;
+        break;
+      }
+    }
+    expect(focused, isTrue);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(find.text('Detalhes do filme'), findsOneWidget);
+    semantics.dispose();
+  });
+
+  testWidgets('lista anuncia seleção e gravação com tela pequena e texto 2×', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final shared = MovieJointService();
+    await show(
+      tester,
+      MovieCoupleScreen(
+        movie: await movie(),
+        relation: 'relation',
+        experience: false,
+        service: shared,
+      ),
+      large: true,
+    );
+    await tap(tester, 'Nossa lista');
+    final list = find.bySemanticsLabel('Nossa lista');
+    final data = tester.getSemantics(list).getSemanticsData();
+    expect(data.flagsCollection.isButton, isTrue);
+    expect(data.flagsCollection.isSelected.toBoolOrNull(), isTrue);
+    await tester.ensureVisible(find.byType(CheckboxListTile));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(CheckboxListTile));
+    await tester.pump();
+    await tap(tester, 'Adicionar à lista');
+    await tester.ensureVisible(
+      find.text('Adicionando filme à lista do casal. Aguarde.'),
+    );
+    await tester.pump();
+    expect(
+      tester
+          .getSemantics(
+            find.bySemanticsLabel(
+              'Adicionando filme à lista do casal. Aguarde.',
+            ),
+          )
+          .getSemanticsData()
+          .flagsCollection
+          .isLiveRegion,
+      isTrue,
+    );
+    expect(tester.takeException(), isNull);
+    auth.change();
+    shared.gate.complete();
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    semantics.dispose();
+  });
 
   testWidgets(
     'manual valida título e aguarda commit; falha permite retry do mesmo ID',

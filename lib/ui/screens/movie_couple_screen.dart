@@ -143,8 +143,11 @@ class _MovieCoupleScreenState extends State<MovieCoupleScreen> {
               stream: _lists,
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return const Text(
-                    'Não foi possível carregar as listas. Volte e tente novamente.',
+                  return Semantics(
+                    liveRegion: true,
+                    child: const Text(
+                      'Não foi possível carregar as listas. Volte e tente novamente.',
+                    ),
                   );
                 }
                 if (!snapshot.hasData) return const LinearProgressIndicator();
@@ -157,15 +160,23 @@ class _MovieCoupleScreenState extends State<MovieCoupleScreen> {
                 return Column(
                   children: [
                     for (final list in lists)
-                      ListTile(
-                        title: Text(list.data['title'] as String),
-                        selected: _list == list.id,
-                        leading: Icon(
-                          _list == list.id ? Icons.check_circle : Icons.list,
+                      MergeSemantics(
+                        child: Semantics(
+                          button: true,
+                          selected: _list == list.id,
+                          child: ListTile(
+                            title: Text(list.data['title'] as String),
+                            selected: _list == list.id,
+                            leading: Icon(
+                              _list == list.id
+                                  ? Icons.check_circle
+                                  : Icons.list,
+                            ),
+                            onTap: locked
+                                ? null
+                                : () => setState(() => _list = list.id),
+                          ),
                         ),
-                        onTap: locked
-                            ? null
-                            : () => setState(() => _list = list.id),
                       ),
                   ],
                 );
@@ -182,9 +193,12 @@ class _MovieCoupleScreenState extends State<MovieCoupleScreen> {
             controlAffinity: ListTileControlAffinity.leading,
           ),
           if (_error != null)
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           FilledButton(
             onPressed:
@@ -203,6 +217,15 @@ class _MovieCoupleScreenState extends State<MovieCoupleScreen> {
                   : 'Adicionar à lista',
             ),
           ),
+          if (_busy)
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                widget.experience
+                    ? 'Propondo sessão do casal. Aguarde.'
+                    : 'Adicionando filme à lista do casal. Aguarde.',
+              ),
+            ),
         ],
       ),
     );

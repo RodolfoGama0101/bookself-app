@@ -40,3 +40,24 @@ Modelo de registro:
 A árvore semântica web e testes Flutter não demonstram funcionamento de NVDA, VoiceOver ou TalkBack. Inspeção automática do canvas não certifica todas as combinações de contraste/foco. A validação exploratória pelo agente não substitui feedback de pessoas usuárias em PROD-03, nem reprodução independente por outra pessoa em DOC-03. UI-03 permanece em andamento até a matriz de leitor de tela/teclado dos fluxos principais ficar completa.
 
 API-05 teve capa externa web ensaiada; fontes reais sem rede são evidência de teste Flutter. Execução offline completa do navegador e dispositivos Android/iOS continua pendente. Ver [jornada observada](WEB_VALIDATION.md) e [integrações](INTEGRATIONS.md).
+
+## Filmes — UI-03 — 09/10/2026
+
+Cartões de filmes e destinos de lista têm papel de botão; a lista anuncia seleção
+explicitamente. Espera e falha de biblioteca/detalhes/escolha conjunta usam regiões
+semânticas de anúncio. O envio conjunto mantém aviso com o nome da operação enquanto
+aguarda a escrita. Sem mudança de autorização, consentimento ou estado pessoal.
+
+Sete testes de widgets de filmes passaram, incluindo duas regressões novas:
+Tab percorre o foco real e Enter abre os detalhes; lista selecionada/espera são
+verificadas na árvore semântica em 320 × 640 e texto 2×, com ações alcançadas por
+rolagem. Os testes anteriores preservam falha/retry, conflito, troca de conta e
+filtros. Isso valida a árvore e o teclado simulado Flutter, não demonstra uso com
+NVDA/TalkBack/VoiceOver. UI-03 continua aberta pela matriz humana/nativa pendente.
+
+Na inspeção FlutterFire web demo desta entrega, a árvore do cartão revelou dois
+botões aninhados com o mesmo nome. MergeSemantics agora reúne cartão/lista em uma
+única ação; regressão exige ausência de botão descendente duplicado, mantendo foco
+por Tab/Enter e seleção. Cadastro manual e mudança para Assistido foram executados
+no navegador integrado com conta fictícia. Agent-browser foi tentado, mas o Chrome
+foi bloqueado pelo Controle de Aplicativo Windows; usado navegador integrado.
