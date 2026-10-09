@@ -81,6 +81,7 @@ class PersonalExportService {
       'bible_progress': 'userId',
       'libraries/$owner/catalog': null,
       'libraries/$owner/entries': null,
+      'libraries/$owner/listens': null,
     }.entries) {
       _checkOwner(owner);
       final rows = await _read(

@@ -335,6 +335,13 @@ class _MusicAddScreenState extends State<MusicAddScreen> {
               ),
               Text((_selected!.metadata.toMap()['artists'] as List).join(', ')),
               Text('Referência: ${_selected!.identity.provider}'),
+              if (_selected!.metadata.toMap()['version'] != null ||
+                  _selected!.metadata.toMap()['edition'] != null)
+                Text(
+                  (_selected!.metadata.toMap()['version'] ??
+                          _selected!.metadata.toMap()['edition'])
+                      as String,
+                ),
               TextButton(
                 onPressed: locked
                     ? null

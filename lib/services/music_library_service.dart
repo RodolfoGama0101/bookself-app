@@ -81,5 +81,14 @@ class MusicLibraryService {
 
   Future<int> count(String owner, MediaType type) =>
       queries.countMedia(owner, type: type);
+  Future<MusicRecord> favorite(MusicRecord music, bool value) async => _record(
+    await repository.updatePersonal(
+      music.entry.ownerId,
+      music.entry.id,
+      expectedRevision: music.entry.revision,
+      state: null,
+      favorite: value,
+    ),
+  );
   void close() => catalog.close();
 }

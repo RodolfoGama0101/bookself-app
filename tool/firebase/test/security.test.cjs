@@ -1279,3 +1279,51 @@ test('DATA-06/BOOK-02: metadados, ocultação e término não alteram histórico
   await assertFails(getDoc(doc(db('b'),'books',id,'activity',old.activityEventId)));
   assert.deepEqual((await getDoc(doc(database,'books',id))).data().latestActivityAt,old.latestActivityAt);
 });
+
+const listenData = (entryId='music', listenedOn='2020-02-29') => ({schemaVersion:1,ownerId:'a',entryId,listenedOn,createdAt:serverTimestamp(),updatedAt:serverTimestamp(),revision:1});
+test('MUSIC-02: escutas são privadas e imutáveis, inclusive após término', async () => {
+  const rid=await jointRelation();
+  await mediaBatch(db('a'),'a','music','music','track').commit();
+  const own=doc(db('a'),'libraries/a/listens/listen');
+  await assertSucceeds(setDoc(own,listenData()));
+  await assertSucceeds(getDoc(own));
+  for(const uid of ['b','c']) {
+    await assertFails(getDoc(doc(db(uid),'libraries/a/listens/listen')));
+    await assertFails(getDocs(collection(db(uid),'libraries/a/listens')));
+    await assertFails(setDoc(doc(db(uid),'libraries/a/listens/forged'),listenData()));
+  }
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),'libraries/a/listens/listen')));
+  await assertFails(updateDoc(own,{listenedOn:'2020-03-01'}));
+  await assertFails(deleteDoc(own));
+  await pair(db('a'),'a','b',false);
+  await assertSucceeds(getDoc(own));
+  await assertFails(getDoc(doc(db('b'),'libraries/a/listens/listen')));
+});
+test('MUSIC-02: data civil, referência e campos adulterados são recusados', async () => {
+  await mediaBatch(db('a'),'a','music','music','album').commit();
+  await mediaBatch(db('a'),'a','movie','movie','movie').commit();
+  let i=0;
+  for(const change of [
+    {listenedOn:'2020-02-31'}, {listenedOn:'2021-02-29'}, {listenedOn:'9999-01-01'},
+    {listenedOn:'0000-01-01'}, {listenedOn:null}, {entryId:'missing'}, {entryId:'movie'},
+    {ownerId:'b'}, {revision:2}, {schemaVersion:2}, {favorite:true}, {createdAt:stamp},
+  ]) await assertFails(setDoc(doc(db('a'),'libraries/a/listens/bad'+i++),{...listenData(),...change}));
+});
+test('MUSIC-02: retry concorrente gera uma escuta, nova intenção repete a data', async () => {
+  await mediaBatch(db('a'),'a','music','music','album').commit();
+  const database=db('a'), ref=doc(database,'libraries/a/listens/same');
+  const save=()=>runTransaction(database,async tx=>{if(!(await tx.get(ref)).exists())tx.set(ref,listenData());});
+  await Promise.all([save(),save()]);
+  await assertSucceeds(setDoc(doc(db('a'),'libraries/a/listens/other'),listenData()));
+  const rows=await getDocs(query(collection(db('a'),'libraries/a/listens'),where('entryId','==','music'),orderBy('createdAt','desc'),orderBy(documentId(),'desc'),limit(21)));
+  assert.equal(rows.size,2);
+  assert.equal((await getDoc(doc(db('a'),'libraries/a/entries/music'))).data().revision,1);
+});
+test('MUSIC-02: disputa de favorito não sobrescreve outra sessão nem cria escutas', async () => {
+  await mediaBatch(db('a'),'a','music','music','track').commit();
+  const own=doc(db('a'),'libraries/a/entries/music');
+  const results=await Promise.allSettled([1,2].map(()=>updateDoc(own,{favorite:true,revision:2,updatedAt:serverTimestamp()})));
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  assert.equal((await getDocs(collection(db('a'),'libraries/a/listens'))).size,0);
+  await assertFails(updateDoc(doc(db('b'),'libraries/a/entries/music'),{favorite:false,revision:3,updatedAt:serverTimestamp()}));
+});

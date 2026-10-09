@@ -92,7 +92,7 @@ class _PersonalExportScreenState extends State<PersonalExportScreen> {
         padding: const EdgeInsets.all(24),
         children: [
           const Text(
-            'Gere uma cópia pessoal em JSON do perfil, livros, progresso bíblico e biblioteca de filmes. Ela pode conter seu e-mail e foto. Guarde em local privado.',
+            'Gere uma cópia pessoal em JSON do perfil, livros, progresso bíblico e bibliotecas de filmes/música e escutas pessoais. Ela pode conter seu e-mail e foto. Guarde em local privado.',
           ),
           const SizedBox(height: 16),
           const Text(

@@ -152,3 +152,11 @@ Essa validação consolida DATA-01 como especificação proposta; não comprova 
 ## Contrato incremental dos livros atuais — DATA-06
 
 A coleção `books` acrescenta criação/atualização confirmadas e eventos privados de inclusão/status, preservando IDs e datas legadas. Esse contrato não substitui `LibraryEntry` nem migra os livros para o modelo v1. O feed atual usa somente a última atividade explícita por livro; novas categorias e experiências continuam pendentes. [Campos, datas desconhecidas, deduplicação e limites](BOOK_LIBRARY.md).
+
+## Escutas locais — MUSIC-02 — 09/10/2026
+
+O subconjunto libraries/{owner}/listens/{id} está implementado como registro
+imutável revision=1, com entrada musical própria e timestamps do servidor.
+Retry conserva o ID; novas intenções podem repetir a data. Favorito continua na
+entrada e não gera escuta. [Contrato e paginação](MUSIC.md#favoritos-e-escutas--music-02).
+Nenhum compartilhamento de favorito/escuta, migração ou deploy foi executado.

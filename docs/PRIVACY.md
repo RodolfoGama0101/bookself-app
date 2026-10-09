@@ -8,7 +8,7 @@ legal nem autorização para excluir dados ou alterar produção.
 
 Perfil → Cópia dos meus dados gera JSON somente após leituras confirmadas do
 servidor. Inclui o próprio perfil (UID, nome, e-mail, foto e criação), livros,
-progresso bíblico, catálogo e entradas privadas multimídia existentes. Campos de
+progresso bíblico, catálogo, entradas privadas multimídia e escutas musicais próprias existentes. Campos de
 vínculo/códigos de convite do perfil não são incluídos. Não consulta biblioteca
 alheia, projeções compartilhadas, convites, bloqueios, contatos, atividade dos
 livros, listas, experiências ou índices internos. Categorias futuras não passam

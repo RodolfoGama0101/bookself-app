@@ -630,6 +630,30 @@ service cloud.firestore {
         && request.resource.data.revision == resource.data.revision + 1;
     }
     // Relações consentidas reutilizam o convite aceito imutável. Não migra legado.
+    // Escutas pessoais imutáveis; parceiro e terceiros nunca recebem projeção.
+    function validListenDate(value) {
+      let parts = value.split('-');
+      let year = int(parts[0]);
+      let month = int(parts[1]);
+      let day = int(parts[2]);
+      let date = timestamp.date(year, month, day);
+      return year >= 1 && date.year() == year && date.month() == month
+        && date.day() == day && date <= request.time.date();
+    }
+    match /libraries/{owner}/listens/{id} {
+      allow read: if isOwner(owner);
+      allow create: if isOwner(owner)
+        && request.resource.data.keys().hasAll(['schemaVersion','ownerId','entryId','listenedOn','createdAt','updatedAt','revision'])
+        && request.resource.data.keys().hasOnly(['schemaVersion','ownerId','entryId','listenedOn','createdAt','updatedAt','revision'])
+        && request.resource.data.schemaVersion == 1 && request.resource.data.ownerId == owner
+        && request.resource.data.entryId is string
+        && get(/databases/$(database)/documents/libraries/$(owner)/entries/$(request.resource.data.entryId)).data.mediaType in ['track','album']
+        && request.resource.data.listenedOn is string && mediaDate(request.resource.data.listenedOn)
+        && validListenDate(request.resource.data.listenedOn)
+        && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time
+        && request.resource.data.revision == 1;
+      allow update, delete: if false;
+    }
     function jointMember(rid) {
       let invitation = get(invitePath(rid)).data;
       return signedIn() && invitation.status == 'accepted'

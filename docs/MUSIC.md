@@ -38,3 +38,26 @@ pessoal continuam separados, sem alterações em books/bible_progress.
 
 Testes de serviço cobrem retry, isolamento de identidade e espera por confirmação;
 widget verifica artistas obrigatórios, detalhes e layout 320 px com texto 2×.
+
+## Favoritos e escutas — MUSIC-02
+
+Favoritar usa revisão otimista; conflito exige Recarregar seleção antes de outra
+intenção. O filtro Favoritos considera somente páginas carregadas e não muda
+a contagem total do tipo. Estado musical permanece null, sem concluído/assistido.
+Escutas exigem data civil escolhida até hoje. Cada nova intenção gera um ID opaco;
+retry conserva ID e data, e uma segunda escuta deliberada pode ter a mesma data.
+
+Escutas imutáveis ficam em libraries/{owner}/listens/{id}, com schemaVersion=1,
+ownerId, entryId, listenedOn, createdAt/updatedAt do servidor e revision=1.
+As regras exigem entrada própria track/album, calendário válido e data até o dia
+UTC do servidor; o seletor também limita ao dia local. Em fusos adiantados, a
+virada local pode exigir aguardar a virada UTC para registrar o novo dia.
+Não há edição/exclusão de escuta nesta entrega. Paginação de 20 + um marcador
+usa createdAt e ID, escopo por dono/entrada, apenas resultados confirmados.
+O índice correspondente está versionado, sem implantação. Atualizar minhas escutas
+relê a primeira página; Carregar mais amplia o histórico.
+
+Favoritos/escutas nunca são projetados ao parceiro. Término preserva os dados
+pessoais; ouvir álbum não cadastra nem marca faixas. Cópia pessoal JSON inclui
+escutas. Serviço/testes de regras cobrem data inválida/futura, terceiros,
+concorrência, retry e preservação após término.

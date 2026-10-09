@@ -1,3 +1,4 @@
+import 'package:bookself_app/services/music_listen_service.dart';
 import 'package:bookself_app/data/models/media_model.dart';
 import 'package:bookself_app/services/library_query_service.dart';
 import 'package:bookself_app/services/personal_export_service.dart';
@@ -255,6 +256,47 @@ Map<String, dynamic> entry(String type) => {
   'legacyRef': null,
 };
 void main() {
+  test('escutas percorrem páginas e isolam cursor/dono/cache', () async {
+    final db = _Database();
+    db.rows['libraries/a/listens'] = [
+      for (var i = 0; i < 45; i++)
+        _Document('listen-${i.toString().padLeft(2, '0')}', {
+          'schemaVersion': 1,
+          'ownerId': 'a',
+          'entryId': 'track',
+          'revision': 1,
+          'listenedOn': '2020-01-01',
+          'createdAt': Timestamp(100, 123),
+        }),
+      _Document('other', {'entryId': 'other'}),
+    ];
+    final service = MusicListenService(firestore: db);
+    final first = await service.page('a', 'track');
+    final second = await service.page('a', 'track', after: first.next);
+    final third = await service.page('a', 'track', after: second.next);
+    expect(
+      [first.items.length, second.items.length, third.items.length],
+      [20, 20, 5],
+    );
+    expect({
+      ...first.items.map((r) => r.id),
+      ...second.items.map((r) => r.id),
+      ...third.items.map((r) => r.id),
+    }, hasLength(45));
+    expect(third.next, null);
+    expect(db.lastLimit, 21);
+    expect(db.lastSource, Source.server);
+    await expectLater(
+      service.page('b', 'track', after: first.next),
+      throwsFormatException,
+    );
+    await expectLater(
+      service.page('a', 'other', after: first.next),
+      throwsFormatException,
+    );
+    db.cache = true;
+    await expectLater(service.page('a', 'track'), throwsStateError);
+  });
   test(
     'exportação lê mais de 100 registros com cursor e somente do servidor',
     () async {
@@ -276,7 +318,7 @@ void main() {
       expect(rows.containsKey('foreign'), false);
       expect(database.lastSource, Source.server);
       expect(database.lastLimit, 100);
-      expect(database.reads, 6);
+      expect(database.reads, 7);
     },
   );
   test(

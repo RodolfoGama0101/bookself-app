@@ -1,5 +1,6 @@
 {
   "indexes": [
+    {"collectionGroup":"listens","queryScope":"COLLECTION","fields":[{"fieldPath":"entryId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}]},
     {"collectionGroup":"entries","queryScope":"COLLECTION","fields":[{"fieldPath":"mediaType","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}]},
     {"collectionGroup":"entries","queryScope":"COLLECTION","fields":[{"fieldPath":"mediaType","order":"ASCENDING"},{"fieldPath":"state.status","order":"ASCENDING"}]},
     {"collectionGroup":"books","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"addedAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}]},

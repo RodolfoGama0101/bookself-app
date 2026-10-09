@@ -52,6 +52,7 @@ void main() {
         'bible_progress',
         'libraries/a/catalog',
         'libraries/a/entries',
+        'libraries/a/listens',
       ]);
       expect(result['collections']['users/a']['a'], {
         'uid': 'a',

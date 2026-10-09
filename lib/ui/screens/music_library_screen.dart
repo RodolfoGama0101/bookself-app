@@ -32,6 +32,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   final _rows = <MusicRecord>[];
   String? _owner, _error;
   MediaType _type = MediaType.track;
+  bool _favorites = false;
   LibraryCursor? _next;
   int? _total;
   bool _busy = false;
@@ -149,9 +150,11 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   Widget build(BuildContext context) {
     final filtered = _rows
         .where(
-          (music) => '${music.title} ${music.artists}'.toLowerCase().contains(
-            _filter.text.trim().toLowerCase(),
-          ),
+          (music) =>
+              (!_favorites || music.entry.favorite) &&
+              '${music.title} ${music.artists}'.toLowerCase().contains(
+                _filter.text.trim().toLowerCase(),
+              ),
         )
         .toList();
     return Scaffold(
@@ -179,6 +182,11 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
+              FilterChip(
+                label: const Text('Favoritos'),
+                selected: _favorites,
+                onSelected: (value) => setState(() => _favorites = value),
+              ),
               for (final type in [MediaType.track, MediaType.album])
                 ChoiceChip(
                   label: Text(type == MediaType.track ? 'Faixas' : 'Álbuns'),
@@ -261,6 +269,9 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                       ),
                     ),
                     title: Text(music.title),
+                    trailing: music.entry.favorite
+                        ? const Icon(Icons.favorite, semanticLabel: 'Favorito')
+                        : null,
                     subtitle: Text(
                       '${music.artists} · ${music.typeLabel}${music.version == null ? '' : ' · ${music.version}'}',
                     ),
