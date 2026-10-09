@@ -430,20 +430,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Positioned(
                         bottom: 0,
                         right: 0,
-                        child: GestureDetector(
-                          onTap: () => _showAvatarSelectionSheet(
+                        child: IconButton.filled(
+                          tooltip: 'Alterar foto de perfil',
+                          onPressed: () => _showAvatarSelectionSheet(
                             context,
                             user.uid,
                             user.photoUrl != null && user.photoUrl!.isNotEmpty,
                           ),
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: theme.primaryColor,
-                            child: Icon(
-                              Icons.camera_alt_rounded,
-                              size: 16,
-                              color: theme.colorScheme.onPrimary,
-                            ),
+                          icon: Icon(
+                            Icons.camera_alt_rounded,
+                            size: 20,
+                            color: theme.colorScheme.onPrimary,
                           ),
                         ),
                       ),
@@ -462,15 +459,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: Text(
                                 user.name,
                                 style: theme.textTheme.titleLarge,
-                                maxLines: 1,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 6),
                             IconButton(
                               icon: const Icon(Icons.edit_outlined, size: 18),
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.all(4),
                               tooltip: 'Editar Nome',
                               onPressed: () => _showEditNameDialog(
                                 context,

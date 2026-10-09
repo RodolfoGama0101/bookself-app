@@ -15,7 +15,7 @@ class AppTheme {
   static const darkTextPrimary = sand;
   static const darkTextSecondary = Color(0xFFBAC6B3);
   static const lightBg = sand;
-  static const lightCard = Color(0xFFDED2BD);
+  static const lightCard = Color(0xFFEDE3D1);
   // Variante do musgo para texto/controles com contraste em superfícies claras.
   static const lightPrimary = Color(0xFF465227);
   static const lightAccent = Color(0xFF80563D);
@@ -36,7 +36,9 @@ class AppTheme {
         .copyWith(
           primary: primary,
           onPrimary: dark ? darkBg : sand,
-          primaryContainer: dark ? darkCard : sage,
+          primaryContainer: dark
+              ? const Color(0xFF3A4636)
+              : const Color(0xFFD3D9BF),
           onPrimaryContainer: text,
           secondary: dark ? darkAccent : lightAccent,
           onSecondary: dark ? darkBg : sand,
@@ -46,7 +48,7 @@ class AppTheme {
           onSurface: text,
           onSurfaceVariant: muted,
           surfaceContainerLowest: bg,
-          surfaceContainerLow: card,
+          surfaceContainerLow: dark ? darkBgSecondary : const Color(0xFFE2D6C0),
           surfaceContainer: card,
           surfaceContainerHigh: dark
               ? const Color(0xFF3A4636)
@@ -84,7 +86,7 @@ class AppTheme {
       titleMedium: type(18, FontWeight.w600),
       titleSmall: type(15, FontWeight.w600),
       bodyLarge: type(16, FontWeight.w400),
-      bodyMedium: type(14, FontWeight.w400, color: muted),
+      bodyMedium: type(14, FontWeight.w400),
       bodySmall: type(12, FontWeight.w400, color: muted),
       labelLarge: type(14, FontWeight.w600),
       labelMedium: type(12, FontWeight.w600),
@@ -103,11 +105,19 @@ class AppTheme {
       textTheme: textTheme,
       iconTheme: IconThemeData(color: primary),
       dividerColor: scheme.outlineVariant,
+      listTileTheme: ListTileThemeData(
+        iconColor: primary,
+        textColor: text,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        minVerticalPadding: 12,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+      dividerTheme: DividerThemeData(color: scheme.outlineVariant, space: 32),
       cardTheme: CardThemeData(
         color: card,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        margin: const EdgeInsets.symmetric(vertical: 8),
         shape: shape.copyWith(
           side: BorderSide(color: scheme.outlineVariant.withValues(alpha: .5)),
         ),
@@ -120,7 +130,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleSpacing: 24,
-        toolbarHeight: 72,
+        toolbarHeight: 64,
         titleTextStyle: textTheme.titleLarge,
         iconTheme: IconThemeData(color: primary),
       ),
@@ -186,6 +196,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: primary,
           minimumSize: const Size(48, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           side: BorderSide(color: scheme.outline),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -239,6 +250,7 @@ class AppTheme {
         backgroundColor: card,
         surfaceTintColor: Colors.transparent,
         shape: shape,
+        actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: card,
@@ -249,10 +261,12 @@ class AppTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: card,
-        side: BorderSide.none,
-        shape: shape,
-        labelStyle: textTheme.labelMedium,
+        backgroundColor: scheme.surfaceContainerLow,
+        selectedColor: scheme.primaryContainer,
+        side: BorderSide(color: scheme.outlineVariant),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        labelStyle: textTheme.labelLarge,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: primary,

@@ -8,6 +8,7 @@ import '../../services/library_query_service.dart';
 import '../../utils/error_handler.dart';
 import '../widgets/book_cover.dart';
 import '../widgets/content_state.dart';
+import '../widgets/design_components.dart';
 import 'movie_add_screen.dart';
 import 'movie_details_screen.dart';
 
@@ -161,25 +162,10 @@ class _MovieLibraryScreenState extends State<MovieLibraryScreen> {
         key: const PageStorageKey('movie-library'),
         padding: const EdgeInsets.all(16),
         children: [
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            children: [
-              ActionChip(
-                label: const Text('Livros'),
-                avatar: const Icon(Icons.library_books_outlined),
-                onPressed: widget.onBooks,
-              ),
-              const Chip(
-                label: Text('Filmes'),
-                avatar: Icon(Icons.movie_outlined),
-              ),
-              if (widget.onBible != null)
-                ActionChip(
-                  label: const Text('Acompanhar Bíblia'),
-                  onPressed: widget.onBible,
-                ),
-            ],
+          LibraryDestinations(
+            moviesSelected: true,
+            onBooks: widget.onBooks,
+            onBible: widget.onBible,
           ),
           const SizedBox(height: 16),
           TextField(

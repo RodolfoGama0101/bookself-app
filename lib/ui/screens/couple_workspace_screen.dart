@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../widgets/reading_surface.dart';
+import '../widgets/design_components.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/couple_record.dart';
 import '../../data/models/media_model.dart';
@@ -359,315 +361,325 @@ class _CoupleWorkspaceScreenState extends State<CoupleWorkspaceScreen> {
         relation != null &&
         relation == user.relationshipId &&
         user.partnerUid != null;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Listas e experiências'),
-        actions: [
-          IconButton(
-            tooltip: 'Atualizar',
-            icon: const Icon(Icons.refresh),
-            onPressed: _busy
-                ? null
-                : () => setState(() {
-                    _history = _service.history(user.uid);
-                    if (relation != null) _select(relation);
-                  }),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_error != null)
-              Text(
-                _error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            if (_busy) const LinearProgressIndicator(),
-            StreamBuilder<List<Map<String, dynamic>>>(
-              stream: _history,
-              key: ValueKey(_history),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Text(
-                    'Histórico indisponível. Tente atualizar com conexão.',
-                  );
-                }
-                final ids = {
-                  if (user.relationshipId != null) user.relationshipId!,
-                  ...?snapshot.data?.map((r) => r['id'] as String),
-                };
-                return Wrap(
-                  spacing: 8,
-                  children: [
-                    for (final id in ids)
-                      ChoiceChip(
-                        label: Text(
-                          id == user.relationshipId
-                              ? 'Vínculo atual'
-                              : 'Histórico ${ids.toList().indexOf(id) + 1}',
-                        ),
-                        selected: relation == id,
-                        onSelected: _busy
-                            ? null
-                            : (_) => setState(() => _select(id)),
-                      ),
-                  ],
-                );
-              },
+    return ReadingPage(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Listas e experiências'),
+          actions: [
+            IconButton(
+              tooltip: 'Atualizar',
+              icon: const Icon(Icons.refresh),
+              onPressed: _busy
+                  ? null
+                  : () => setState(() {
+                      _history = _service.history(user.uid);
+                      if (relation != null) _select(relation);
+                    }),
             ),
-            if (_retryAction != null)
-              TextButton(
-                onPressed: _busy ? null : () => _run(_retryAction!),
-                child: const Text('Repetir alteração'),
-              ),
-            if (relation == null)
-              const Text(
-                'Um convite aceito habilita listas e experiências. Seus vínculos anteriores com conteúdo conjunto aparecem aqui.',
-              ),
-            if (!active)
-              const Text(
-                'Interesses em comum ficam disponíveis na lista do vínculo atual. Sem parceiro, sua biblioteca continua individual; o histórico não sugere novas escolhas.',
-              ),
-            if (relation != null)
-              FutureBuilder<Map<String, dynamic>>(
-                future: _relationship,
-                key: ValueKey(_relationship),
-                builder: (context, snapshot) => snapshot.hasData
-                    ? Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Text(
-                          '${snapshot.data!['senderName']} e ${snapshot.data!['recipientName']} · ${active ? "vínculo atual" : "histórico: somente leitura e retirada da própria confirmação"}',
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: AppSpace.page(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_error != null)
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              if (_busy) const LinearProgressIndicator(),
+              StreamBuilder<List<Map<String, dynamic>>>(
+                stream: _history,
+                key: ValueKey(_history),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const Text(
+                      'Histórico indisponível. Tente atualizar com conexão.',
+                    );
+                  }
+                  final ids = {
+                    if (user.relationshipId != null) user.relationshipId!,
+                    ...?snapshot.data?.map((r) => r['id'] as String),
+                  };
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 12,
+                    children: [
+                      for (final id in ids)
+                        ChoiceChip(
+                          label: Text(
+                            id == user.relationshipId
+                                ? 'Vínculo atual'
+                                : 'Histórico ${ids.toList().indexOf(id) + 1}',
+                          ),
+                          selected: relation == id,
+                          onSelected: _busy
+                              ? null
+                              : (_) => setState(() => _select(id)),
                         ),
-                      )
-                    : const SizedBox.shrink(),
+                    ],
+                  );
+                },
               ),
-            if (relation != null) ...[
-              Text(
-                'Listas do casal',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              if (active)
+              if (_retryAction != null)
+                TextButton(
+                  onPressed: _busy ? null : () => _run(_retryAction!),
+                  child: const Text('Repetir alteração'),
+                ),
+              if (relation == null)
                 const Text(
-                  'Abra uma lista para consultar os interesses em comum.',
+                  'Um convite aceito habilita listas e experiências. Seus vínculos anteriores com conteúdo conjunto aparecem aqui.',
                 ),
-              if (active)
-                TextButton.icon(
-                  onPressed: _busy
-                      ? null
-                      : () => _createList(user.uid, relation),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Nova lista'),
+              if (!active)
+                const Text(
+                  'Interesses em comum ficam disponíveis na lista do vínculo atual. Sem parceiro, sua biblioteca continua individual; o histórico não sugere novas escolhas.',
                 ),
-              _records(
-                _lists,
-                (rows) => Column(
-                  children: [
-                    if (rows.isEmpty) const Text('Nenhuma lista criada.'),
-                    for (final row in rows)
-                      ListTile(
-                        title: Text(row.data['title']),
-                        subtitle: Text(
-                          row.author == user.uid
-                              ? 'Criada por você'
-                              : 'Criada pelo parceiro',
-                        ),
-                        selected: _list == row.id,
-                        onTap: () => setState(() {
-                          _list = row.id;
-                          _items = _service.records(
-                            relation,
-                            'items',
-                            listId: row.id,
-                          );
-                        }),
-                      ),
-                  ],
+              if (relation != null)
+                FutureBuilder<Map<String, dynamic>>(
+                  future: _relationship,
+                  key: ValueKey(_relationship),
+                  builder: (context, snapshot) => snapshot.hasData
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Text(
+                            '${snapshot.data!['senderName']} e ${snapshot.data!['recipientName']} · ${active ? "vínculo atual" : "histórico: somente leitura e retirada da própria confirmação"}',
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
-              ),
-              if (_list != null) ...[
+              if (relation != null) ...[
+                Text(
+                  'Listas do casal',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                if (active)
+                  const Text(
+                    'Abra uma lista para consultar os interesses em comum.',
+                  ),
                 if (active)
                   TextButton.icon(
                     onPressed: _busy
                         ? null
-                        : () => _selection(user.uid, relation, listId: _list),
+                        : () => _createList(user.uid, relation),
                     icon: const Icon(Icons.add),
-                    label: const Text('Adicionar seleção à lista'),
+                    label: const Text('Nova lista'),
                   ),
                 _records(
-                  _items,
+                  _lists,
                   (rows) => Column(
                     children: [
-                      if (active)
-                        CoupleInterests(
-                          key: ValueKey('$scope/$relation/$_list'),
-                          rows: rows,
-                          uid: user.uid,
-                          partnerUid: user.partnerUid!,
-                        ),
-                      if (rows.where((r) => r.data['removed'] != true).isEmpty)
-                        const Text('Lista vazia.'),
-                      for (final row in rows.where(
-                        (r) => r.data['removed'] != true,
-                      ))
+                      if (rows.isEmpty) const Text('Nenhuma lista criada.'),
+                      for (final row in rows)
                         ListTile(
-                          title: Text(row.selection.title),
+                          title: Text(row.data['title']),
                           subtitle: Text(
-                            '${_labels[row.selection.type]} · ${row.selection.subtitle}\nIncluída ${row.author == user.uid ? "por você" : "pelo parceiro"}',
+                            row.author == user.uid
+                                ? 'Criada por você'
+                                : 'Criada pelo parceiro',
                           ),
-                          trailing: active
-                              ? IconButton(
-                                  tooltip: 'Retirar seleção',
-                                  onPressed: _busy
-                                      ? null
-                                      : () => _run(
-                                          () => _service.removeItem(
-                                            user.uid,
-                                            relation,
-                                            _list!,
-                                            row,
+                          selected: _list == row.id,
+                          onTap: () => setState(() {
+                            _list = row.id;
+                            _items = _service.records(
+                              relation,
+                              'items',
+                              listId: row.id,
+                            );
+                          }),
+                        ),
+                    ],
+                  ),
+                ),
+                if (_list != null) ...[
+                  if (active)
+                    TextButton.icon(
+                      onPressed: _busy
+                          ? null
+                          : () => _selection(user.uid, relation, listId: _list),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Adicionar seleção à lista'),
+                    ),
+                  _records(
+                    _items,
+                    (rows) => Column(
+                      children: [
+                        if (active)
+                          CoupleInterests(
+                            key: ValueKey('$scope/$relation/$_list'),
+                            rows: rows,
+                            uid: user.uid,
+                            partnerUid: user.partnerUid!,
+                          ),
+                        if (rows
+                            .where((r) => r.data['removed'] != true)
+                            .isEmpty)
+                          const Text('Lista vazia.'),
+                        for (final row in rows.where(
+                          (r) => r.data['removed'] != true,
+                        ))
+                          ListTile(
+                            title: Text(row.selection.title),
+                            subtitle: Text(
+                              '${_labels[row.selection.type]} · ${row.selection.subtitle}\nIncluída ${row.author == user.uid ? "por você" : "pelo parceiro"}',
+                            ),
+                            trailing: active
+                                ? IconButton(
+                                    tooltip: 'Retirar seleção',
+                                    onPressed: _busy
+                                        ? null
+                                        : () => _run(
+                                            () => _service.removeItem(
+                                              user.uid,
+                                              relation,
+                                              _list!,
+                                              row,
+                                            ),
                                           ),
-                                        ),
-                                  icon: const Icon(Icons.remove_circle_outline),
-                                )
-                              : null,
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 24),
+                Text(
+                  'Experiências',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                if (active)
+                  TextButton.icon(
+                    onPressed: _busy
+                        ? null
+                        : () => _selection(user.uid, relation),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Propor experiência'),
+                  ),
+                _records(
+                  _experiences,
+                  (rows) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        '${rows.where((r) => r.confirmed).length} experiências confirmadas pelos dois',
+                      ),
+                      if (rows.isEmpty)
+                        const Text('Nenhuma experiência proposta.'),
+                      for (final row in rows)
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  row.selection.title,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                Text(
+                                  '${_labels[row.selection.type]} · ${row.occurredOn.split('-').reversed.join('/')} · versão ${row.revision}',
+                                ),
+                                if (row.selection.episode != null)
+                                  Text(
+                                    'Temporada ${row.selection.episode!['season']} · episódio ${row.selection.episode!['number']}',
+                                  ),
+                                Text(
+                                  row.author == user.uid
+                                      ? 'Proposta por você'
+                                      : 'Proposta pelo parceiro',
+                                ),
+                                Text(
+                                  row.confirmed
+                                      ? 'Confirmada pelos dois'
+                                      : 'Ainda sem duas confirmações desta versão',
+                                ),
+                                Text(
+                                  row.responses[user.uid]?['revision'] !=
+                                          row.revision
+                                      ? 'Sua resposta: pendente para esta versão'
+                                      : 'Sua resposta: ${switch (row.responses[user.uid]?['decision']) {
+                                          'confirmed' => 'confirmada',
+                                          'declined' => 'recusada',
+                                          'withdrawn' => 'retirada',
+                                          _ => 'pendente',
+                                        }}',
+                                ),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 12,
+                                  children: [
+                                    if (active) ...[
+                                      TextButton(
+                                        onPressed: _busy
+                                            ? null
+                                            : () => _run(
+                                                () => _service.respond(
+                                                  user.uid,
+                                                  relation,
+                                                  row,
+                                                  'confirmed',
+                                                ),
+                                              ),
+                                        child: const Text('Confirmar versão'),
+                                      ),
+                                      TextButton(
+                                        onPressed: _busy
+                                            ? null
+                                            : () => _run(
+                                                () => _service.respond(
+                                                  user.uid,
+                                                  relation,
+                                                  row,
+                                                  'declined',
+                                                ),
+                                              ),
+                                        child: const Text('Recusar'),
+                                      ),
+                                    ],
+                                    TextButton(
+                                      onPressed: _busy
+                                          ? null
+                                          : () => _run(
+                                              () => _service.respond(
+                                                user.uid,
+                                                relation,
+                                                row,
+                                                'withdrawn',
+                                              ),
+                                            ),
+                                      child: const Text(
+                                        'Retirar minha confirmação',
+                                      ),
+                                    ),
+                                    if (active && row.author == user.uid)
+                                      TextButton(
+                                        onPressed: _busy
+                                            ? null
+                                            : () => _selection(
+                                                user.uid,
+                                                relation,
+                                                previous: row,
+                                              ),
+                                        child: const Text('Corrigir proposta'),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                     ],
                   ),
                 ),
               ],
-              const SizedBox(height: 24),
-              Text(
-                'Experiências',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              if (active)
-                TextButton.icon(
-                  onPressed: _busy
-                      ? null
-                      : () => _selection(user.uid, relation),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Propor experiência'),
-                ),
-              _records(
-                _experiences,
-                (rows) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      '${rows.where((r) => r.confirmed).length} experiências confirmadas pelos dois',
-                    ),
-                    if (rows.isEmpty)
-                      const Text('Nenhuma experiência proposta.'),
-                    for (final row in rows)
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                row.selection.title,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              Text(
-                                '${_labels[row.selection.type]} · ${row.occurredOn.split('-').reversed.join('/')} · versão ${row.revision}',
-                              ),
-                              if (row.selection.episode != null)
-                                Text(
-                                  'Temporada ${row.selection.episode!['season']} · episódio ${row.selection.episode!['number']}',
-                                ),
-                              Text(
-                                row.author == user.uid
-                                    ? 'Proposta por você'
-                                    : 'Proposta pelo parceiro',
-                              ),
-                              Text(
-                                row.confirmed
-                                    ? 'Confirmada pelos dois'
-                                    : 'Ainda sem duas confirmações desta versão',
-                              ),
-                              Text(
-                                row.responses[user.uid]?['revision'] !=
-                                        row.revision
-                                    ? 'Sua resposta: pendente para esta versão'
-                                    : 'Sua resposta: ${switch (row.responses[user.uid]?['decision']) {
-                                        'confirmed' => 'confirmada',
-                                        'declined' => 'recusada',
-                                        'withdrawn' => 'retirada',
-                                        _ => 'pendente',
-                                      }}',
-                              ),
-                              Wrap(
-                                spacing: 8,
-                                children: [
-                                  if (active) ...[
-                                    TextButton(
-                                      onPressed: _busy
-                                          ? null
-                                          : () => _run(
-                                              () => _service.respond(
-                                                user.uid,
-                                                relation,
-                                                row,
-                                                'confirmed',
-                                              ),
-                                            ),
-                                      child: const Text('Confirmar versão'),
-                                    ),
-                                    TextButton(
-                                      onPressed: _busy
-                                          ? null
-                                          : () => _run(
-                                              () => _service.respond(
-                                                user.uid,
-                                                relation,
-                                                row,
-                                                'declined',
-                                              ),
-                                            ),
-                                      child: const Text('Recusar'),
-                                    ),
-                                  ],
-                                  TextButton(
-                                    onPressed: _busy
-                                        ? null
-                                        : () => _run(
-                                            () => _service.respond(
-                                              user.uid,
-                                              relation,
-                                              row,
-                                              'withdrawn',
-                                            ),
-                                          ),
-                                    child: const Text(
-                                      'Retirar minha confirmação',
-                                    ),
-                                  ),
-                                  if (active && row.author == user.uid)
-                                    TextButton(
-                                      onPressed: _busy
-                                          ? null
-                                          : () => _selection(
-                                              user.uid,
-                                              relation,
-                                              previous: row,
-                                            ),
-                                      child: const Text('Corrigir proposta'),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
             ],
-          ],
+          ),
         ),
       ),
     );

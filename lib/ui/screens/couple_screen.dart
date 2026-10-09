@@ -6,6 +6,7 @@ import '../../services/book_service.dart';
 import '../../services/couple_workspace_service.dart';
 import '../widgets/content_state.dart';
 import '../widgets/reading_surface.dart';
+import '../widgets/design_components.dart';
 import 'bookshelf_screen.dart';
 import 'partner_invitation_screen.dart';
 import 'sharing_screen.dart';
@@ -54,7 +55,7 @@ class _CoupleScreenState extends State<CoupleScreen> {
           appBar: AppBar(title: const Text('Nós')),
           body: ListView(
             key: PageStorageKey('couple/${user.uid}'),
-            padding: const EdgeInsets.all(20),
+            padding: AppSpace.page(context),
             children: [
               ReadingSurface(
                 child: Column(
@@ -81,49 +82,56 @@ class _CoupleScreenState extends State<CoupleScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              if (user.partnerUid == null) ...[
+                const SizedBox(height: AppSpace.xl),
+                FilledButton.icon(
+                  icon: const Icon(Icons.mail_outline_rounded),
+                  label: const Text('Convites do casal'),
+                  onPressed: () => _open(const PartnerInvitationScreen()),
+                ),
+              ],
+              if (CoupleWorkspaceService.enabled || user.partnerUid != null)
+                const SectionHeading('Compartilhar momentos'),
               if (CoupleWorkspaceService.enabled)
-                ListTile(
-                  leading: const Icon(Icons.playlist_add_check),
-                  title: const Text('Listas e experiências'),
-                  trailing: const Icon(Icons.chevron_right),
+                DestinationCard(
+                  icon: Icons.playlist_add_check,
+                  title: 'Listas e experiências',
+                  subtitle: 'Organizem escolhas e registrem momentos juntos.',
                   onTap: () => _open(const CoupleWorkspaceScreen()),
                 ),
               if (user.partnerUid != null) ...[
-                ListTile(
-                  leading: const Icon(Icons.library_books_outlined),
-                  title: const Text('Biblioteca do parceiro'),
-                  trailing: const Icon(Icons.chevron_right),
+                DestinationCard(
+                  icon: Icons.library_books_outlined,
+                  title: 'Biblioteca do parceiro',
+                  subtitle: 'Consulte as leituras compartilhadas com você.',
                   onTap: () => setState(() => _showLibrary = true),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.menu_book_outlined),
-                  title: const Text('Comparar progresso bíblico'),
-                  trailing: const Icon(Icons.chevron_right),
+                DestinationCard(
+                  icon: Icons.menu_book_outlined,
+                  title: 'Comparar progresso bíblico',
+                  subtitle: 'Acompanhem os capítulos lidos por cada pessoa.',
                   onTap: widget.onOpenBible,
                 ),
               ],
-              ListTile(
-                leading: const Icon(Icons.mail_outline_rounded),
-                title: Text(
-                  user.partnerUid == null
-                      ? 'Convites do casal'
-                      : 'Gerir vínculo',
+              const SectionHeading('Vínculo e privacidade'),
+              if (user.partnerUid != null)
+                DestinationCard(
+                  icon: Icons.mail_outline_rounded,
+                  title: 'Gerir vínculo',
+                  subtitle: 'Consulte os convites e a situação da relação.',
+                  onTap: () => _open(const PartnerInvitationScreen()),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _open(const PartnerInvitationScreen()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.visibility_outlined),
-                title: const Text('Compartilhamento'),
-                trailing: const Icon(Icons.chevron_right),
+              DestinationCard(
+                icon: Icons.visibility_outlined,
+                title: 'Compartilhamento',
+                subtitle: 'Escolha quais livros e progressos ficam visíveis.',
                 onTap: () =>
                     _open(SharingScreen(bookService: widget.bookService)),
               ),
-              ListTile(
-                leading: const Icon(Icons.people_outline_rounded),
-                title: const Text('Pessoas e bloqueios'),
-                trailing: const Icon(Icons.chevron_right),
+              DestinationCard(
+                icon: Icons.people_outline_rounded,
+                title: 'Pessoas e bloqueios',
+                subtitle: 'Consulte e gerencie as pessoas bloqueadas.',
                 onTap: () => _open(const PartnerBlocksScreen()),
               ),
             ],

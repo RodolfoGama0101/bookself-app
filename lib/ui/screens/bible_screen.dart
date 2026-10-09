@@ -194,7 +194,7 @@ class _BibleScreenState extends State<BibleScreen>
   ) {
     final theme = Theme.of(context);
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
       itemCount: books.length,
       itemBuilder: (context, index) {
         final book = books[index];
@@ -210,7 +210,7 @@ class _BibleScreenState extends State<BibleScreen>
         final pPercent = book.chapters > 0 ? pReadCount / book.chapters : 0.0;
 
         return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          margin: const EdgeInsets.only(bottom: 12),
           child: InkWell(
             onTap: () {
               Navigator.push(

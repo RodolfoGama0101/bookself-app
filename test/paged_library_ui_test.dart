@@ -105,6 +105,10 @@ void main() {
         books.repository.reads.length,
         2,
       ); // Primeira página e buffer de continuação.
+      await tester.scrollUntilVisible(
+        find.text('Carregar mais atividades'),
+        200,
+      );
       final button = tester.widget<TextButton>(
         find.widgetWithText(TextButton, 'Carregar mais atividades'),
       );
@@ -114,6 +118,7 @@ void main() {
       });
       await tester.pumpAndSettle();
       expect(books.repository.reads.last.$3, 'owner-4');
+      await tester.scrollUntilVisible(find.text('42 livros lidos').first, -200);
       expect(find.text('42 livros lidos'), findsNWidgets(2));
       await tester.pumpWidget(const SizedBox.shrink());
       await books.updates.close();

@@ -7,7 +7,9 @@ import 'package:bookself_app/ui/screens/home_screen.dart';
 import 'package:bookself_app/ui/screens/login_screen.dart';
 import 'package:bookself_app/ui/theme.dart';
 import 'package:bookself_app/ui/widgets/book_card.dart';
+import 'package:bookself_app/ui/widgets/design_components.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -89,6 +91,59 @@ void main() {
     final theme = brightness == Brightness.light
         ? AppTheme.lightTheme
         : AppTheme.darkTheme;
+    testWidgets(
+      'atalhos $brightness têm espaço e continuam acionáveis em 320 px',
+      (tester) async {
+        var opened = 0;
+        await open(
+          tester,
+          HomeScreen(bookService: _DesignBooks(), onOpenBible: () => opened++),
+          theme,
+        );
+        final add = find.widgetWithText(FilledButton, 'Adicionar livro');
+        final bible = find.widgetWithText(OutlinedButton, 'Acompanhar Bíblia');
+        await tester.ensureVisible(bible);
+        await tester.pumpAndSettle();
+        final gap = tester.getTopLeft(bible).dy - tester.getBottomLeft(add).dy;
+        expect(gap, greaterThanOrEqualTo(12));
+        await tester.tap(bible);
+        expect(opened, 1);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'destino $brightness permite texto longo, foco e toque com escala 2×',
+      (tester) async {
+        var opened = 0;
+        await open(
+          tester,
+          Scaffold(
+            body: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                DestinationCard(
+                  icon: Icons.visibility_outlined,
+                  title: 'Compartilhamento das suas leituras',
+                  subtitle:
+                      'Escolha quais livros e progressos ficam visíveis para a outra pessoa.',
+                  onTap: () => opened++,
+                ),
+              ],
+            ),
+          ),
+          theme,
+        );
+        await tester.tap(find.text('Compartilhamento das suas leituras'));
+        expect(opened, 1);
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await tester.pump();
+        expect(opened, 2);
+        expect(tester.takeException(), isNull);
+      },
+    );
     testWidgets(
       'cartão $brightness preserva data e duas ações com texto 2× em 320 px',
       (tester) async {

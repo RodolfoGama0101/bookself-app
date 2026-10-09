@@ -547,6 +547,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   icon: const Icon(Icons.edit_outlined),
                   label: const Text('Editar livro manual'),
                 ),
+              const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: _isBusy ? null : _showHistory,
                 icon: const Icon(Icons.history),

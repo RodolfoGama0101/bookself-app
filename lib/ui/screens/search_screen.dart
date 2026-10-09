@@ -562,6 +562,17 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         body: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: () => _showManualAddDialog(context, user.uid),
+                  icon: const Icon(Icons.edit_note_rounded),
+                  label: const Text('Cadastrar manualmente'),
+                ),
+              ),
+            ),
             // Campo de Busca
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -620,19 +631,9 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             ),
                             if (_searchError != null)
-                              Wrap(
-                                alignment: WrapAlignment.center,
-                                children: [
-                                  TextButton(
-                                    onPressed: _performSearch,
-                                    child: const Text('Tentar novamente'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        _showManualAddDialog(context, user.uid),
-                                    child: const Text('Cadastrar manualmente'),
-                                  ),
-                                ],
+                              TextButton(
+                                onPressed: _performSearch,
+                                child: const Text('Tentar novamente'),
                               ),
                           ],
                         ),
@@ -644,7 +645,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       itemBuilder: (context, index) {
                         final book = _searchResults[index];
                         return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: BookCard(
                             book: book,
                             onTap: () => showBookDetailsSheet(

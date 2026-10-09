@@ -188,7 +188,15 @@ void main() {
   }
 
   Future<void> select(WidgetTester tester, String label) async {
-    await tester.tap(find.widgetWithText(NavigationDestination, label));
+    final bottom = find.widgetWithText(NavigationDestination, label);
+    await tester.tap(
+      bottom.evaluate().isNotEmpty
+          ? bottom
+          : find.descendant(
+              of: find.byType(NavigationRail),
+              matching: find.text(label),
+            ),
+    );
     await tester.pumpAndSettle();
   }
 
@@ -201,6 +209,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Livro de owner').hitTestable(), findsOneWidget);
       final reads = books.reads;
+      expect(find.byType(NavigationRail), findsOneWidget);
       await select(tester, 'Nós');
       expect(find.text('Nenhum vínculo ativo').hitTestable(), findsOneWidget);
       await select(tester, 'Biblioteca');
@@ -217,6 +226,10 @@ void main() {
       tester.view.physicalSize = const Size(1280, 900);
       await tester.pumpAndSettle();
       expect(find.byType(NavigationRail), findsOneWidget);
+      expect(find.text('Mateus').hitTestable(), findsOneWidget);
+      tester.view.physicalSize = const Size(390, 844);
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationBar), findsOneWidget);
       expect(find.text('Mateus').hitTestable(), findsOneWidget);
       expect(tester.takeException(), isNull);
     },

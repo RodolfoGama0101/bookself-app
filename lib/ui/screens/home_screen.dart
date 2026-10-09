@@ -8,7 +8,8 @@ import '../../data/models/book_model.dart';
 import '../widgets/book_card.dart';
 import '../widgets/reading_surface.dart';
 import 'search_screen.dart';
-import 'profile_screen.dart';
+import 'partner_invitation_screen.dart';
+import '../widgets/design_components.dart';
 import '../../utils/error_handler.dart';
 import '../widgets/book_details_sheet.dart';
 import 'dart:convert';
@@ -228,32 +229,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
           return CustomScrollView(
             slivers: [
-              if (_usePages)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Wrap(
-                      spacing: 12,
-                      children: [
-                        TextButton(
-                          onPressed: _page!.busy ? null : () => _page!.start(),
-                          child: const Text('Atualizar atividades'),
-                        ),
-                        if (_page!.hasMore)
-                          TextButton(
-                            onPressed: _page!.busy
-                                ? null
-                                : () => _page!.loadMore(),
-                            child: Text(
-                              _page!.busy
-                                  ? 'Carregando…'
-                                  : 'Carregar mais atividades',
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
@@ -268,6 +243,33 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'Acompanhe suas leituras e as de quem lê com você.',
                         style: theme.textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 24),
+                      ActionGroup(
+                        children: [
+                          FilledButton.icon(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    SearchScreen(bookService: _bookService),
+                              ),
+                            ),
+                            icon: const Icon(Icons.add_rounded),
+                            label: const Text('Adicionar livro'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed:
+                                widget.onOpenBible ??
+                                () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => const BibleScreen(),
+                                  ),
+                                ),
+                            icon: const Icon(Icons.menu_book_outlined),
+                            label: const Text('Acompanhar Bíblia'),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 24),
                       ReadingSurface(
@@ -338,10 +340,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPressed: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => const ReadingPage(
-                                      maxWidth: 720,
-                                      child: ProfileScreen(),
-                                    ),
+                                    builder: (_) =>
+                                        const PartnerInvitationScreen(),
                                   ),
                                 ),
                                 icon: const Icon(Icons.favorite_border_rounded),
@@ -352,27 +352,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      FilledButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SearchScreen(),
-                          ),
-                        ),
-                        icon: const Icon(Icons.add_rounded),
-                        label: const Text('Adicionar livro'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed:
-                            widget.onOpenBible ??
-                            () => Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => const BibleScreen(),
-                              ),
-                            ),
-                        icon: const Icon(Icons.menu_book_outlined),
-                        label: const Text('Acompanhar Bíblia'),
-                      ),
                     ],
                   ),
                 ),
@@ -399,6 +378,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
+              if (_usePages)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        TextButton(
+                          onPressed: _page!.busy ? null : () => _page!.start(),
+                          child: const Text('Atualizar atividades'),
+                        ),
+                        if (_page!.hasMore)
+                          TextButton(
+                            onPressed: _page!.busy
+                                ? null
+                                : () => _page!.loadMore(),
+                            child: Text(
+                              _page!.busy
+                                  ? 'Carregando…'
+                                  : 'Carregar mais atividades',
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
               // Lista de Atividades do Feed
               if (activities.isEmpty)
                 SliverFillRemaining(

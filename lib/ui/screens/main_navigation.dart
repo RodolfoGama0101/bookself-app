@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/reading_surface.dart';
+import '../widgets/design_components.dart';
 import 'home_screen.dart';
 import 'library_screen.dart';
 import 'couple_screen.dart';
@@ -84,8 +85,9 @@ class _MainNavigationState extends State<MainNavigation> {
       builder: (context, constraints) {
         // Texto ampliado conserva a navegação compacta, com mais espaço para conteúdo.
         final wide =
-            constraints.maxWidth >= 1000 &&
+            constraints.maxWidth >= AppSpace.railBreakpoint &&
             MediaQuery.textScalerOf(context).scale(14) <= 21;
+        final extended = constraints.maxWidth >= 1200;
         final content = ReadingPage(
           key: _contentKey,
           child: IndexedStack(
@@ -107,8 +109,11 @@ class _MainNavigationState extends State<MainNavigation> {
                     child: Row(
                       children: [
                         NavigationRail(
-                          extended: true,
-                          minExtendedWidth: 208,
+                          extended: extended,
+                          labelType: extended
+                              ? null
+                              : NavigationRailLabelType.all,
+                          minExtendedWidth: 232,
                           selectedIndex: _selectedIndex,
                           onDestinationSelected: _select,
                           leading: Padding(
@@ -121,10 +126,11 @@ class _MainNavigationState extends State<MainNavigation> {
                                   color: theme.primaryColor,
                                 ),
                                 const SizedBox(width: 10),
-                                Text(
-                                  'Bookself App',
-                                  style: theme.textTheme.titleMedium,
-                                ),
+                                if (extended)
+                                  Text(
+                                    'Bookself App',
+                                    style: theme.textTheme.titleMedium,
+                                  ),
                               ],
                             ),
                           ),
@@ -136,6 +142,11 @@ class _MainNavigationState extends State<MainNavigation> {
                               label: Text(_labels[i]),
                             ),
                           ),
+                        ),
+                        VerticalDivider(
+                          width: 1,
+                          thickness: 1,
+                          color: theme.colorScheme.outlineVariant,
                         ),
                         Expanded(child: content),
                       ],

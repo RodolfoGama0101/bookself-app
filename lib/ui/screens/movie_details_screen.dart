@@ -253,11 +253,13 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
               const Text(
                 'Escolha compartilhar esta obra em uma lista ou propor uma sessão. As bibliotecas pessoais permanecem independentes.',
               ),
+              const SizedBox(height: 16),
               OutlinedButton.icon(
                 onPressed: _busy ? null : () => _share(false),
                 icon: const Icon(Icons.playlist_add),
                 label: const Text('Adicionar à lista do casal'),
               ),
+              const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: _busy ? null : () => _share(true),
                 icon: const Icon(Icons.favorite_border),

@@ -11,6 +11,7 @@ import '../../utils/error_handler.dart';
 import '../widgets/book_details_sheet.dart';
 import '../widgets/completion_date_picker.dart';
 import '../widgets/content_state.dart';
+import '../widgets/design_components.dart';
 import '../widgets/dialog_with_controllers.dart';
 import '../../utils/book_library_filter.dart';
 import 'package:intl/intl.dart';
@@ -446,55 +447,46 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                 ]
               : null,
         ),
-        body: Column(
-          children: [
-            if (personal)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    const Chip(
-                      avatar: Icon(Icons.library_books_outlined),
-                      label: Text('Livros'),
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (personal)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      child: LibraryDestinations(
+                        onMovies: widget.onOpenMovies,
+                        onBible: widget.onOpenBible,
+                      ),
                     ),
-                    if (widget.onOpenMovies != null)
-                      ActionChip(
-                        avatar: const Icon(Icons.movie_outlined),
-                        label: const Text('Filmes'),
-                        onPressed: widget.onOpenMovies,
+                  if (personal)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: FilledButton.icon(
+                          onPressed: _openSearch,
+                          icon: const Icon(Icons.add_rounded),
+                          label: const Text('Adicionar livro'),
+                        ),
                       ),
-                    if (widget.onOpenBible != null)
-                      OutlinedButton.icon(
-                        onPressed: widget.onOpenBible,
-                        icon: const Icon(Icons.menu_book_outlined),
-                        label: const Text('Acompanhar Bíblia'),
-                      ),
-                  ],
-                ),
+                    ),
+                ],
               ),
-            Expanded(
-              child: personal
-                  ? _buildShelfView(user.uid, isEditable: true)
-                  : user.partnerUid == null
-                  ? const ContentState(
-                      title: 'Nenhum vínculo ativo',
-                      message: 'Envie ou aceite um convite em Nós.',
-                      icon: Icons.favorite_border_rounded,
-                    )
-                  : _buildShelfView(user.partnerUid!, isEditable: false),
             ),
           ],
+          body: personal
+              ? _buildShelfView(user.uid, isEditable: true)
+              : user.partnerUid == null
+              ? const ContentState(
+                  title: 'Nenhum vínculo ativo',
+                  message: 'Envie ou aceite um convite em Nós.',
+                  icon: Icons.favorite_border_rounded,
+                )
+              : _buildShelfView(user.partnerUid!, isEditable: false),
         ),
-        floatingActionButton: personal
-            ? FloatingActionButton.extended(
-                onPressed: _openSearch,
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Adicionar livro'),
-              )
-            : null,
       );
     }
 
@@ -687,6 +679,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
             Container(
               color: Theme.of(context).appBarTheme.backgroundColor,
               child: TabBar(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,
                 controller: controller,
@@ -762,7 +755,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
       itemBuilder: (context, index) {
         final book = books[index];
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: BookCard(
             book: book,
             onTap: () => showBookDetailsSheet(
@@ -798,6 +791,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                         onPressed: () =>
                             _confirmAndStartReading(this.context, book),
                       ),
+                      const SizedBox(width: 12),
                       IconButton(
                         tooltip: 'Excluir livro',
                         icon: Icon(
@@ -893,7 +887,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
         for (var book in monthBooks) {
           listItems.add(
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: BookCard(
                 book: book,
                 onTap: () => showBookDetailsSheet(
@@ -928,7 +922,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
       for (final book in undatedBooks) {
         listItems.add(
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: BookCard(
               book: book,
               onTap: () => showBookDetailsSheet(

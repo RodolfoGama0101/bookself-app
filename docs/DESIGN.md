@@ -2,6 +2,40 @@
 
 O padrão vigente está em [DESIGN.md](../DESIGN.md), na raiz. Este documento preserva o histórico e as evidências. A versão 2, de 09/10/2026, adota Material Design 3 como base de interação, conserva a direção Organic e acompanha sua implementação em UI-06.
 
+## Revisão 2 — UI-06 — 09/10/2026
+
+Pesquisa nas fontes oficiais de Material Design 3 e Flutter, referenciadas no padrão normativo. A implementação concentra cores/controles em `AppTheme` e acrescenta `AppSpace`, `ActionGroup`, `DestinationCard`, `SectionHeading` e `LibraryDestinations`. Superfícies claras têm mais separação do fundo; corpo usa texto principal e metadados preservam cor secundária. Campos, navegação, listas, botões e diálogos compartilham hierarquia e alvos de toque.
+
+Início mostra ações antes do resumo; convite abre diretamente o fluxo anunciado. Paginação fica junto às atividades. Biblioteca usa categorias consistentes com Filmes no ambiente habilitado, cabeçalho rolável e inclusão sem FAB sobre livros. Nós separa atividades/privacidade em cartões com descrição. Busca mantém cadastro manual visível, inclusive na falha de catálogo. Detalhes/filmes recebem intervalos entre ações; Bíblia recebe margens consistentes. Perfil oferece controles acessíveis de 48 para foto/nome. Listas/experiências limitam largura e separam linhas de ações.
+
+Verificações finais:
+
+```sh
+dart format <arquivos Dart alterados>
+flutter analyze --no-pub
+flutter test --no-pub
+flutter build web --no-pub --dart-define=USE_FIREBASE_EMULATORS=true
+```
+
+Análise sem apontamentos, **430 testes aprovados** e build demo aprovado, incluindo verificação preliminar Wasm. Quatro regressões novas verificam separação real entre atalhos e acionamento em 320 px/texto 2×, além de destinos com texto extenso ativados por toque/teclado nos dois temas. Testes de navegação foram adaptados ao menu lateral compacto e estendidos à volta para 390 px, preservando o testamento. O teste paginado rola até Carregar mais atividades e volta às estatísticas completas, sem depender da posição antiga do controle.
+
+| Inspeção no navegador integrado | Resultado |
+| --- | --- |
+| Login/cadastro em desktop | Formulário, ações e cadastro de perfil fictício confirmados. |
+| Início final em 390 px, escuro | Ações separadas acima do resumo; sessão e tema preservados após recarga. |
+| Início/Nós em 1.280 px | Menu estendido, hierarquia e limites de conteúdo conferidos. |
+| Nós em 840 px | Menu compacto com rótulos; destinos e descrições legíveis. |
+| Nós em 320 px | Rolagem alcança compartilhamento/bloqueios; rótulos e descrições quebram linha. |
+| Biblioteca em 390 px | Quero ler, livro salvo, lombada, estado e ações visíveis; contexto mantido ao redimensionar. |
+| Busca/manual/detalhes | Cadastro sem catálogo, edição e retorno confirmados; edição/histórico separados. |
+| Bíblia em 390 px | Acesso direto, margens e progresso pessoal legíveis. |
+| Perfil claro/escuro | Troca de tema confirmada e restaurada após recarga. |
+| Listas/experiências em 320 px | Estado sem vínculo acessível; retorno e atualização disponíveis. |
+
+Ambiente exclusivamente local: `demo-bookself`, Auth/Firestore emulados, sem chave de catálogo ou dados reais. O aviso Running in emulator mode foi conferido antes de criar dados fictícios. Capturas ficam fora do Git. Agent-browser não iniciou seu Chrome por bloqueio do Controle de Aplicativo do Windows; o navegador integrado permitiu a inspeção. Preview limitado a `build/web` no loopback.
+
+Não foram executados Android/iOS, leitores de tela reais, toda a matriz offline/câmera/capas externas, nova jornada de vínculo entre duas contas ou fluxo completo de filmes. Regressões automatizadas cobrem estado, persistência, vínculo e mídias habilitadas. Sem alteração de serviços/regras/modelos, implantação, migração ou publicação. UI-03 e REL-04 continuam pendentes sob seus critérios completos. Os resultados abaixo pertencem à revisão histórica de 05/10/2026.
+
 Revisão de 05/10/2026, solicitada pelo usuário com a skill frontend-design. Escopo: login/cadastro, Início, estante, busca/cadastro manual, detalhes, progresso bíblico e perfil. A entrega corresponde a UI-04. Em 08/10/2026, UI-01/02 e BIBLE-01 estenderam essa direção à Biblioteca/Nós e aos estados de conteúdo; a revisão completa de acessibilidade UI-03 permanece pendente.
 
 ## Diagnóstico e direção
