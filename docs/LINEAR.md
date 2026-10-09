@@ -99,3 +99,17 @@ Conferência pelo plugin: total, unicidade, responsável, status e prioridades d
 | IDEA-03 | [ROD-89](https://linear.app/rodolfo-gama/issue/ROD-89/idea-03-conectar-contas-de-musica-e-sincronizar-playlistshistorico) |
 | IDEA-04 | [ROD-90](https://linear.app/rodolfo-gama/issue/ROD-90/idea-04-memoria-compartilhada-com-datas-e-contexto-dos-momentos) |
 | IDEA-05 | [ROD-91](https://linear.app/rodolfo-gama/issue/ROD-91/idea-05-avaliar-links-de-onde-assistirouvir-e-reproducaosessoes) |
+
+## Sincronização pendente — rodada local de 09/10/2026
+
+Após reler AGENTS.md a pedido do usuário, as cinco issues abaixo foram consultadas com relações. Todas permaneciam em Backlog, atribuídas a Rodolfo Gama, com prioridades e dependências coerentes com a origem. A atualização de ROD-7 foi rejeitada pela revisão automática de aprovação: envio de detalhes internos de implementação e link de repositório a um serviço externo sem autorização explícita aceita para esse conteúdo/destino. Nenhuma escrita desta rodada foi confirmada; não foram tentados caminhos alternativos. É necessária autorização para sincronizar os avanços abaixo. Não marcar Done, pois os critérios integrais continuam pendentes.
+
+| Item | Issue | Campos a conciliar | Evidência local e limite |
+| --- | --- | --- | --- |
+| QA-03 | ROD-75 | In Progress; andamento/validação | Recuperação do feed em 66ec1aa já consta na descrição importada; acrescentar conferência final de 506 Flutter/análise limpa e jornada pessoal demo. Catálogo real/plataformas e sintoma anterior não reproduzido continuam pendentes. |
+| SERIES-02 | ROD-68 | In Progress; avanço/validação | Atualização incremental de episódios preserva progresso, revisões, omitidos e pausa; 4b1b2db, três regressões novas. Busca real/intermediário/implantação pendentes. |
+| SEC-05 | ROD-28 | In Progress; escopo/validação | Cópia inclui episódios paginados/configurações/ocultação próprios e documento pai ausente; 280c087, três regressões novas e geração confirmada no Chrome. Exclusão/retenção/reautenticação destrutiva pendentes. |
+| UI-03 | ROD-55 | In Progress; avanço/validação | Voltar preservado após troca de conta/término; seleção/anúncios de séries; aa0ee35, cinco regressões novas. Leitores de tela reais/matriz completa pendentes. |
+| DOC-03 | ROD-7 | In Progress; avanço/validação | Launcher local, dois testes Node, build/jornada demo e encerramento próprio verificados; docs/DEVELOPMENT.md e docs/WEB_VALIDATION.md. Reprodução por outra pessoa pendente. |
+
+Preservar responsável, títulos, critérios, comentários, prioridades (High em DOC-03/SERIES-02/QA-03; Medium em SEC-05/UI-03) e relações de bloqueio existentes. Dependências não mudaram nesta rodada. Antes de repetir, reler as issues e verificar conflitos; após autorização e escrita, reler os campos e relações. Os commits desta rodada ainda são locais; links da branch remota podem mostrar versões anteriores até o push.
