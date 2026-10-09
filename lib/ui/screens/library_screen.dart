@@ -65,6 +65,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
         if (_enabled)
           MovieLibraryScreen(
             service: widget.movieService,
+            onMusic: _musicEnabled
+                ? () => setState(() => _destination = 3)
+                : null,
             onBooks: () => setState(() => _destination = 0),
             onBible: widget.onOpenBible ?? () => widget.showBible.value = true,
           )
@@ -73,6 +76,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         if (_musicEnabled)
           MusicLibraryScreen(
             service: widget.musicService,
+            onMovies: _enabled ? () => setState(() => _destination = 2) : null,
             onBooks: () => setState(() => _destination = 0),
             onBible: widget.onOpenBible ?? () => widget.showBible.value = true,
           ),

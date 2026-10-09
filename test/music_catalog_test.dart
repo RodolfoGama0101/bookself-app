@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -7,6 +8,50 @@ import 'package:bookself_app/services/music_catalog.dart';
 import 'package:bookself_app/utils/error_handler.dart';
 
 void main() {
+  test('não combina identidade de faixa com metadados de álbum', () {
+    expect(
+      () => MusicCatalogItem(
+        CatalogIdentity.external(MediaType.track, 'example', 'id'),
+        MediaMetadata(MediaType.album, {
+          'title': 'Obra',
+          'artists': ['Artista'],
+        }),
+      ),
+      throwsFormatException,
+    );
+  });
+  test('timeout cancela espera sem inventar resultado', () async {
+    final catalog = HttpMusicCatalog(
+      Uri.parse('https://example.test'),
+      'example',
+      timeout: const Duration(milliseconds: 1),
+      client: MockClient((_) => Completer<http.Response>().future),
+    );
+    await expectLater(
+      catalog.search(MediaType.track, 'obra'),
+      throwsA(isA<TimeoutException>()),
+    );
+  });
+  test('fornecedor divergente e cursor inválido são recusados', () async {
+    var requests = 0;
+    final catalog = HttpMusicCatalog(
+      Uri.parse('https://example.test'),
+      'example',
+      client: MockClient((_) async {
+        requests++;
+        return http.Response('{"provider":"other","items":[]}', 200);
+      }),
+    );
+    await expectLater(
+      catalog.search(MediaType.album, 'obra', cursor: ''),
+      throwsFormatException,
+    );
+    expect(requests, 0);
+    await expectLater(
+      catalog.search(MediaType.album, 'obra'),
+      throwsFormatException,
+    );
+  });
   test('catálogo ausente preserva cadastro manual', () async {
     final catalog = MusicCatalog.configured();
     expect(catalog.available, false);

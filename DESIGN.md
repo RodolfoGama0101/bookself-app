@@ -10,7 +10,7 @@ O aplicativo organiza leituras pessoais e permite acompanhá-las em casal. A int
 
 A direção visual **Organic** conserva areia, musgo e sálvia, tipografia geométrica Outfit, superfícies arredondadas e granulação discreta nos destaques. A assinatura é a faixa de lombada nos cartões de livros: o estado tem cor e rótulo legível. O objetivo é uma estante acolhedora, com controles claros e poucos elementos competindo pela atenção.
 
-Bookself App permanece a marca atual; Entrelace é proposta. Filmes têm fluxo local condicionado à configuração; séries e músicas não ganham destinos pessoais antes de seus fluxos estarem prontos. Os contratos de [produto](docs/PRODUCT.md), [navegação](docs/NAVIGATION.md) e [privacidade](docs/COUPLE_POLICY.md) continuam válidos.
+Bookself App permanece a marca atual; Entrelace é proposta. Filmes e música têm fluxos locais condicionados à configuração; séries não ganham destino pessoal antes de seu fluxo estar pronto. Os contratos de [produto](docs/PRODUCT.md), [navegação](docs/NAVIGATION.md) e [privacidade](docs/COUPLE_POLICY.md) continuam válidos.
 
 ## Pesquisa e referências
 

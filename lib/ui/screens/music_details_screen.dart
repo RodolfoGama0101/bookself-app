@@ -11,6 +11,8 @@ import '../../services/library_query_service.dart';
 import '../../services/media_library_repository.dart';
 import '../../utils/error_handler.dart';
 import 'music_listen_screen.dart';
+import 'music_couple_screen.dart';
+import '../../services/couple_workspace_service.dart';
 
 class MusicDetailsScreen extends StatefulWidget {
   const MusicDetailsScreen({
@@ -18,10 +20,12 @@ class MusicDetailsScreen extends StatefulWidget {
     required this.music,
     required this.service,
     this.listenService,
+    this.coupleService,
   });
   final MusicRecord music;
   final MusicLibraryService service;
   final MusicListenService? listenService;
+  final CoupleWorkspaceService? coupleService;
   @override
   State<MusicDetailsScreen> createState() => _MusicDetailsScreenState();
 }
@@ -141,12 +145,46 @@ class _MusicDetailsScreenState extends State<MusicDetailsScreen> {
     }
   }
 
+  Future<void> _share(bool experience) async {
+    final relation = context
+        .read<AuthService>()
+        .currentUserModel
+        ?.relationshipId;
+    if (relation == null || !_current || _busy) return;
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MusicCoupleScreen(
+          music: _music,
+          relation: relation,
+          experience: experience,
+          service: widget.coupleService,
+        ),
+      ),
+    );
+    if (mounted &&
+        _current &&
+        saved == true &&
+        context.read<AuthService>().currentUserModel?.relationshipId ==
+            relation) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            experience
+                ? 'Proposta enviada. O parceiro precisa confirmar em Nós.'
+                : 'Seleção adicionada à lista.',
+          ),
+        ),
+      );
+    }
+  }
+
   bool get _current =>
       mounted &&
       context.read<AuthService>().currentUserModel?.uid == _music.entry.ownerId;
   @override
   Widget build(BuildContext context) {
-    context.watch<AuthService>();
+    final user = context.watch<AuthService>().currentUserModel;
     if (!_current) {
       return const Scaffold(
         body: ContentState(
@@ -155,6 +193,10 @@ class _MusicDetailsScreenState extends State<MusicDetailsScreen> {
         ),
       );
     }
+    final canShare =
+        user?.partnerUid != null &&
+        user?.relationshipId != null &&
+        (widget.coupleService != null || CoupleWorkspaceService.enabled);
     final data = _music.catalog.metadata.toMap();
     return ReadingPage(
       maxWidth: 680,
@@ -237,6 +279,24 @@ class _MusicDetailsScreenState extends State<MusicDetailsScreen> {
                 onPressed: _loading ? null : _load,
                 child: const Text('Carregar mais escutas'),
               ),
+            if (canShare) ...[
+              const Divider(height: 40),
+              Text(
+                'Com o casal',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const Text(
+                'Compartilhe uma descoberta na lista ou proponha um momento musical. Favoritos e escutas pessoais permanecem privados.',
+              ),
+              OutlinedButton(
+                onPressed: _busy ? null : () => _share(false),
+                child: const Text('Adicionar à lista do casal'),
+              ),
+              OutlinedButton(
+                onPressed: _busy ? null : () => _share(true),
+                child: const Text('Propor momento musical'),
+              ),
+            ],
             const Text(
               'Salvar uma faixa ou álbum não registra uma escuta. As faixas de um álbum são independentes.',
             ),

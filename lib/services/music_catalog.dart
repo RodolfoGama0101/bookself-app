@@ -12,8 +12,9 @@ class MusicCatalogItem {
   MusicCatalogItem(this.identity, this.metadata) {
     if (identity.isManual ||
         !isMusicType(identity.mediaType) ||
-        !isMusicType(metadata.mediaType)) {
-      throw const FormatException('Referência de filme inválida');
+        !isMusicType(metadata.mediaType) ||
+        identity.mediaType != metadata.mediaType) {
+      throw const FormatException('Referência musical inválida');
     }
   }
   final CatalogIdentity identity;
@@ -134,7 +135,7 @@ class HttpMusicCatalog extends MusicCatalog {
         input['title'] is! String ||
         (input['title'] as String).trim().isEmpty ||
         (input['title'] as String).length > 300) {
-      throw const FormatException('Música incompleto');
+      throw const FormatException('Música incompleta');
     }
     final artists = input['artists'];
     if (artists is! List ||
@@ -207,8 +208,8 @@ class HttpMusicCatalog extends MusicCatalog {
     final unique = <String, MusicCatalogItem>{};
     for (final row in rows) {
       try {
-        final movie = _normalize(type, row);
-        unique.putIfAbsent(movie.identity.key, () => movie);
+        final item = _normalize(type, row);
+        unique.putIfAbsent(item.identity.key, () => item);
       } on FormatException {
         /* Item parcial sem identidade/título é descartado. */
       }

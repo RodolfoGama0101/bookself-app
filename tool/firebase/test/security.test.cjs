@@ -1327,3 +1327,35 @@ test('MUSIC-02: disputa de favorito não sobrescreve outra sessão nem cria escu
   assert.equal((await getDocs(collection(db('a'),'libraries/a/listens'))).size,0);
   await assertFails(updateDoc(doc(db('b'),'libraries/a/entries/music'),{favorite:false,revision:3,updatedAt:serverTimestamp()}));
 });
+
+for (const type of ['track','album']) test('MUSIC-03: ' + type + ' compartilha seleção mínima sem favorito/escuta e preserva histórico', async () => {
+  const rid=await jointRelation();
+  const identity={kind:'external',provider:'fixture_music',externalId:'record'};
+  for(const uid of ['a','b']) await mediaBatch(db(uid),uid,'music','music',type,identity).commit();
+  const own=doc(db('a'),'libraries/a/entries/music');
+  await updateDoc(own,{favorite:true,revision:2,updatedAt:serverTimestamp()});
+  await setDoc(doc(db('a'),'libraries/a/listens/own'),listenData());
+  const selection={mediaType:type,title:'Obra',subtitle:'Artista',source:'library',reference:mediaKey(type,identity),episode:null};
+  const base='couple_relationships/'+rid+'/lists/music';
+  await assertSucceeds(setDoc(doc(db('a'),base),{schemaVersion:1,title:'Descobertas musicais',authorId:'a',version:1,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
+  const item={schemaVersion:1,selection,authorId:'a',version:1,createdAt:serverTimestamp(),updatedAt:serverTimestamp(),removed:false,removedBy:null};
+  await assertSucceeds(setDoc(doc(db('a'),base+'/items/a'),item));
+  await assertSucceeds(setDoc(doc(db('b'),base+'/items/b'),{...item,authorId:'b'}));
+  await assertSucceeds(getDoc(doc(db('b'),base+'/items/a')));
+  for(const privateField of ['favorite','listenedOn']) await assertFails(setDoc(doc(db('a'),base+'/items/bad'),{...item,selection:{...selection,[privateField]:true}}));
+  await assertFails(getDoc(doc(db('c'),base+'/items/a')));
+  await assertSucceeds(jointWrite(db('a'),rid,'experience',{...jointExperience(),selection}));
+  assert.equal(Object.keys((await getDoc(doc(db('a'),jointPath(rid)))).data().responses).length,1);
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'confirmed'));
+  assert.equal((await getDoc(own)).data().favorite,true);
+  assert.equal((await getDoc(doc(db('b'),'libraries/b/entries/music'))).data().favorite,false);
+  assert.equal((await getDocs(collection(db('b'),'libraries/b/listens'))).size,0);
+  await pair(db('a'),'a','b',false);
+  await assertSucceeds(getDoc(doc(db('b'),base+'/items/a')));
+  await assertFails(setDoc(doc(db('b'),base+'/items/late'),{...item,authorId:'b'}));
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'withdrawn'));
+  await pair(db('a'),'a','c');
+  await assertFails(getDoc(doc(db('c'),base+'/items/a')));
+  for(const uid of ['b','c']) await assertFails(getDoc(doc(db(uid),'libraries/a/listens/own')));
+  await assertSucceeds(getDoc(doc(db('a'),'libraries/a/listens/own')));
+});

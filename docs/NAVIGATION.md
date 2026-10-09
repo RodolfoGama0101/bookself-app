@@ -2,7 +2,12 @@
 
 ## Estado e escopo
 
-**Revisão de design em 09/10/2026 — UI-06:** os quatro destinos e contratos de dados permanecem. O Início mostra Adicionar livro/Acompanhar Bíblia antes do resumo, e Vincular parceiro abre Convites diretamente. Biblioteca tem cabeçalho rolável e inclusão sem sobrepor livros. Nós agrupa Compartilhar momentos e Vínculo e privacidade. Menu lateral compacto a partir de 720 e estendido a partir de 1.200 com texto até 1,5×; barra inferior/menu ampliado nas demais situações. Padrão vigente em [DESIGN.md](../DESIGN.md); as descrições abaixo preservam a evolução histórica. Filmes/listas aparecem somente nos ambientes habilitados pelos respectivos serviços.
+**Música em 09/10/2026:** Biblioteca → Música alterna faixas/álbuns e retorna a
+Livros/Filmes/Bíblia. Detalhes oferecem favorito e escuta pessoais; quando houver
+vínculo ativo habilitado, seleção para lista ou momento musical confirmado em Nós.
+[Ativação e limites](MUSIC.md).
+
+**Revisão de design em 09/10/2026 — UI-06:** os quatro destinos e contratos de dados permanecem. O Início mostra Adicionar livro/Acompanhar Bíblia antes do resumo, e Vincular parceiro abre Convites diretamente. Biblioteca tem cabeçalho rolável e inclusão sem sobrepor livros. Nós agrupa Compartilhar momentos e Vínculo e privacidade. Menu lateral compacto a partir de 720 e estendido a partir de 1.200 com texto até 1,5×; barra inferior/menu ampliado nas demais situações. Padrão vigente em [DESIGN.md](../DESIGN.md); as descrições abaixo preservam a evolução histórica. Filmes/música/listas aparecem somente nos ambientes habilitados pelos respectivos serviços.
 
 Definição v1 preparada e revisada documentalmente em **08/10/2026**, a pedido do usuário para avançar na próxima tarefa. PROD-02 concluiu o mapa e os fluxos; a base de livros/Bíblia/relação foi posteriormente implementada em UI-01/02 e BIBLE-01, como registrado abaixo. O mapa das mídias futuras não representa telas construídas, validação com usuários ou aprovação específica do desenho pelo usuário. Ajustes decorrentes de protótipos e uso real ficam em PROD-03/UI-03.
 

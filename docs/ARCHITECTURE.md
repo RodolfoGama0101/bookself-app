@@ -5,7 +5,7 @@ Revisão: 08/10/2026. As seções iniciais descrevem o código atual; a evoluç�
 ## Cópia pessoal — SEC-05 — 09/10/2026
 
 `PersonalExportService` concentra leituras paginadas do servidor do próprio
-perfil, livros/Bíblia e catálogo/entradas privados. Exige sessão correspondente,
+perfil, livros/Bíblia, catálogo/entradas e escutas privadas. Exige sessão correspondente,
 valida proprietário, rejeita cache/limite/falha e preserva timestamps na cópia
 JSON parcial. `PersonalExportScreen`, acessível no Perfil, só copia após ação
 explícita e limpa resultado ao trocar conta. Não cria escrita, backend, migração,
@@ -23,11 +23,19 @@ COUPLE-07 deriva interesses somente dos itens autorizados da lista ativa, com fu
 
 Implementação aditiva local em `lib/data/models/media_model.dart` e `lib/services/media_library_repository.dart`: tipos/identidade/metadados/estado por mídia, interface substituível e persistência Firestore injetável em catálogo, entradas e slots privados por dono. Inclusão transacional deduplica a referência sem redefinir progresso; edição pessoal exige revisão, mantém inclusão e usa timestamp confirmado. Regras candidatas isolam terceiros/parceiro/ex e preservam referências/autoria. Compartilhamento novo permanece desabilitado até suas projeções serem implementadas.
 
-Nenhum widget usa essa base ainda; livros/Bíblia/contas/vínculos continuam nas coleções atuais. O contrato implementado é o [subconjunto de DATA_MODEL.md](DATA_MODEL.md#subconjunto-local-implementado--data-02), não a adoção de toda a proposta. Migração, episódios, escutas, eventos, listas e experiências continuam em seus itens do backlog; validação em [DEVELOPMENT.md](DEVELOPMENT.md#base-privada-multimídia--data-02). Sem dependência nova nem implantação remota.
+Filmes e música já usam essa base nas telas locais condicionadas ao ambiente; livros/Bíblia/contas/vínculos continuam nas coleções atuais. O contrato implementado é o [subconjunto de DATA_MODEL.md](DATA_MODEL.md#subconjunto-local-implementado--data-02), não a adoção de toda a proposta. Migração, episódios e eventos continuam em seus itens do backlog; escutas musicais, listas e experiências têm subconjuntos locais documentados; validação em [DEVELOPMENT.md](DEVELOPMENT.md#base-privada-multimídia--data-02). Sem dependência nova nem implantação remota.
+
+## Música — MUSIC-01/02/03 — 09/10/2026
+
+MusicCatalog/MusicLibraryService usam catálogo/entradas/slots privados com faixa
+ou álbum. MusicListenService concentra escutas imutáveis e páginas por entrada;
+favorito usa revisão da entrada. MusicCoupleScreen envia apenas CoupleSelection
+ao serviço conjunto. Flag USE_MUSIC_LIBRARY ou emuladores habilita o destino.
+[Contrato, índice, testes e limitações](MUSIC.md). Sem fornecedor aprovado ou deploy.
 
 ## Inicialização e interface atuais
 
-DATA-03/04/05 acrescentaram preparação offline recuperável, `LibraryQueryRepository` para páginas/agregações no servidor e `MediaSyncService` para pendência/confirmação/falha/conflito e isolamento de sessão. Oito índices estão versionados, sem implantação. Os originais não foram migrados; novas consultas/coordenador ainda não são usados por widgets. [Migração e recuperação](DATA_MIGRATION.md), [contratos de acesso por operação](DATA_ACCESS.md) e [decisão 012](decisions/012-preparacao-e-acesso-a-dados.md). A estante/feed atuais continuam ordenando e calculando métricas em memória; UI-05 deve conectar a paginação sem usar páginas parciais como estatísticas.
+DATA-03/04/05 acrescentaram preparação offline recuperável, `LibraryQueryRepository` para páginas/agregações no servidor e `MediaSyncService` para pendência/confirmação/falha/conflito e isolamento de sessão. Nove índices estão versionados, sem implantação. Os originais não foram migrados; novas consultas/coordenador ainda não são usados por widgets. [Migração e recuperação](DATA_MIGRATION.md), [contratos de acesso por operação](DATA_ACCESS.md) e [decisão 012](decisions/012-preparacao-e-acesso-a-dados.md). A estante/feed atuais continuam ordenando e calculando métricas em memória; UI-05 deve conectar a paginação sem usar páginas parciais como estatísticas.
 
 `lib/main.dart` inicia a interface imediatamente com `BookselfBootstrap`. Ele cria e mantém `ThemeService` na raiz, iniciando a leitura da preferência antes de registrar os ouvintes do Provider. `AppStartup` (`lib/ui/screens/app_startup.dart`) mostra carregamento enquanto aguarda essa leitura e a inicialização Firebase. Apenas após sucesso do Firebase, seu `readyBuilder` registra `AuthService` e cria `BookselfApp`. `SessionGate` decide entre login, carregamento, recuperação de perfil e `MainNavigation` conforme o estado explícito de sessão.
 

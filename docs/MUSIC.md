@@ -61,3 +61,44 @@ Favoritos/escutas nunca são projetados ao parceiro. Término preserva os dados
 pessoais; ouvir álbum não cadastra nem marca faixas. Cópia pessoal JSON inclui
 escutas. Serviço/testes de regras cobrem data inválida/futura, terceiros,
 concorrência, retry e preservação após término.
+
+## Descobertas e momentos do casal — MUSIC-03
+
+Detalhes → Adicionar à lista do casal escolhe uma lista existente; a criação
+fica em Nós → Listas e experiências. Ambos podem adicionar/retirar seleções
+no vínculo ativo. Compartilhar exige consentimento explícito e envia somente
+tipo, título, artistas e referência de catálogo/manual, inclusive se a entrada
+pessoal estiver oculta. Favorito, escutas, IDs pessoais e datas privadas não
+são copiados. A referência opaca conserva a versão da obra; não dá acesso ao
+catálogo privado da outra pessoa.
+
+Propor momento musical exige data e consentimento, seguido de confirmação do
+outro em Nós. Correção exige nova confirmação da revisão atual; retirada de
+confirmação deixa de contar como momento conjunto. Nenhuma proposta/aceite cria
+escutas ou favoritos pessoais. Retry conserva a intenção; troca de conta/relação
+impede sucesso tardio. Histórico após término fica restrito aos antigos
+participantes, com retirada da própria confirmação; novo parceiro e terceiros
+não herdam acesso. Não há reprodução interna, playlist externa ou conta musical.
+
+## Evidências e limites — 09/10/2026
+
+Análise estática limpa; 466 testes Flutter e 93 testes Node/demo aprovados; build
+web com USE_FIREBASE_EMULATORS=true aprovado. Regressões cobrem manual, catálogo
+HTTP simulado, favoritos, escutas repetidas/retry, cursor com empate, conta trocada,
+seleção mínima, dupla confirmação, correção, conflito e desvinculação. Regras
+validam terceiros, ausência de autenticação, autoria, calendário e concorrência
+real em demo-bookself, sem escrita em produção.
+
+Navegador integrado: cadastro fictício de faixa, detalhes, favorito, duas
+escutas deliberadas na mesma data persistência da faixa/favorito após recarga e layout em 1.280 × 720 e 390 × 844 observados.
+Captura local não versionada em build/music-demo.png. Jornada visual conjunta
+com duas contas, catálogo real, Android/iOS e leitores de tela reais ainda não
+foram executados nesta entrega. Testes de widgets cobrem confirmação/consentimento
+e descarte; os emuladores cobrem autorização de duas contas. Chrome da skill
+agent-browser foi bloqueado pelo Controle de Aplicativo do Windows; inspeção
+realizada no navegador integrado.
+
+API-04/MUSIC-01 permanecem parciais até fornecedor/intermediário musical aprovado
+e busca real verificada. MUSIC-02/03 concluem o caminho local manual. Regras e
+índice continuam candidatos à implantação SEC-06; não houve migração, deploy,
+publicação, escolha de marca/fornecedor ou ativação fora dos emuladores.

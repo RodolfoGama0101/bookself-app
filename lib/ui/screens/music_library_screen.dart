@@ -18,10 +18,12 @@ class MusicLibraryScreen extends StatefulWidget {
     this.service,
     required this.onBooks,
     this.onBible,
+    this.onMovies,
   });
   final MusicLibraryService? service;
   final VoidCallback onBooks;
   final VoidCallback? onBible;
+  final VoidCallback? onMovies;
   @override
   State<MusicLibraryScreen> createState() => _MusicLibraryScreenState();
 }
@@ -167,6 +169,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             musicSelected: true,
             onBooks: widget.onBooks,
             onBible: widget.onBible,
+            onMovies: widget.onMovies,
           ),
           const SizedBox(height: 16),
           TextField(
@@ -205,7 +208,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
-                '${_rows.length} carregadas${_total == null ? '' : ' de $_total seleções'}',
+                'Carregadas: ${_rows.length}${_total == null ? '' : ' · Total: $_total'}',
               ),
               TextButton(
                 onPressed: _busy
@@ -245,7 +248,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
           if (!_busy && _error == null && filtered.isEmpty)
             ContentState(
               title: _rows.isEmpty
-                  ? 'Nenhuma seleção salvo'
+                  ? 'Nenhuma seleção salva'
                   : 'Nenhuma seleção corresponde aos filtros',
               message: _rows.isEmpty
                   ? 'Cadastre uma faixa ou álbum para organizar suas músicas.'
