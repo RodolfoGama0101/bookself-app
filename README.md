@@ -2,7 +2,7 @@
 
 Aplicativo de organização de leituras para uso individual e em casal, desenvolvido em Flutter com Firebase. Cada pessoa mantém sua estante, acompanha capítulos bíblicos lidos e pode consultar a estante e o progresso do parceiro vinculado.
 
-O produto está em fase de MVP. A evolução planejada inclui filmes, séries e músicas. **Lume** foi escolhido como nome exibido em 09/10/2026 e aplicado localmente; a verificação de disponibilidade de marca continua aberta em NAME-02. Os identificadores técnicos e o projeto Firebase permanecem Bookself.
+O produto está em fase de MVP. A evolução planejada inclui filmes, séries e músicas. **Lume** foi escolhido como nome exibido em 09/10/2026 e aplicado localmente; a triagem NAME-02 encontrou conflitos e não liberou publicação sob essa marca. Os identificadores técnicos e o projeto Firebase permanecem Bookself.
 
 O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/10/2026: preserva livros/Bíblia e define filmes, séries, faixas/álbuns, cadastro manual e experiências do casal. Essa é uma decisão de produto; filmes e música têm entregas locais incrementais; séries têm biblioteca/progresso manual local.
 

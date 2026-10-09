@@ -6,7 +6,7 @@ Preparação de REL-06 em 09/10/2026. **Ainda não é uma release.** A última p
 
 | Área | Conferência necessária antes de distribuir | Estado em 09/10/2026 |
 | --- | --- | --- |
-| Escopo e marca | Confirmar o nome, ícone, textos e metadados em Android, iOS e web; concluir a avaliação de disponibilidade de Lume (NAME-02) antes de publicar sob essa marca. | Aplicação local em NAME-03; disponibilidade aberta. |
+| Escopo e marca | Confirmar o nome, ícone, textos e metadados em Android, iOS e web; resolver os conflitos encontrados em NAME-02 antes de publicar sob Lume. | Aplicação local em NAME-03; a triagem não liberou publicação. |
 | Versão e ambiente | Definir versão/código crescentes, commit e tag; registrar SDK/lockfile e separar build demo com emuladores do build com Firebase real. Conferir flags de filmes, séries, música, listas e paginação para a distribuição escolhida. | Versão nova e matriz de ativação não definidas. `pubspec.yaml` ainda descreve a versão publicada anteriormente. |
 | Segurança e dados remotos | Reavaliar regras/índices ativos e compatibilidade com clientes já distribuídos; testar regras candidatas, consentimento, terceiros e desvínculo em desenvolvimento. SEC-06 requer aprovação própria antes de qualquer implantação. | Regras novas somente locais; implantação adiada. |
 | Migração | Inventariar `users`, `books`, `bible_progress` e vínculos, executar ensaio com backup, contagens e rollback conforme [DATA_MIGRATION.md](../DATA_MIGRATION.md). Não converter dados legados no build ou no teste de release. | Preparação e ensaio demo, sem migração remota. |
