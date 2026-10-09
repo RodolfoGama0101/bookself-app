@@ -1,5 +1,22 @@
 # Verificação do build Android
 
+## APK 1.3.0+4 para testes — 09/10/2026
+
+APK com o redesign de UI-06, gerado a pedido do usuário por `flutter build apk --release --no-pub` em aproximadamente 124 s. SDK fixado e dependências existentes; sem defines de catálogo, emuladores ou funcionalidades experimentais. Firebase e identidade técnica preservados; nenhuma implantação remota.
+
+| Verificação | Resultado |
+| --- | --- |
+| Pacote / versão | `com.couple.bookself.bookself_app`, `versionName` 1.3.0, `versionCode` 4 |
+| Android / arquiteturas | Mínimo API 24; alvo API 36; `armeabi-v7a`, `arm64-v8a`, `x86_64` |
+| Assinatura | `apksigner verify --verbose --print-certs` aprovado, esquema v2; Android Debug existente |
+| Certificado SHA-256 | `700cd9b4af4e88360159c03b5177464c6dcc6fc271dc8851e8823b1074c4ea36` (igual a 1.1.0/1.2.0) |
+| APK universal | `bookself-app-1.3.0.apk`, 60.424.028 bytes, aproximadamente 57,6 MiB |
+| APK SHA-256 | `27bf0f83478ea2bbe02867f2975e2264a2c6e387cfb9f2b3befbcbf45d17f5cb` |
+
+APK e `.sha256` em `build/release/`, ignorados pelo Git. `aapt dump badging` confirmou os metadados; verificação de assinatura com `java` funcional do host. Avisos existentes de KGP/Java/formato XML do SDK persistem, sem impedir o build. Lockfile sem mudança de conteúdo. Redesign já validado com análise limpa, 430 testes Flutter, build web demo e inspeção integrada em navegador. Nenhuma alteração Dart adicional nesta preparação.
+
+Publicação no GitHub em preparação. [Notas e limites](releases/v1.3.0.md). APK padrão sem filmes/novo espaço de listas/experiências/interesses habilitados; sem segredo de catálogo. Nenhum dispositivo Android executado; REL-02/REL-04/SEC-03/SEC-06 permanecem pendentes.
+
 ## APK 1.2.0+3 para testes — 08/10/2026
 
 A pedido do usuário, `pubspec.yaml` passou a 1.2.0+3. `flutter build apk --release --no-pub` aprovado em aproximadamente 93 s com o SDK fixado e dependências existentes, sem defines de catálogo/emuladores/ativação experimental. Firebase padrão e identidade técnica preservados; nenhuma configuração/regra remota alterada. O lockfile não teve mudança de conteúdo.
