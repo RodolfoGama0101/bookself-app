@@ -39,6 +39,8 @@ No PowerShell, `Copy-Item` substitui `cp` se necessário. `config/*.local.json` 
 
 Para fechar API-02: executar o comando com credencial de desenvolvimento, conferir resultados e ausência de dados, validar pôster no Flutter web/nativos, registrar termos de cache/licença e decidir explicitamente TMDB. Episódios futuros/especiais/progresso continuam em SERIES-01/02.
 
+**Verificação adicional em 09/10/2026:** um teste HTTP simulado executa a ferramenta inteira com respostas de filme, série, configuração de imagens, pôster e temporada. Confirmou parâmetros `pt-BR`, exclusão de conteúdo adulto, seleção da temporada positiva, ausência de resumo como campo opcional e token apenas nas chamadas da API, sem envio ao CDN da imagem. Os cinco testes de `tool/catalog/trial.test.cjs` passaram. O arquivo local de credencial fictícia é temporário e removido pelo teste. Este ensaio verifica o próprio roteiro e a separação de credencial; **não substitui resposta real do TMDB**, avaliação dos termos nem inspeção no Flutter.
+
 ## API-03 — MusicBrainz versus Spotify
 
 | Dimensão | MusicBrainz | Spotify |
