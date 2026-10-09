@@ -279,7 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         const SizedBox(height: 24),
-        Text('Bookself App', style: theme.textTheme.displayLarge),
+        Text('Lume', style: theme.textTheme.displayLarge),
         const SizedBox(height: 16),
         Text(
           'Sua vida em livros.\nSuas leituras em companhia.',
@@ -354,7 +354,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'Bookself App',
+                                    'Lume',
                                     style: theme.textTheme.titleLarge,
                                   ),
                                 ),

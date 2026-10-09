@@ -58,7 +58,7 @@ class _AppStartupState extends State<AppStartup> {
     final hasFailed = _status == _StartupStatus.failed;
     // A tela inicial usa fontes locais para continuar disponível sem rede.
     return MaterialApp(
-      title: 'Bookself App',
+      title: 'Lume',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,

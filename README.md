@@ -2,7 +2,7 @@
 
 Aplicativo de organização de leituras para uso individual e em casal, desenvolvido em Flutter com Firebase. Cada pessoa mantém sua estante, acompanha capítulos bíblicos lidos e pode consultar a estante e o progresso do parceiro vinculado.
 
-O produto está em fase de MVP. A evolução planejada inclui filmes, séries e músicas. **Entrelace** é a proposta inicial de novo nome; a escolha e a aplicação da marca ainda estão pendentes. O aplicativo continua se chamando Bookself App no código.
+O produto está em fase de MVP. A evolução planejada inclui filmes, séries e músicas. **Lume** foi escolhido como nome exibido em 09/10/2026 e aplicado localmente; a verificação de disponibilidade de marca continua aberta em NAME-02. Os identificadores técnicos e o projeto Firebase permanecem Bookself.
 
 O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/10/2026: preserva livros/Bíblia e define filmes, séries, faixas/álbuns, cadastro manual e experiências do casal. Essa é uma decisão de produto; filmes e música têm entregas locais incrementais; séries têm biblioteca/progresso manual local.
 
@@ -16,6 +16,8 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 | [docs/SERIES_VALIDATION.md](docs/SERIES_VALIDATION.md) | Jornadas locais de séries, casal e limites de validação. |
 | [docs/WEB_VALIDATION.md](docs/WEB_VALIDATION.md) | Jornada Flutter web em ambiente demo, evidências e cenários pendentes. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
+| [docs/BRAND.md](docs/BRAND.md) | Escolha de Lume, conflitos preliminares e aplicação local da marca. |
+| [docs/EXTERNAL_LINKS.md](docs/EXTERNAL_LINKS.md) | Avaliação de links externos, disponibilidade regional e reprodução. |
 | [docs/BOOK_LIBRARY.md](docs/BOOK_LIBRARY.md) | Identidade de livros, datas, histórico privado, edição manual e filtros pessoais. |
 | [docs/NAVIGATION.md](docs/NAVIGATION.md) | Navegação atual de livros/Bíblia/Nós e mapa incremental das mídias futuras. |
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Modelo v1 e contratos locais: base privada, listas/experiências; progresso episódico e escutas com contratos locais; migração ativa pendente. |

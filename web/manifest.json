@@ -1,11 +1,11 @@
 {
-    "name": "bookself_app",
-    "short_name": "bookself_app",
+    "name": "Lume",
+    "short_name": "Lume",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#ffffff",
-    "description": "A new Flutter project.",
+    "background_color": "#251207",
+    "theme_color": "#251207",
+    "description": "Seu repertório, suas conexões.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

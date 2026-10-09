@@ -128,7 +128,7 @@ class _MainNavigationState extends State<MainNavigation> {
                                 const SizedBox(width: 10),
                                 if (extended)
                                   Text(
-                                    'Bookself App',
+                                    'Lume',
                                     style: theme.textTheme.titleMedium,
                                   ),
                               ],

@@ -86,16 +86,17 @@ O [mapa v1 e os fluxos](NAVIGATION.md) detalham inclusão manual/catálogo, esta
 
 ## Nome
 
-Bookself remete a livros e fica estreito para a expansão. Sugestão inicial: **Entrelace**, com **“Histórias e descobertas a dois.”** Representa conexão entre pessoas e experiências sem limitar o formato.
+Bookself remete a livros e fica estreito para a expansão. Em 09/10/2026, após considerar **A Dois** e opções abstratas, o usuário escolheu **Lume** como nome exibido. A ideia de luz sugere descoberta e conexão sem limitar a mídia ou exigir uso em casal. Frase de apoio: **“Seu repertório, suas conexões.”**
 
 | Candidato | Ideia | Ponto a avaliar |
 | --- | --- | --- |
-| **Entrelace** | Repertórios e experiências conectados. | Frase de apoio ajuda a explicar o produto. |
+| Entrelace | Repertórios e experiências conectados. | Proposta inicial, não escolhida. |
 | Nosso Repertório | Coleção cultural em conjunto. | Descritivo, mas longo para marca/ícone. |
 | A Dois | Experiência do casal. | Expressão genérica, descoberta em buscas a avaliar. |
 | Sintonia | Afinidade de gostos. | Pode sugerir foco exclusivamente musical. |
+| **Lume** | Descoberta e conexão em várias mídias. | Homônimos relevantes; disponibilidade pendente em NAME-02. |
 
-São propostas criativas. Disponibilidade de marca, domínio, lojas e identificadores sociais não foi verificada. Escolha e verificações constam no backlog. Não foi aplicada mudança de nome ao app.
+Lume foi escolhido e aplicado localmente ao nome exibido. A [verificação preliminar](BRAND.md) encontrou homônimos; não há conclusão de disponibilidade jurídica, de domínio ou de perfis. A publicação com a marca depende de NAME-02.
 
 Aplicação da marca deve abranger interface, ícone, títulos web, manifestos e nomes exibidos Android/iOS. Preservar inicialmente IDs técnicos e Firebase; alterá-los exige motivo e plano específicos.
 
@@ -117,7 +118,7 @@ Etapas indicam dependências, não prazos. Tarefas executáveis estão em [BACKL
 
 | Tema | Proposta inicial | Tarefa |
 | --- | --- | --- |
-| Marca | Entrelace, a confirmar. | NAME-01 |
+| Marca | Lume escolhido e aplicado localmente; disponibilidade pendente. | NAME-02/03 |
 | Música | MVP de faixas/álbuns, favoritos, escutas e listas aprovado; fornecedor e implementação pendentes. | API-03, MUSIC-01/02/03 |
 | Compartilhamento | Política v1 aprovada em 05/10/2026; perfil privado separado localmente em SEC-04, convites locais em COUPLE-03; visibilidade local de livros/Bíblia em COUPLE-04 e bloqueios independentes locais em COUPLE-09; implantação pendente. | SEC-06 |
 | Experiência conjunta | Sem concluir automaticamente o progresso alheio. | COUPLE-05 |

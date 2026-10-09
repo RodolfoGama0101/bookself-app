@@ -101,7 +101,7 @@ class BookselfApp extends StatelessWidget {
     return Consumer<ThemeService>(
       builder: (context, themeService, _) {
         return MaterialApp(
-          title: 'Bookself App',
+          title: 'Lume',
           locale: const Locale('pt', 'BR'),
           supportedLocales: const [Locale('pt', 'BR')],
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
