@@ -320,3 +320,20 @@ O runner aprovou **81 testes Node**, incluindo 75 integrações Auth/Firestore e
 No navegador integrado, o SDK FlutterFire real conectado exclusivamente aos emuladores confirmou cadastro manual, mudança Quero Ler → Lendo, correção de título, histórico com dois eventos e filtro combinando título/autor na aba Lendo. Dados fictícios, sem chave Google Books, usando Auth 19099/Firestore 18080 e servidor web loopback 8737. Captura local ignorada em `build/books-tools-demo.jpg`. [Jornada e limites](WEB_VALIDATION.md).
 
 Android/iOS não foram compilados ou executados nesta entrega. Não houve consulta ao catálogo real, implantação, migração ativa ou publicação. Compatibilidade com clientes antigos e retenção do histórico exigem SEC-06/SEC-05; índices/paginação permanecem separados. [Contrato completo](BOOK_LIBRARY.md).
+
+## Quatro entregas locais — 09/10/2026
+
+REL-02 separa assinatura release e rejeita ausência de credenciais; build debug
+aprovado, sem chave definitiva ou publicação. SEC-05 acrescenta cópia JSON parcial
+pessoal; UI-03 melhora semântica/teclado de filmes; QA-03 encadeia a jornada individual
+e conjunta em regressões. Análise limpa, 441 testes Flutter e 87 Node/demo aprovados,
+mais build web demo. Fakes confirmam encadeamento Dart, emuladores confirmam regras
+concorrentes e revogação. Nenhum fornecedor, retenção ou exclusão foi decidido.
+
+Node usou Auth 29099/Firestore 28080 e encerrou emuladores automaticamente. Inspeção
+web usou outra sessão demo 9099/8080, conta fictícia e loopback 17362. Cadastro/status
+de filme e geração da cópia pessoal confirmados; não houve jornada conjunta visual
+completa. Agent-browser bloqueado por Controle de Aplicativo; usado navegador
+integrado. Ver [matriz de filmes](MOVIE_VALIDATION.md), [privacidade](PRIVACY.md),
+[assinatura](ANDROID_BUILD.md#assinatura-de-distribuição--rel-02--09102026) e
+[acessibilidade](ACCESSIBILITY.md#filmes--ui-03--09102026). Sem deploy/migração/produção.

@@ -112,6 +112,15 @@ APK Android **1.3.0+4** com o novo design disponível na [pré-release v1.3.0](h
 
 ## Validação
 
+Em **09/10/2026 — REL-02/SEC-05/UI-03/QA-03**, assinatura release separada de debug,
+cópia pessoal parcial e acessibilidade/regressões de filmes entregues localmente.
+Análise limpa, **441 testes Flutter**, **87 testes Node/demo**, build web demo e
+build Android debug aprovados; release sem credenciais recusada como esperado.
+Filme manual/status e geração da cópia foram executados na web demo. Os quatro
+itens permanecem em andamento pelos critérios externos restantes: chave definitiva,
+exclusão/retenção, leitores de tela e demais mídias/jornada conjunta completa.
+[Evidências e limites](docs/MOVIE_VALIDATION.md), [privacidade](docs/PRIVACY.md).
+
 Em **08/10/2026 — API-04/MOVIE-01/02/03**, categoria de filmes manual integrada, com biblioteca/status/data e ações consentidas de lista/sessão do casal. Análise limpa, **426 testes Flutter**, **86 testes Node/demo** e build web demo aprovados; jornada web confirmou cadastro, mudança de status, data e filtro. API-04/MOVIE-01 permanecem parciais pela ausência de fornecedor/intermediário real; MOVIE-02/03 concluídas localmente, sem produção. [Contrato e pendências](docs/MOVIES.md), [evidências](docs/DEVELOPMENT.md#filmes--api-04-movie-010203).
 
 Em **08/10/2026 — DOC-03/PROD-03/UI-03/API-05**, roteiro reproduzível e servidor web local adicionados; contraste, nomes/estados acessíveis e grade bíblica ajustados. Análise limpa, **402 testes Flutter**, **85 testes Node/demo** e build web demo aprovados. Jornada web confirmou manual sem chave, capa/fallback, leitura/recarga e capítulos pelo teclado. Os quatro itens continuam em andamento: reprodução independente, feedback humano, leitores de tela reais e execução Android/iOS ainda pendentes. [Achados e roteiro](docs/ACCESSIBILITY.md), [evidências](docs/WEB_VALIDATION.md#validação-local-de-fluxos-e-acessibilidade--08102026).
@@ -157,7 +166,7 @@ O serviço bíblico valida nome, proprietário, capítulo e total do lote antes 
 
 `flutter build web --no-pub` e o build com `--dart-define=USE_FIREBASE_EMULATORS=true` compilaram com sucesso, incluindo a verificação preliminar Wasm do Flutter. Esse resultado confirma compilação; navegação real no navegador, autenticação remota e publicação ainda precisam de validação.
 
-Em 03/10/2026, os builds Android **debug** padrão e demo passaram com o lockfile atual, sem alterar Gradle, IDs ou configuração Firebase gerada. O log antigo registra falha no compilador Java sem o diagnóstico da causa; ela não reapareceu nos builds atuais. Detalhes, avisos e limites em [ANDROID_BUILD.md](docs/ANDROID_BUILD.md). Nenhum APK foi instalado/executado; a assinatura Android de release continua debug.
+Em 03/10/2026, os builds Android **debug** padrão e demo passaram com o lockfile atual, sem alterar Gradle, IDs ou configuração Firebase gerada. O log antigo registra falha no compilador Java sem o diagnóstico da causa; ela não reapareceu nos builds atuais. Detalhes, avisos e limites em [ANDROID_BUILD.md](docs/ANDROID_BUILD.md). Nenhum APK foi instalado/executado. Desde 09/10/2026, release exige configuração própria de assinatura e recusa credenciais ausentes; a chave definitiva permanece pendente em REL-02.
 
 O workflow [CI](.github/workflows/ci.yml) está preparado e validado por actionlint, com análise/testes Flutter/build web demo e testes de Auth/Firestore emulado. Instalação por lockfile, SDK/ações fixados e ausência de deploy/credenciais de produção estão documentados em [DEVELOPMENT.md](docs/DEVELOPMENT.md#integração-contínua). Os dois checks passaram no [GitHub em 05/10/2026](https://github.com/RodolfoGama0101/bookself-app/actions/runs/37344664198), após corrigir a seleção do canal stable no runner. Proteção de branch obrigando os checks e comprovação de bloqueio de merge permanecem pendentes.
 

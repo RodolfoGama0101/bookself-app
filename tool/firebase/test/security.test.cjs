@@ -20,6 +20,43 @@ const progress = (uid, bookName = 'Gênesis', readChapters = [1]) => ({userId: u
 const db = uid => env.authenticatedContext(uid, {email: `${uid}@example.com`}).firestore();
 
 const jointSelection = {mediaType:'movie',title:'Filme fictício',subtitle:'',source:'manual',reference:null,episode:null};
+test('QA-03: disputa de estado de filme, revisão de sessão e novo vínculo preservam isolamento', async () => {
+  const rid = await jointRelation();
+  const identity = {kind:'external',provider:'fixture_video',externalId:'fixture'};
+  await assertSucceeds(mediaBatch(db('a'),'a','catalog','entry','movie',identity).commit());
+  await assertSucceeds(mediaBatch(db('b'),'b','catalog','entry','movie',identity).commit());
+  const own = doc(db('a'),'libraries/a/entries/entry');
+  const before = (await getDoc(own)).data();
+  const results = await Promise.allSettled([
+    updateDoc(own,{state:{status:'watched',watchedOn:'2020-02-29'},revision:2,updatedAt:serverTimestamp()}),
+    updateDoc(own,{state:{status:'watched',watchedOn:'2020-03-01'},revision:2,updatedAt:serverTimestamp()}),
+  ]);
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  assert.equal((await getDoc(own)).data().createdAt.toMillis(),before.createdAt.toMillis());
+  const partner = doc(db('b'),'libraries/b/entries/entry');
+  assert.equal((await getDoc(partner)).data().state.status,'planned');
+  const selection = {...jointSelection,source:'library',reference:mediaKey('movie',identity)};
+  await assertSucceeds(jointWrite(db('a'),rid,'experience',{...jointExperience(),selection}));
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'confirmed'));
+  const original = (await getDoc(doc(db('a'),jointPath(rid)))).data();
+  const corrected = {...original,occurredOn:'2020-03-02',revision:2,version:3,updatedAt:serverTimestamp(),
+    responses:{...original.responses,a:{revision:2,decision:'confirmed',respondedAt:serverTimestamp()}}};
+  await assertSucceeds(jointWrite(db('a'),rid,'experience',corrected));
+  await assert.rejects(jointRespond(db('b'),'b',rid,'confirmed',2),/revision conflict/);
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'confirmed',3));
+  const privateState = (await getDoc(own)).data().state;
+  await pair(db('a'),'a','b',false);
+  await assertFails(jointRespond(db('b'),'b',rid,'confirmed'));
+  await assertSucceeds(jointRespond(db('b'),'b',rid,'withdrawn'));
+  await pair(db('a'),'a','c');
+  for (const actor of [db('b'),db('c'),env.unauthenticatedContext().firestore()]) {
+    await assertFails(getDoc(doc(actor,'libraries/a/entries/entry')));
+    await assertFails(getDocs(collection(actor,'libraries/a/catalog')));
+  }
+  await assertFails(getDoc(doc(db('c'),jointPath(rid))));
+  assert.deepEqual((await getDoc(own)).data().state,privateState);
+  assert.equal((await getDoc(partner)).data().state.status,'planned');
+});
 test('MOVIE-02/03: filme pessoal, seleção mínima e sessão consentida após desvínculo',async()=>{
   const rid=await jointRelation();
   const identity={kind:'manual',ownerId:'a',manualId:'movie'};

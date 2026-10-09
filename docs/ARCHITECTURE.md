@@ -2,6 +2,15 @@
 
 Revisão: 08/10/2026. As seções iniciais descrevem o código atual; a evolução ao final é uma proposta.
 
+## Cópia pessoal — SEC-05 — 09/10/2026
+
+`PersonalExportService` concentra leituras paginadas do servidor do próprio
+perfil, livros/Bíblia e catálogo/entradas privados. Exige sessão correspondente,
+valida proprietário, rejeita cache/limite/falha e preserva timestamps na cópia
+JSON parcial. `PersonalExportScreen`, acessível no Perfil, só copia após ação
+explícita e limpa resultado ao trocar conta. Não cria escrita, backend, migração,
+restauração ou exclusão de conta. [Escopo e propostas pendentes](PRIVACY.md).
+
 ## Listas, experiências e telas paginadas — COUPLE-05/06, UI-05
 
 COUPLE-07 deriva interesses somente dos itens autorizados da lista ativa, com função pura em `lib/services/couple_interests.dart` e widget em `lib/ui/widgets/couple_interests.dart`. Não adiciona consultas pessoais, escritas, cache ou acesso ao histórico encerrado para sugerir escolhas. [Contrato](COUPLE_WORKSPACE.md#interesses-em-comum--couple-07). Ensaios de catálogo ficam em ferramenta de desenvolvimento Node, fora dos serviços Flutter; fornecedores/backend continuam propostas em [CATALOG_TRIALS.md](CATALOG_TRIALS.md).
