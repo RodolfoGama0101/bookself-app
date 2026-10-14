@@ -23,6 +23,21 @@ Após reinstalar o debug corrigido, a conta fictícia foi restaurada, o formulá
 
 REL-04/QA-03 continuam abertos: este ensaio não cobre bibliotecas completas, casal/desvínculo, imagens/rede/offline, permissões, TalkBack, desempenho release ou iOS. Nenhuma migração, implantação de regras/índices, assinatura definitiva ou publicação foi realizada. A versão instalada no Pixel 9 é debug demo; não equivale ao APK remoto de distribuição.
 
+## Jornada pessoal automatizada — QA-03 / REL-04 — 14/10/2026
+
+`integration_test/android_demo_test.dart` executado no mesmo Pixel 9/API 37, usando os serviços Auth/Firestore demo já iniciados. **Uma jornada nativa aprovada em 29 s**, após compilação/instalação. Criou sua própria conta fictícia e confirmou pelo servidor:
+
+- cadastro com perfil completo;
+- livro manual sem capa/API e mudança de Quero Ler para Lendo;
+- filme manual e marcação Assistido;
+- faixa manual, favorito e escuta pessoal com data;
+- série manual, episódio disponível marcado e pausa conservando o visto;
+- capítulo 1 de Gênesis marcado independentemente das bibliotecas.
+
+A jornada usa a interface para escrever e clientes Firebase nativos autenticados para conferir persistência. Foi ajustada às abas de leitura e aos gestos da rolagem aninhada; falhas iniciais de seletores/rolagem eram do teste e não foram tratadas como defeitos do produto. **506 testes Flutter existentes aprovados** com a nova dependência de desenvolvimento `integration_test`, sem atualizar pacotes existentes. [Comando, proteção contra produção e retorno ao app manual](DEVELOPMENT.md#jornada-automatizada-android--qa-03).
+
+Continuam pendentes álbum, experiência/vínculo de duas contas no Android, catálogo real, rede/offline/imagens, leitores de tela, outras configurações Android e iOS. Não comprova restauração após reinício por mídia nem autoriza distribuição. QA-03/REL-04 permanecem em andamento.
+
 ## Assinatura de distribuição — REL-02 — 09/10/2026
 
 O build `release` agora usa configuração própria e falha sem os quatro campos

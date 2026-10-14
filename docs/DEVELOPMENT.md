@@ -282,6 +282,28 @@ Sem `USE_FIREBASE_EMULATORS=true`, o comportamento anterior permanece: o app usa
 
 ## Dados, regras e diagnóstico
 
+### Jornada automatizada Android — QA-03
+
+Com Auth/Firestore demo já iniciados e um emulador Android disponível, execute na raiz:
+
+```sh
+flutter test integration_test/android_demo_test.dart -d emulator-5554 --no-pub --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2 --dart-define=RUN_ANDROID_DEMO_TESTS=true
+```
+
+Confirme o ID do dispositivo por `flutter devices`. Na primeira configuração, execute `flutter pub get --enforce-lockfile`; `integration_test` é dependência de desenvolvimento do próprio SDK fixado. A suíte comum `flutter test --no-pub` continua separada da jornada nativa.
+
+O teste exige os dois opt-ins antes de inicializar Firebase, aceita somente os hosts locais de `FirebaseEnvironment` e confere o projeto fictício e host/SSL da instância nativa. Cria uma conta nova por execução, com senha aleatória mantida somente em memória, e interage com formulários/bibliotecas reais. As verificações de persistência usam leituras autenticadas do servidor; não substituem Firebase por fakes. Não consulta catálogo nem adiciona imagens externas.
+
+O teste pode sair da conta demo que estava aberta no dispositivo, mas não limpa o banco, não apaga contas/documentos existentes e não exporta dados. Suas contas/registros ficam no ambiente descartável até o encerramento dos emuladores. Não execute o runner de regras nas mesmas portas durante a jornada: ele limpa dados de teste. Use portas alternativas e os defines correspondentes se houver outra sessão reservada.
+
+A instalação do teste substitui temporariamente o app debug no dispositivo. Para voltar ao uso manual depois de terminar, reinstale a entrada normal:
+
+```sh
+flutter run -d emulator-5554 --no-pub --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2
+```
+
+Isso não implanta regras/índices, não migra produção e não publica APK. A execução nativa complementa as regressões Flutter/Node; catálogo real, plataformas Apple e avaliação com leitores de tela precisam de evidências próprias.
+
 ### Biblioteca, Nós e Bíblia — UI-01/02, BIBLE-01 (08/10/2026)
 
 Formatação dos arquivos afetados; `flutter analyze --no-pub` sem apontamentos; `flutter test --no-pub` com **373 testes aprovados**. Nove novos widgets em `navigation_flow_test.dart` verificam filtros/testamento entre destinos e larguras, retorno da Bíblia por botão/sistema, capítulo como rota própria, ausência de apresentação do parceiro, término sem perda pessoal, erro com repetição, comparação offline independente, carregamento sem falso zero, troca de conta e menu em 320 px/texto 2×. `bible_service_test.dart` acrescenta rejeição de metadados compartilhados pendentes e recuperação por confirmação posterior, sem encerrar o stream.
