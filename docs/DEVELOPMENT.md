@@ -271,7 +271,7 @@ Cadastre duas contas fictícias pela interface; cada cadastro cria seu perfil. N
 | Cliente | Host e comando | Limite de validação |
 | --- | --- | --- |
 | Web no mesmo computador | `127.0.0.1`, comando Chrome acima. | Compilação e configuração verificadas; jornada Flutter no navegador deve ser validada antes da distribuição. |
-| Emulador Android | `flutter run -d <id-do-emulador> --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2` | Alias acessa o computador anfitrião. Execução Android não validada nesta entrega. |
+| Emulador Android | `flutter run -d <id-do-emulador> --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2` | Alias acessa o computador anfitrião. Login, cadastro Auth e recuperação/gravação de perfil/Início verificados no Pixel 9 em 14/10/2026 após CORE-14; [demais jornadas pendentes](ANDROID_BUILD.md#execução-no-pixel-9--core-14--rel-04--14102026). |
 | Simulador iOS no Mac | `flutter run -d <id-do-simulador> --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_EMULATOR_HOST=127.0.0.1` | Execute os emuladores Firebase no mesmo Mac. Execução iOS depende de ambiente Apple e permanece pendente. |
 
 Os adaptadores FlutterFire também mapeiam loopback para `10.0.2.2` no Android; informar o alias deixa a intenção explícita. Hosts aceitos: `127.0.0.1`, `localhost` e `10.0.2.2`. Dispositivos físicos via LAN e hosts remotos não estão habilitados. Windows/macOS/Linux como apps Flutter nativos continuam sem configuração de produção e não foram validados.

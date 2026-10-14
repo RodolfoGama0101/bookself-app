@@ -31,6 +31,7 @@ Conferência pelo plugin: total, unicidade, responsável, status e prioridades d
 | CORE-11 | [ROD-21](https://linear.app/rodolfo-gama/issue/ROD-21/core-11-revisar-datas-de-conclusao-edicao-de-registros-lidos-sem-data) |
 | CORE-12 | [ROD-22](https://linear.app/rodolfo-gama/issue/ROD-22/core-12-evitar-orientacao-duplicada-na-mensagem-de-falha-da-busca) |
 | CORE-13 | [ROD-23](https://linear.app/rodolfo-gama/issue/ROD-23/core-13-preservar-sessao-na-recarga-do-web-demo-e-configurar-auth) |
+| CORE-14 | [ROD-92](https://linear.app/rodolfo-gama/issue/ROD-92/core-14-configurar-firestore-demo-antes-da-primeira-operacao-nativa) |
 | SEC-01 | [ROD-24](https://linear.app/rodolfo-gama/issue/ROD-24/sec-01-auditar-regras-remotas-e-versionar-regras-do-firestore) |
 | SEC-02 | [ROD-25](https://linear.app/rodolfo-gama/issue/ROD-25/sec-02-configurar-firebase-emulator-suite-para-authfirestore-e-dados) |
 | SEC-03 | [ROD-26](https://linear.app/rodolfo-gama/issue/ROD-26/sec-03-inventariar-chavescredenciais-e-separar-configuracao-por) |
@@ -100,7 +101,11 @@ Conferência pelo plugin: total, unicidade, responsável, status e prioridades d
 | IDEA-04 | [ROD-90](https://linear.app/rodolfo-gama/issue/ROD-90/idea-04-memoria-compartilhada-com-datas-e-contexto-dos-momentos) |
 | IDEA-05 | [ROD-91](https://linear.app/rodolfo-gama/issue/ROD-91/idea-05-avaliar-links-de-onde-assistirouvir-e-reproducaosessoes) |
 
-## Sincronização pendente — rodada local de 09/10/2026
+## Histórico da pendência de 09/10/2026 — conciliada em 14/10/2026
+
+Em 14/10/2026, sob as instruções atuais de sincronização automática, as cinco issues foram relidas com relações, atualizadas por acréscimo dos avanços locais abaixo e movidas para **In Progress**. A releitura confirmou conteúdo, Rodolfo Gama, prioridades e dependências preservadas. Não houve conflito nem rejeição nesta rodada. O registro histórico abaixo descreve o impedimento anterior, já resolvido para esses cinco itens; os critérios completos continuam pendentes e nenhum deles foi marcado Done.
+
+Na mesma rodada, **CORE-14/ROD-92** foi pesquisada antes da criação, vinculada à dependência SEC-02/ROD-25 e concluída com correção/validação Android demo; **REL-04/ROD-81** recebeu andamento e evidências, mantendo **In Progress**. Releitura confirmou responsável Rodolfo Gama, prioridade High, descrições e relações de ambos. Evidências em [ANDROID_BUILD.md](ANDROID_BUILD.md); commits/documentação locais podem ainda não aparecer nos links remotos. Nenhuma implantação, migração ou publicação.
 
 Após reler AGENTS.md a pedido do usuário, as cinco issues abaixo foram consultadas com relações. Todas permaneciam em Backlog, atribuídas a Rodolfo Gama, com prioridades e dependências coerentes com a origem. A atualização de ROD-7 foi rejeitada pela revisão automática de aprovação: envio de detalhes internos de implementação e link de repositório a um serviço externo sem autorização explícita aceita para esse conteúdo/destino. Nenhuma escrita desta rodada foi confirmada; não foram tentados caminhos alternativos. É necessária autorização para sincronizar os avanços abaixo. Não marcar Done, pois os critérios integrais continuam pendentes.
 

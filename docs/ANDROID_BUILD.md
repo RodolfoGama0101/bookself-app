@@ -1,5 +1,28 @@
 # Verificação do build Android
 
+## Execução no Pixel 9 — CORE-14 / REL-04 — 14/10/2026
+
+Utilizados Flutter 3.44.0/Dart 3.12.0 na revisão fixada, SDK Android e AVD **Pixel_9** já instalados. Dispositivo `emulator-5554`, imagem x86_64 Android API 37 com páginas de 16 KB. Nenhum SDK, imagem ou AVD novo foi instalado. Auth/Firestore locais em 9099/8080, projeto fictício `demo-bookself`; sem chave de catálogo.
+
+Reprodução em dois terminais na raiz, preservando outras sessões e conferindo portas livres:
+
+```sh
+npm --prefix tool/firebase run emulators
+```
+
+```sh
+flutter emulators --launch Pixel_9
+flutter run -d emulator-5554 --no-pub --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2
+```
+
+Confirme o ID por `flutter devices`, pois ele pode variar. Use somente contas fictícias. Mantenha o terminal Firebase aberto durante o uso; encerre com Ctrl+C quando terminar. Os dados demo são descartáveis. `d` no terminal Flutter desconecta o depurador mantendo o app aberto; `q` encerra o app. Encerre o Pixel 9 pela própria janela quando não precisar dele. Não execute testes que limpem esse mesmo ambiente enquanto estiver usando o app.
+
+**Falha reproduzida e corrigida em CORE-14:** a tela de cadastro criou a conta Auth local, mas a gravação de perfil falhou. A primeira chamada nativa `clearPersistence` materializava as configurações padrão de host/SSL antes de `useFirestoreEmulator`; o SDK tentava o endpoint remoto do projeto fictício e recebia `PERMISSION_DENIED`. A configuração do destino foi antecipada para antes da limpeza. Persistência continua desabilitada e a limpeza continua anterior aos serviços; modo padrão e regras preservados. A implementação instalada de FlutterFire usa `late final pigeonApp`, confirmando que a primeira operação captura as configurações.
+
+Após reinstalar o debug corrigido, a conta fictícia foi restaurada, o formulário de conclusão salvou o perfil e o Início abriu com estatísticas vazias. Encerramento completo e reabertura também restauraram o Início autenticado. Capturas locais em `build/validation/android-2026-10-14/`, ignoradas pelo Git, registram login, falha anterior e Início. Formatação aprovada, análise sem apontamentos e **506 testes Flutter aprovados após a correção**. Build debug instalado com sucesso. Avisos preexistentes de Java/Kotlin, SDK XML e opt-out Impeller continuam; não foram ocultados.
+
+REL-04/QA-03 continuam abertos: este ensaio não cobre bibliotecas completas, casal/desvínculo, imagens/rede/offline, permissões, TalkBack, desempenho release ou iOS. Nenhuma migração, implantação de regras/índices, assinatura definitiva ou publicação foi realizada. A versão instalada no Pixel 9 é debug demo; não equivale ao APK remoto de distribuição.
+
 ## Assinatura de distribuição — REL-02 — 09/10/2026
 
 O build `release` agora usa configuração própria e falha sem os quatro campos

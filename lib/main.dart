@@ -82,7 +82,6 @@ Future<void> _initializeFirebase() async {
   final firestore = FirebaseFirestore.instanceFor(app: app);
   // Dados alheios não devem persistir entre sessões/relações.
   firestore.settings = const Settings(persistenceEnabled: false);
-  await firestore.clearPersistence();
   if (environment.useEmulators) {
     firestore.useFirestoreEmulator(environment.host, environment.firestorePort);
     if (!webAuthConfigured) {
@@ -91,6 +90,9 @@ Future<void> _initializeFirebase() async {
       ).useAuthEmulator(environment.host, environment.authPort);
     }
   }
+  // No SDK nativo, a primeira operação fixa host/SSL. Configure o destino
+  // antes de limpar o cache, mantendo a limpeza antes de criar os serviços.
+  await firestore.clearPersistence();
 }
 
 class BookselfApp extends StatelessWidget {
