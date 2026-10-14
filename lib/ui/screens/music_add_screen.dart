@@ -228,7 +228,13 @@ class _MusicAddScreenState extends State<MusicAddScreen> {
               ListTile(
                 title: Text(music.metadata.title),
                 subtitle: Text(
-                  (music.metadata.toMap()['artists'] as List).join(', '),
+                  [
+                    (music.metadata.toMap()['artists'] as List).join(', '),
+                    if (music.metadata.toMap()['version'] != null)
+                      music.metadata.toMap()['version'] as String,
+                    if (music.metadata.toMap()['edition'] != null)
+                      music.metadata.toMap()['edition'] as String,
+                  ].join(' · '),
                 ),
                 onTap: locked || _detailsPending ? null : () => _select(music),
               ),
@@ -244,7 +250,7 @@ class _MusicAddScreenState extends State<MusicAddScreen> {
                 _searchError == null &&
                 _results.isEmpty)
               const Text(
-                'Nenhuma música encontrado. Você pode cadastrar manualmente.',
+                'Nenhuma música encontrada. Você pode cadastrar manualmente.',
               ),
             const SizedBox(height: 24),
             if (_selected == null) ...[

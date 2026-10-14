@@ -1,5 +1,20 @@
 # Verificação do build Android
 
+## MusicBrainz local — API-04 / MUSIC-01 — 14/10/2026
+
+No AVD Android API 34 já instalado, `integration_test/musicbrainz_demo_test.dart`
+aprovou uma jornada em **23 s**: conta fictícia, busca pública pelo intermediário
+local, seleção/detalhes e salvamento de faixa e álbum pela interface, releitura
+confirmada no Firestore demo. Tipo/MBID/artistas/edição preservados, sem capa,
+favorito ou escuta automática. Primeiro ensaio ajustou a rolagem do teste;
+repetição passou sem intervenção. Build/instalação debug aprovados, sem mudanças
+de SDK, permissões, identidade técnica ou dependências.
+
+[Comandos e limites](MUSIC.md#musicbrainz-local--14102026). Log ignorado em
+`build/validation/android-2026-10-14/musicbrainz-api34.log`. Nenhum dado real,
+regra remota, migração ou publicação alterado. Web/iOS, offline e hospedagem
+pública continuam pendentes; API-04/MUSIC-01 seguem em andamento no Linear.
+
 ## Execução no Pixel 9 — CORE-14 / REL-04 — 14/10/2026
 
 Utilizados Flutter 3.44.0/Dart 3.12.0 na revisão fixada, SDK Android e AVD **Pixel_9** já instalados. Dispositivo `emulator-5554`, imagem x86_64 Android API 37 com páginas de 16 KB. Nenhum SDK, imagem ou AVD novo foi instalado. Auth/Firestore locais em 9099/8080, projeto fictício `demo-bookself`; sem chave de catálogo.

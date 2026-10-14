@@ -43,7 +43,13 @@ abstract class MusicCatalog {
     const provider = String.fromEnvironment('MUSIC_CATALOG_PROVIDER');
     if (endpoint.isEmpty || provider.isEmpty) return UnavailableMusicCatalog();
     try {
-      return HttpMusicCatalog(Uri.parse(endpoint), provider);
+      return HttpMusicCatalog(
+        Uri.parse(endpoint),
+        provider,
+        useFirebaseEmulators: const bool.fromEnvironment(
+          'USE_FIREBASE_EMULATORS',
+        ),
+      );
     } catch (_) {
       // Configuração inválida nunca envia dados a outro destino.
       return UnavailableMusicCatalog();
@@ -66,16 +72,21 @@ class UnavailableMusicCatalog extends MusicCatalog {
 }
 
 /// Contrato de um intermediário normalizado, sem token de fornecedor no app.
-/// Não implementa um backend nem escolhe fornecedor musical ou licença/cache.
+/// O intermediário MusicBrainz local está em tool/catalog/musicbrainz-server.cjs.
 class HttpMusicCatalog extends MusicCatalog {
   HttpMusicCatalog(
     this.endpoint,
     this.provider, {
     http.Client? client,
     this.timeout = const Duration(seconds: 15),
+    bool useFirebaseEmulators = false,
   }) : _client = client ?? http.Client(),
        _ownsClient = client == null {
-    if (endpoint.scheme != 'https' ||
+    final localDemo =
+        useFirebaseEmulators &&
+        endpoint.scheme == 'http' &&
+        const {'localhost', '127.0.0.1', '10.0.2.2'}.contains(endpoint.host);
+    if ((!localDemo && endpoint.scheme != 'https') ||
         endpoint.host.isEmpty ||
         endpoint.userInfo.isNotEmpty ||
         endpoint.hasQuery ||

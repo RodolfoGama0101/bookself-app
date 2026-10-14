@@ -8,6 +8,38 @@ import 'package:bookself_app/services/music_catalog.dart';
 import 'package:bookself_app/utils/error_handler.dart';
 
 void main() {
+  test('HTTP só é permitido em hosts locais no modo emulado', () {
+    for (final host in ['localhost', '127.0.0.1', '10.0.2.2']) {
+      final uri = Uri.parse('http://$host:17370');
+      expect(
+        () => HttpMusicCatalog(uri, 'musicbrainz'),
+        throwsA(isA<CatalogConfigurationException>()),
+      );
+      final demo = HttpMusicCatalog(
+        uri,
+        'musicbrainz',
+        useFirebaseEmulators: true,
+      );
+      expect(demo.available, true);
+      demo.close();
+    }
+    for (final endpoint in [
+      'http://example.test',
+      'http://127.0.0.1.example.test',
+      'http://user:password@localhost',
+      'http://localhost?token=example',
+      'http://localhost#fragment',
+    ]) {
+      expect(
+        () => HttpMusicCatalog(
+          Uri.parse(endpoint),
+          'musicbrainz',
+          useFirebaseEmulators: true,
+        ),
+        throwsA(isA<CatalogConfigurationException>()),
+      );
+    }
+  });
   test('não combina identidade de faixa com metadados de álbum', () {
     expect(
       () => MusicCatalogItem(

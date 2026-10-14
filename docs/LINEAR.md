@@ -8,6 +8,20 @@ Foram importados os **87 itens** existentes na leitura inicial: **31 abertos em 
 
 Conferência pelo plugin: total, unicidade, responsável, status e prioridades dos 87 itens; leitura das relações dos 65 itens com dependências confirmou todas as 133 referências. A importação não altera os critérios de conclusão nem aprova implantação, migração, fornecedores ou marca. Não foram executadas verificações Flutter, pois esta entrega altera somente documentação e cadastro de tarefas.
 
+## MusicBrainz local — sincronização de 14/10/2026
+
+API-04/ROD-48 e MUSIC-01/ROD-70 foram lidas antes do trabalho, iniciadas e
+atualizadas pelo plugin com a integração musical local e suas evidências:
+**507 testes Flutter**, **14 Node**, análise limpa, smoke público de busca/detalhes/
+paginação e jornada Android API 34 de faixa/álbum salvos e relidos em **23 s**.
+Releitura confirmou **In Progress**, Rodolfo Gama, prioridade High, conteúdo e
+relações de bloqueio preservadas. Sem divergências nem pendências de escrita.
+
+MUSIC-01 continua pela jornada web real pendente; API-04 também pelo audiovisual
+de API-02. Hospedagem/condições públicas, capas e SEC-06 não foram liberadas.
+[Escopo e comandos](MUSIC.md#musicbrainz-local--14102026). Commits locais podem
+ainda não aparecer na branch remota; nenhuma implantação, migração ou publicação.
+
 ## Correspondência de IDs
 
 | ID no repositório | Tarefa no Linear |

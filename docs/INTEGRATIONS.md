@@ -1,6 +1,6 @@
 # Integrações
 
-Referências revisadas até 09/10/2026. Revalidar requisitos, limites e termos antes de implementar. MusicBrainz foi aprovado para metadados musicais em API-03, mas ainda não está integrado; fornecedor audiovisual permanece pendente.
+Referências MusicBrainz revisadas em 14/10/2026; demais até 09/10/2026. MusicBrainz foi aprovado em API-03 e tem [intermediário local de metadados](MUSIC.md#musicbrainz-local--14102026), com busca/detalhes, cache efêmero e limitador compartilhado no processo. Fornecedor audiovisual e hospedagem musical pública permanecem pendentes.
 
 **Atualização de 09/10/2026 — API-02/03:** [comparação e ensaios reproduzíveis](CATALOG_TRIALS.md) revisam fontes oficiais, limitações comerciais/cache/backend e mostram resultados reais de buscas MusicBrainz, detalhes/edição/capa e uma falha HTTP 503 parcial. MusicBrainz foi escolhido explicitamente para metadados da primeira integração musical; credencial TMDB ainda ausente e Spotify sem acesso autenticado. A escolha não representa adaptador implementado, infraestrutura, licença comercial ou streaming.
 
@@ -13,9 +13,10 @@ Referências revisadas até 09/10/2026. Revalidar requisitos, limites e termos a
 | Google Books | Busca de volumes com até 20 resultados por chamada, timeout de 15 s, paginação e `googleBooksId` opcional. | Revisão real de restrições/quotas (SEC-03) e jornada do catálogo em plataformas. |
 | Google Fonts | Fontes Playfair Display e Outfit empacotadas; busca de fontes na rede desabilitada. | Inspeção visual em plataformas. |
 | Image Picker | Avatar salvo em Base64 no Firestore; cancelamento/negação tratados e descrições de uso iOS adicionadas. | Permissões nativas/build Apple e estratégia de armazenamento. |
+| MusicBrainz | Busca de gravações e edições de álbuns por intermediário local identificado, sem chave. | Jornada web, infraestrutura/condições comerciais públicas e capas separadas. |
 | Capas HTTPS | Carregamento direto com fallback; web permite elemento HTML quando a decodificação falha por CORS. | Verificação real Android/iOS/web; `wsrv.nl` removido do app. |
 
-Não há servidor próprio no repositório. `storageBucket` na configuração Firebase não significa que haja upload para Firebase Storage implementado.
+O intermediário Node versionado é exclusivamente local; não há backend de catálogo público implantado. `storageBucket` na configuração Firebase não significa que haja upload para Firebase Storage implementado.
 
 ## Busca e recursos locais de leitura
 

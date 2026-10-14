@@ -8,6 +8,10 @@ O [MVP da expansão](docs/PRODUCT.md#mvp-aprovado--prod-01) foi aprovado em 05/1
 
 ## Documentação
 
+Integração musical local de 14/10/2026: busca/detalhes MusicBrainz para faixas e
+edições de álbuns, com intermediário no computador e cadastro manual preservado.
+[Como executar e limites de implantação](docs/MUSIC.md#musicbrainz-local--14102026).
+
 | Arquivo | Conteúdo |
 | --- | --- |
 | [BACKLOG.md](BACKLOG.md) | Fonte central de tarefas, prioridades, dependências e critérios de conclusão. |
