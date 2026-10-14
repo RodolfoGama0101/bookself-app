@@ -36,7 +36,26 @@ REL-04/QA-03 continuam abertos: este ensaio não cobre bibliotecas completas, ca
 
 A jornada usa a interface para escrever e clientes Firebase nativos autenticados para conferir persistência. Foi ajustada às abas de leitura e aos gestos da rolagem aninhada; falhas iniciais de seletores/rolagem eram do teste e não foram tratadas como defeitos do produto. **506 testes Flutter existentes aprovados** com a nova dependência de desenvolvimento `integration_test`, sem atualizar pacotes existentes. [Comando, proteção contra produção e retorno ao app manual](DEVELOPMENT.md#jornada-automatizada-android--qa-03).
 
-Continuam pendentes álbum, experiência/vínculo de duas contas no Android, catálogo real, rede/offline/imagens, leitores de tela, outras configurações Android e iOS. Não comprova restauração após reinício por mídia nem autoriza distribuição. QA-03/REL-04 permanecem em andamento.
+Na execução pessoal inicial, álbum e casal Android ainda estavam pendentes; o avanço seguinte está registrado abaixo. Catálogo real, rede/offline/imagens, leitores de tela, outras configurações Android e iOS continuam pendentes. Não comprova restauração após reinício por mídia nem autoriza distribuição. QA-03/REL-04 permanecem em andamento.
+
+## Jornada de duas contas — QA-03 / REL-04 — 14/10/2026
+
+A mesma integração foi ampliada e executada no AVD existente **CodexRemindersApi34**, Android API 34/x86_64, 1.080 × 2.400, densidade 420. A primeira execução completa passou em **3 min 36 s**, incluindo uma intervenção para trazer a atividade ao primeiro plano: o launcher estava ativo enquanto o teste aguardava frames. **Repetição final aprovada em 1 min 38 s, sem intervenção durante a jornada**, com boot completo confirmado antes de iniciar. `wait-for-device` sozinho não comprova boot completo; o roteiro agora exige `sys.boot_completed = 1` e atividade em primeiro plano. A automação espera o fim de animações/carregamentos e conserva uma proteção para não fechar a rota raiz. Formatação e análise final sem apontamentos; os 506 testes Flutter existentes passaram após adicionar a dependência do SDK, antes da ampliação exclusiva do teste nativo.
+
+Além da jornada pessoal acima, foram verificados pela interface e pelo servidor local:
+
+- criação do convite por A, consulta e aceite explícito por B;
+- consulta de livros compartilhados negada antes do vínculo e permitida durante ele; perfil privado de A negado mesmo com vínculo;
+- álbum manual e favorito pessoal de B;
+- lista criada por B, seleção de álbum e proposta manual de uma sessão de filme;
+- entrada de A, consulta da lista e confirmação da revisão, com duas respostas válidas no servidor;
+- biblioteca/favoritos musicais de B negados a A;
+- desvínculo pela interface de A; filme, faixa e episódio pessoal de A preservados;
+- nova entrada de B: consulta compartilhada de A revogada, álbum/favorito próprios e histórico conjunto preservados.
+
+Não foram criadas contas ou vínculos por seed administrativo. Leituras usam `Source.server`; o teste exige `permission-denied` nas negações, não aceita um erro genérico de rede como prova de isolamento. Sem valores de credenciais, códigos de convite ou identificadores de contas nas evidências versionadas. Os documentos já existentes no ambiente demo não foram apagados.
+
+A jornada ampliada no Pixel 9/API 37 foi interrompida durante transições e não recebeu resultado integral. A causa dessas interrupções não foi comprovada; não atribuir uma correção de produto à troca de emulador ou aos ajustes da automação. A aprovação pessoal anterior no Pixel 9 permanece limitada àquele escopo. Comparação de episódios/sessão episódica, correção/reconfirmação concorrente por mídia, novo parceiro, rede/offline/imagens, TalkBack e iOS continuam fora desta execução nativa; QA-03/REL-04 continuam abertos. Nenhuma implantação, migração ou publicação.
 
 ## Assinatura de distribuição — REL-02 — 09/10/2026
 

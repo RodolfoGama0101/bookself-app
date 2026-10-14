@@ -287,19 +287,19 @@ Sem `USE_FIREBASE_EMULATORS=true`, o comportamento anterior permanece: o app usa
 Com Auth/Firestore demo já iniciados e um emulador Android disponível, execute na raiz:
 
 ```sh
-flutter test integration_test/android_demo_test.dart -d emulator-5554 --no-pub --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2 --dart-define=RUN_ANDROID_DEMO_TESTS=true
+flutter test integration_test/android_demo_test.dart -d emulator-5556 --no-pub --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2 --dart-define=RUN_ANDROID_DEMO_TESTS=true
 ```
 
-Confirme o ID do dispositivo por `flutter devices`. Na primeira configuração, execute `flutter pub get --enforce-lockfile`; `integration_test` é dependência de desenvolvimento do próprio SDK fixado. A suíte comum `flutter test --no-pub` continua separada da jornada nativa.
+Confirme o ID do dispositivo por `flutter devices` e aguarde o Android concluir a inicialização (`adb -s <id> shell getprop sys.boot_completed` deve retornar `1`). Mantenha a atividade do app em primeiro plano no Android: com o launcher ativo, o teste pode ficar aguardando frames. Na primeira configuração, execute `flutter pub get --enforce-lockfile`; `integration_test` é dependência de desenvolvimento do próprio SDK fixado. A suíte comum `flutter test --no-pub` continua separada da jornada nativa.
 
-O teste exige os dois opt-ins antes de inicializar Firebase, aceita somente os hosts locais de `FirebaseEnvironment` e confere o projeto fictício e host/SSL da instância nativa. Cria uma conta nova por execução, com senha aleatória mantida somente em memória, e interage com formulários/bibliotecas reais. As verificações de persistência usam leituras autenticadas do servidor; não substituem Firebase por fakes. Não consulta catálogo nem adiciona imagens externas.
+O teste exige os dois opt-ins antes de inicializar Firebase, aceita somente os hosts locais de `FirebaseEnvironment` e confere o projeto fictício e host/SSL da instância nativa. Cria duas contas novas por execução, com senha aleatória mantida somente em memória, e interage com formulários/bibliotecas reais, convites, lista, experiência e desvínculo. As verificações de persistência e revogação usam leituras autenticadas do servidor; negações exigem `permission-denied`, não um erro genérico de rede. Não substitui Firebase por fakes, não consulta catálogo nem adiciona imagens externas.
 
 O teste pode sair da conta demo que estava aberta no dispositivo, mas não limpa o banco, não apaga contas/documentos existentes e não exporta dados. Suas contas/registros ficam no ambiente descartável até o encerramento dos emuladores. Não execute o runner de regras nas mesmas portas durante a jornada: ele limpa dados de teste. Use portas alternativas e os defines correspondentes se houver outra sessão reservada.
 
 A instalação do teste substitui temporariamente o app debug no dispositivo. Para voltar ao uso manual depois de terminar, reinstale a entrada normal:
 
 ```sh
-flutter run -d emulator-5554 --no-pub --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2
+flutter run -d emulator-5556 --no-pub --dart-define=USE_FIREBASE_EMULATORS=true --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2
 ```
 
 Isso não implanta regras/índices, não migra produção e não publica APK. A execução nativa complementa as regressões Flutter/Node; catálogo real, plataformas Apple e avaliação com leitores de tela precisam de evidências próprias.

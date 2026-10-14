@@ -103,6 +103,10 @@ Conferência pelo plugin: total, unicidade, responsável, status e prioridades d
 
 ## Histórico da pendência de 09/10/2026 — conciliada em 14/10/2026
 
+### Continuação de QA-03 / REL-04 em 14/10/2026
+
+ROD-75 e ROD-81 receberam evidências da jornada nativa pessoal e da ampliação para duas contas no Android 34: álbum, convite consentido, lista, experiência com duas confirmações, privacidade e revogação após término. Permanecem **In Progress**, atribuídas a Rodolfo Gama, prioridade High e dependências preservadas. [Escopo e limites](ANDROID_BUILD.md#jornada-de-duas-contas--qa-03--rel-04--14102026): repetição final aprovada em 1 min 38 s; Pixel 9 validado apenas no escopo pessoal anterior. Sem implantação, migração ou publicação. Links remotos podem ainda mostrar versões anteriores aos commits locais.
+
 Em 14/10/2026, sob as instruções atuais de sincronização automática, as cinco issues foram relidas com relações, atualizadas por acréscimo dos avanços locais abaixo e movidas para **In Progress**. A releitura confirmou conteúdo, Rodolfo Gama, prioridades e dependências preservadas. Não houve conflito nem rejeição nesta rodada. O registro histórico abaixo descreve o impedimento anterior, já resolvido para esses cinco itens; os critérios completos continuam pendentes e nenhum deles foi marcado Done.
 
 Na mesma rodada, **CORE-14/ROD-92** foi pesquisada antes da criação, vinculada à dependência SEC-02/ROD-25 e concluída com correção/validação Android demo; **REL-04/ROD-81** recebeu andamento e evidências, mantendo **In Progress**. Releitura confirmou responsável Rodolfo Gama, prioridade High, descrições e relações de ambos. Evidências em [ANDROID_BUILD.md](ANDROID_BUILD.md); commits/documentação locais podem ainda não aparecer nos links remotos. Nenhuma implantação, migração ou publicação.

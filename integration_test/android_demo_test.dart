@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:bookself_app/main.dart' as app;
 import 'package:bookself_app/data/models/media_model.dart';
+import 'package:bookself_app/data/models/couple_record.dart';
 import 'package:bookself_app/services/firebase_environment.dart';
 import 'package:bookself_app/services/movie_library_service.dart';
 import 'package:bookself_app/services/music_library_service.dart';
@@ -14,10 +15,11 @@ import 'package:integration_test/integration_test.dart';
 
 // Este teste cria somente dados novos; não limpa outras sessões demo.
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized().framePolicy =
+      LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets(
-    'QA-03: bibliotecas pessoais no Firebase Android demo',
+    'QA-03: bibliotecas e casal no Firebase Android demo',
     (tester) async {
       const environment = FirebaseEnvironment.fromDefines;
       if (!environment.useEmulators ||
@@ -49,13 +51,14 @@ void main() {
       await waitFor(tester, () => find.text('Entrar').evaluate().isNotEmpty);
 
       final nonce = DateTime.now().microsecondsSinceEpoch;
+      final email = 'android-$nonce@example.test';
       final password = List.generate(
         24,
         (_) => Random.secure().nextInt(36).toRadixString(36),
       ).join();
       await tapText(tester, 'Não tem conta? Cadastre-se');
       await fill(tester, 'Seu Nome', 'Jornada Android');
-      await fill(tester, 'E-mail', 'android-$nonce@example.test');
+      await fill(tester, 'E-mail', email);
       await fill(tester, 'Senha', password);
       await tapText(tester, 'Criar Conta');
       await waitFor(
@@ -180,6 +183,194 @@ void main() {
       expect(bible.docs.single.data()['readChapters'], contains(1));
       tester.printToConsole('QA-03: capítulo bíblico confirmado.');
 
+      await back(tester);
+      await destination(tester, 'Nós');
+      tester.printToConsole('QA-03: iniciando convite.');
+      await tapText(tester, 'Convites do casal');
+      await tapText(tester, 'Li e concordo com esse compartilhamento.');
+      await tapText(tester, 'Criar convite');
+      await waitFor(
+        tester,
+        () => find.byType(SelectableText).evaluate().isNotEmpty,
+      );
+      final code = tester
+          .widget<SelectableText>(find.byType(SelectableText).first)
+          .data!;
+      tester.printToConsole('QA-03: convite criado.');
+      await back(tester);
+      await signOut(tester);
+
+      // Segunda conta também nasce pela interface, sem seed administrativo.
+      final partnerEmail = 'partner-$nonce@example.test';
+      await tapText(tester, 'Não tem conta? Cadastre-se');
+      await fill(tester, 'Seu Nome', 'Parceiro Android');
+      await fill(tester, 'E-mail', partnerEmail);
+      await fill(tester, 'Senha', password);
+      await tapText(tester, 'Criar Conta');
+      await waitFor(
+        tester,
+        () => find.byType(MainNavigation).evaluate().isNotEmpty,
+      );
+      final partner = auth.currentUser!.uid;
+      final sharedBooks = db
+          .collection('shared_books')
+          .where('userId', isEqualTo: owner);
+      await denied(
+        () => sharedBooks.get(const GetOptions(source: Source.server)),
+      );
+      await destination(tester, 'Nós');
+      await tapText(tester, 'Convites do casal');
+      await fill(tester, 'Código de convite', code);
+      await tapText(tester, 'Consultar convite');
+      await waitFor(
+        tester,
+        () => find.text('Jornada Android').evaluate().isNotEmpty,
+      );
+      await tapText(tester, 'Li e concordo com esse compartilhamento.');
+      await tapText(tester, 'Aceitar convite');
+      await waitFor(
+        tester,
+        () => find
+            .text(
+              'Você já possui um vínculo ativo. Para encerrá-lo, volte ao Perfil.',
+            )
+            .evaluate()
+            .isNotEmpty,
+      );
+      final linked = await db
+          .collection('users')
+          .doc(partner)
+          .get(const GetOptions(source: Source.server));
+      expect(linked.data()?['partnerUid'], owner);
+      final relation = linked.data()!['relationshipId'] as String;
+      expect(
+        (await sharedBooks.get(
+          const GetOptions(source: Source.server),
+        )).docs.single.data()['status'],
+        'Lendo',
+      );
+      await denied(
+        () => db
+            .collection('users')
+            .doc(owner)
+            .get(const GetOptions(source: Source.server)),
+      );
+      tester.printToConsole(
+        'QA-03: convite consentido e isolamento de perfil confirmados.',
+      );
+      await back(tester);
+
+      // Álbum pessoal e seleção compartilhada não registram escutas por efeito colateral.
+      await destination(tester, 'Biblioteca');
+      await tapText(tester, 'Música');
+      await tapText(tester, 'Álbuns');
+      await tapText(tester, 'Adicionar seleção');
+      await fill(tester, 'Título', 'Álbum Android');
+      await fill(
+        tester,
+        'Artistas (separe com ponto e vírgula)',
+        'Artista fictício',
+      );
+      await tapText(tester, 'Salvar música');
+      await tapText(tester, 'Álbum Android');
+      await tapText(tester, 'Favoritar');
+      await waitFor(
+        tester,
+        () => find.text('Remover dos favoritos').evaluate().isNotEmpty,
+      );
+      final albums = await music.page(partner, type: MediaType.album);
+      expect(albums.items.single.entry.favorite, isTrue);
+      await back(tester);
+      await destination(tester, 'Nós');
+      await tapText(tester, 'Listas e experiências');
+      await tapText(tester, 'Nova lista');
+      await fill(tester, 'Nome da lista', 'Lista Android');
+      await tapText(tester, 'Criar');
+      await tapText(tester, 'Lista Android');
+      await tapText(tester, 'Adicionar seleção à lista');
+      await tapText(tester, 'Livro');
+      await tapText(tester, 'Álbum');
+      await fill(tester, 'Título', 'Álbum Android');
+      await fill(
+        tester,
+        'Autor ou artista (opcional para livros, filmes e séries)',
+        'Artista fictício',
+      );
+      await tapText(tester, 'Compartilhar seleção');
+      await tapText(tester, 'Propor experiência');
+      await tapText(tester, 'Livro');
+      await tapText(tester, 'Filme');
+      await fill(tester, 'Título', 'Sessão Android');
+      await tapText(tester, 'Escolher data da experiência');
+      await tapText(tester, 'Confirmar');
+      await tapText(tester, 'Compartilhar seleção');
+      await show(tester, find.text('Sessão Android'));
+      await back(tester);
+      await signOut(tester);
+
+      await signIn(tester, email, password);
+      await destination(tester, 'Nós');
+      await tapText(tester, 'Listas e experiências');
+      await tapText(tester, 'Lista Android');
+      await show(tester, find.text('Álbum Android'));
+      await tapText(tester, 'Confirmar versão');
+      await show(tester, find.text('Confirmada pelos dois'));
+      final experiences = db
+          .collection('couple_relationships')
+          .doc(relation)
+          .collection('experiences');
+      final confirmed = (await experiences.get(
+        const GetOptions(source: Source.server),
+      )).docs.single;
+      expect(CoupleRecord(confirmed.id, confirmed.data()).confirmed, isTrue);
+      await denied(() => music.page(partner, type: MediaType.album));
+      tester.printToConsole(
+        'QA-03: lista, álbum e dupla confirmação sem acesso aos favoritos alheios.',
+      );
+      await back(tester);
+      await destination(tester, 'Perfil');
+      await tapText(tester, 'Desvincular Casal');
+      await tapText(tester, 'Desvincular');
+      await waitFor(
+        tester,
+        () => find.text('Desvincular Casal').evaluate().isEmpty,
+      );
+      expect((await movies.page(owner)).items.single.watched, isTrue);
+      expect(
+        (await series.page(
+          owner,
+        )).items.single.progress.episodes.single.watched,
+        isTrue,
+      );
+      expect(
+        (await music.page(
+          owner,
+          type: MediaType.track,
+        )).items.single.entry.favorite,
+        isTrue,
+      );
+      await signOut(tester);
+      await signIn(tester, partnerEmail, password);
+      await denied(
+        () => sharedBooks.get(const GetOptions(source: Source.server)),
+      );
+      expect(
+        (await music.page(
+          partner,
+          type: MediaType.album,
+        )).items.single.entry.favorite,
+        isTrue,
+      );
+      expect(
+        (await experiences.get(
+          const GetOptions(source: Source.server),
+        )).docs.length,
+        1,
+      );
+      tester.printToConsole(
+        'QA-03: término revogou consulta e preservou bibliotecas e histórico.',
+      );
+
       movies.close();
       music.close();
       series.close();
@@ -229,10 +420,12 @@ Future<void> show(WidgetTester tester, Finder finder) async {
 }
 
 Future<void> tapText(WidgetTester tester, String label) async {
+  tester.printToConsole('QA-03: ação $label');
+  await settle(tester);
   final finder = find.text(label);
   await show(tester, finder);
   await tester.tap(finder.hitTestable().first);
-  await tester.pump(const Duration(milliseconds: 500));
+  await settle(tester);
 }
 
 Future<void> fill(WidgetTester tester, String label, String value) async {
@@ -246,13 +439,59 @@ Future<void> fill(WidgetTester tester, String label, String value) async {
 }
 
 Future<void> destination(WidgetTester tester, String label) async {
+  await settle(tester);
   await tester.tap(
     find.descendant(of: find.byType(NavigationBar), matching: find.text(label)),
   );
-  await tester.pump(const Duration(milliseconds: 500));
+  await settle(tester);
 }
 
 Future<void> back(WidgetTester tester) async {
-  tester.state<NavigatorState>(find.byType(Navigator).last).pop();
-  await tester.pump(const Duration(milliseconds: 500));
+  tester.printToConsole('QA-03: retornando à tela anterior.');
+  final navigator = tester.state<NavigatorState>(find.byType(Navigator).last);
+  expect(
+    navigator.canPop(),
+    isTrue,
+    reason: 'O teste não deve fechar a rota raiz.',
+  );
+  navigator.pop();
+  await settle(tester);
+  tester.printToConsole('QA-03: retorno concluído.');
+}
+
+Future<void> settle(WidgetTester tester) async {
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 20),
+  );
+}
+
+Future<void> signOut(WidgetTester tester) async {
+  await destination(tester, 'Perfil');
+  await tapText(tester, 'Sair da Conta');
+  await waitFor(tester, () => find.text('Entrar').evaluate().isNotEmpty);
+}
+
+Future<void> signIn(WidgetTester tester, String email, String password) async {
+  await fill(tester, 'E-mail', email);
+  await fill(tester, 'Senha', password);
+  await tapText(tester, 'Entrar');
+  await waitFor(
+    tester,
+    () => find.byType(MainNavigation).evaluate().isNotEmpty,
+  );
+}
+
+Future<void> denied(Future<Object?> Function() read) async {
+  await expectLater(
+    read(),
+    throwsA(
+      isA<FirebaseException>().having(
+        (error) => error.code,
+        'categoria',
+        'permission-denied',
+      ),
+    ),
+  );
 }
