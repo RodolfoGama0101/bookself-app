@@ -1,0 +1,498 @@
+{
+  "repository": "RodolfoGama0101/bookself-app",
+  "migratedAt": "2026-11-13",
+  "baseline": "4201dde5a6ec79e4886b30e42a90a6a5ad64958d",
+  "source": "2ccc222eeec290dd18d3fb8e1e10d7e1d41fd841",
+  "issues": [
+    {
+      "id": "ROADMAP-01",
+      "number": 1,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/1"
+    },
+    {
+      "id": "DOC-01",
+      "number": 2,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/2"
+    },
+    {
+      "id": "DOC-02",
+      "number": 3,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/3"
+    },
+    {
+      "id": "DOC-03",
+      "number": 4,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/4"
+    },
+    {
+      "id": "PROD-01",
+      "number": 5,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/5"
+    },
+    {
+      "id": "PROD-02",
+      "number": 6,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/6"
+    },
+    {
+      "id": "PROD-03",
+      "number": 7,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/7"
+    },
+    {
+      "id": "CORE-01",
+      "number": 8,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/8"
+    },
+    {
+      "id": "CORE-02",
+      "number": 9,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/9"
+    },
+    {
+      "id": "CORE-03",
+      "number": 10,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/10"
+    },
+    {
+      "id": "CORE-04",
+      "number": 11,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/11"
+    },
+    {
+      "id": "CORE-05",
+      "number": 12,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/12"
+    },
+    {
+      "id": "CORE-06",
+      "number": 13,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/13"
+    },
+    {
+      "id": "CORE-07",
+      "number": 14,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/14"
+    },
+    {
+      "id": "CORE-08",
+      "number": 15,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/15"
+    },
+    {
+      "id": "CORE-09",
+      "number": 16,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/16"
+    },
+    {
+      "id": "CORE-10",
+      "number": 17,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/17"
+    },
+    {
+      "id": "CORE-11",
+      "number": 18,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/18"
+    },
+    {
+      "id": "CORE-12",
+      "number": 19,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/19"
+    },
+    {
+      "id": "CORE-13",
+      "number": 20,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/20"
+    },
+    {
+      "id": "CORE-14",
+      "number": 21,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/21"
+    },
+    {
+      "id": "SEC-01",
+      "number": 22,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/22"
+    },
+    {
+      "id": "SEC-02",
+      "number": 23,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/23"
+    },
+    {
+      "id": "SEC-03",
+      "number": 24,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/24"
+    },
+    {
+      "id": "SEC-04",
+      "number": 25,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/25"
+    },
+    {
+      "id": "SEC-05",
+      "number": 26,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/26"
+    },
+    {
+      "id": "SEC-06",
+      "number": 27,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/27"
+    },
+    {
+      "id": "COUPLE-01",
+      "number": 28,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/28"
+    },
+    {
+      "id": "COUPLE-02",
+      "number": 29,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/29"
+    },
+    {
+      "id": "COUPLE-03",
+      "number": 30,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/30"
+    },
+    {
+      "id": "COUPLE-04",
+      "number": 31,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/31"
+    },
+    {
+      "id": "COUPLE-05",
+      "number": 32,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/32"
+    },
+    {
+      "id": "COUPLE-06",
+      "number": 33,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/33"
+    },
+    {
+      "id": "COUPLE-07",
+      "number": 34,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/34"
+    },
+    {
+      "id": "COUPLE-08",
+      "number": 35,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/35"
+    },
+    {
+      "id": "COUPLE-09",
+      "number": 36,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/36"
+    },
+    {
+      "id": "DATA-01",
+      "number": 37,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/37"
+    },
+    {
+      "id": "DATA-02",
+      "number": 38,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/38"
+    },
+    {
+      "id": "DATA-03",
+      "number": 39,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/39"
+    },
+    {
+      "id": "DATA-04",
+      "number": 40,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/40"
+    },
+    {
+      "id": "DATA-05",
+      "number": 41,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/41"
+    },
+    {
+      "id": "DATA-06",
+      "number": 42,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/42"
+    },
+    {
+      "id": "API-01",
+      "number": 43,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/43"
+    },
+    {
+      "id": "API-02",
+      "number": 44,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/44"
+    },
+    {
+      "id": "API-03",
+      "number": 45,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/45"
+    },
+    {
+      "id": "API-04",
+      "number": 46,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/46"
+    },
+    {
+      "id": "API-05",
+      "number": 47,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/47"
+    },
+    {
+      "id": "NAME-01",
+      "number": 48,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/48"
+    },
+    {
+      "id": "NAME-02",
+      "number": 49,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/49"
+    },
+    {
+      "id": "NAME-03",
+      "number": 50,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/50"
+    },
+    {
+      "id": "UI-01",
+      "number": 51,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/51"
+    },
+    {
+      "id": "UI-02",
+      "number": 52,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/52"
+    },
+    {
+      "id": "UI-03",
+      "number": 53,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/53"
+    },
+    {
+      "id": "UI-04",
+      "number": 54,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/54"
+    },
+    {
+      "id": "UI-06",
+      "number": 55,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/55"
+    },
+    {
+      "id": "UI-05",
+      "number": 56,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/56"
+    },
+    {
+      "id": "BOOK-01",
+      "number": 57,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/57"
+    },
+    {
+      "id": "BOOK-02",
+      "number": 58,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/58"
+    },
+    {
+      "id": "BIBLE-01",
+      "number": 59,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/59"
+    },
+    {
+      "id": "BIBLE-02",
+      "number": 60,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/60"
+    },
+    {
+      "id": "BIBLE-03",
+      "number": 61,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/61"
+    },
+    {
+      "id": "MOVIE-01",
+      "number": 62,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/62"
+    },
+    {
+      "id": "MOVIE-02",
+      "number": 63,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/63"
+    },
+    {
+      "id": "MOVIE-03",
+      "number": 64,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/64"
+    },
+    {
+      "id": "SERIES-01",
+      "number": 65,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/65"
+    },
+    {
+      "id": "SERIES-02",
+      "number": 66,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/66"
+    },
+    {
+      "id": "SERIES-03",
+      "number": 67,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/67"
+    },
+    {
+      "id": "MUSIC-01",
+      "number": 68,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/68"
+    },
+    {
+      "id": "MUSIC-02",
+      "number": 69,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/69"
+    },
+    {
+      "id": "MUSIC-03",
+      "number": 70,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/70"
+    },
+    {
+      "id": "QA-01",
+      "number": 71,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/71"
+    },
+    {
+      "id": "QA-02",
+      "number": 72,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/72"
+    },
+    {
+      "id": "QA-03",
+      "number": 73,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/73"
+    },
+    {
+      "id": "QA-04",
+      "number": 74,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/74"
+    },
+    {
+      "id": "QA-05",
+      "number": 75,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/75"
+    },
+    {
+      "id": "REL-01",
+      "number": 76,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/76"
+    },
+    {
+      "id": "REL-02",
+      "number": 77,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/77"
+    },
+    {
+      "id": "REL-03",
+      "number": 78,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/78"
+    },
+    {
+      "id": "REL-04",
+      "number": 79,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/79"
+    },
+    {
+      "id": "REL-05",
+      "number": 80,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/80"
+    },
+    {
+      "id": "REL-06",
+      "number": 81,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/81"
+    },
+    {
+      "id": "REL-07",
+      "number": 82,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/82"
+    },
+    {
+      "id": "REL-08",
+      "number": 83,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/83"
+    },
+    {
+      "id": "REL-09",
+      "number": 84,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/84"
+    },
+    {
+      "id": "IDEA-01",
+      "number": 85,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/85"
+    },
+    {
+      "id": "IDEA-02",
+      "number": 86,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/86"
+    },
+    {
+      "id": "IDEA-03",
+      "number": 87,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/87"
+    },
+    {
+      "id": "IDEA-04",
+      "number": 88,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/88"
+    },
+    {
+      "id": "IDEA-05",
+      "number": 89,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/89"
+    },
+    {
+      "id": "MAIN-01",
+      "number": 90,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/90"
+    },
+    {
+      "id": "MAIN-02",
+      "number": 91,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/91"
+    },
+    {
+      "id": "MAIN-03",
+      "number": 92,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/92"
+    },
+    {
+      "id": "MAIN-04",
+      "number": 93,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/93"
+    },
+    {
+      "id": "MAIN-05",
+      "number": 94,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/94"
+    },
+    {
+      "id": "MAIN-06",
+      "number": 95,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/95"
+    },
+    {
+      "id": "MAIN-07",
+      "number": 96,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/96"
+    },
+    {
+      "id": "MAIN-08",
+      "number": 97,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/97"
+    },
+    {
+      "id": "GITHUB-01",
+      "number": 98,
+      "url": "https://github.com/RodolfoGama0101/bookself-app/issues/98"
+    }
+  ]
+}
