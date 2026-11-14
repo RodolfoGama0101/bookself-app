@@ -1,0 +1,64 @@
+name: Tarefa, correção ou decisão
+description: Registre trabalho com escopo e critérios verificáveis.
+title: "[ÁREA-NN] "
+labels: ["status:backlog"]
+assignees: ["RodolfoGama0101"]
+body:
+  - type: markdown
+    attributes:
+      value: "Procure tarefas abertas e fechadas antes de criar. Preserve IDs existentes. Não envie segredos, credenciais ou dados pessoais. O agente confirmará ID, labels, milestone e relações na triagem."
+  - type: input
+    id: stable_id
+    attributes:
+      label: ID estável
+      description: Informe o ID existente ou deixe vazio para atribuição na triagem.
+      placeholder: CORE-15
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Tipo
+      options: [Correção, Evolução, Verificação, Decisão, Documentação, Manutenção, Integração, Implantação, Publicação]
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridade proposta
+      options: ["P0 — antes de ampliar acesso/distribuir/migrar", "P1 — próxima entrega ou base", "P2 — melhoria posterior", "P3 — ideia a priorizar"]
+      default: 1
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Problema e resultado esperado
+      description: Descreva comportamento atual, resultado desejado e escopo. Para bugs, inclua reprodução e impacto.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite
+      description: Liste resultados verificáveis, incluindo falhas e regressões relevantes.
+      placeholder: "- [ ] Resultado observável e sua forma de verificação"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Branch, ambiente e evidências
+      description: Informe base/destino, plataforma, versão e links para documentos, issues ou commits.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependências e impedimentos
+      description: Referencie issues com números e registre condição de retomada. Atualize também as relações nativas de bloqueio.
+  - type: textarea
+    id: limits
+    attributes:
+      label: Validação e limites de entrega
+      description: Informe verificações esperadas e se deploy, migração, credenciais ou publicação exigem etapa e autorização próprias.
+    validations:
+      required: true

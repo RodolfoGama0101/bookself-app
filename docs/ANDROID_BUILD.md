@@ -13,7 +13,7 @@ de SDK, permissões, identidade técnica ou dependências.
 [Comandos e limites](MUSIC.md#musicbrainz-local--14102026). Log ignorado em
 `build/validation/android-2026-10-14/musicbrainz-api34.log`. Nenhum dado real,
 regra remota, migração ou publicação alterado. Web/iOS, offline e hospedagem
-pública continuam pendentes; API-04/MUSIC-01 seguem em andamento no Linear.
+pública continuam pendentes; [API-04](https://github.com/RodolfoGama0101/bookself-app/issues/46) e [MUSIC-01](https://github.com/RodolfoGama0101/bookself-app/issues/68) seguem em andamento no GitHub.
 
 ## Execução no Pixel 9 — CORE-14 / REL-04 — 14/10/2026
 

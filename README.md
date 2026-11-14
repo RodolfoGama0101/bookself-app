@@ -14,7 +14,9 @@ edições de álbuns, com intermediário no computador e cadastro manual preserv
 
 | Arquivo | Conteúdo |
 | --- | --- |
-| [BACKLOG.md](BACKLOG.md) | Fonte central de tarefas, prioridades, dependências e critérios de conclusão. |
+| [Issues do GitHub](https://github.com/RodolfoGama0101/bookself-app/issues) | Fonte única de tarefas, prioridades, critérios, dependências e andamento. |
+| [docs/GITHUB.md](docs/GITHUB.md) | Fluxo, roadmap, convenções e correspondência de IDs. |
+| [BACKLOG.md](BACKLOG.md) | Índice de acesso às tarefas e aos snapshots históricos. |
 | [AGENTS.md](AGENTS.md) | Orientações para trabalhar neste repositório. |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
 | [docs/SERIES_VALIDATION.md](docs/SERIES_VALIDATION.md) | Jornadas locais de séries, casal e limites de validação. |
@@ -197,6 +199,6 @@ docs/                   Documentação técnica e de produto
 android/ ios/ web/       Projetos e configuração por plataforma
 ```
 
-Consulte o [backlog](BACKLOG.md) antes de iniciar uma melhoria. A expansão deve preservar contas, livros e progresso bíblico existentes.
+Consulte as [issues do GitHub](https://github.com/RodolfoGama0101/bookself-app/issues) e o [fluxo de trabalho](AGENTS.md#gestão-de-tarefas-no-github) antes de iniciar uma melhoria. A expansão deve preservar contas, livros e progresso bíblico existentes.
 
 Atualização de **05/10/2026 — COUPLE-03:** convites consentidos prontos localmente, com análise limpa, **308 testes Flutter**, **43 testes Auth/Firestore** e build web demo aprovados. Jornada em dois Chromes isolados confirmou criação/reserva/aceite e término; reuso foi rejeitado, com mensagem de domínio conferida no build final. Sem deploy/migração/publicação. Controles de visibilidade/bloqueio/cache e feed sem retroatividade permanecem em COUPLE-04/DATA-05. [Contrato e limites](docs/COUPLE_INVITATIONS.md).
