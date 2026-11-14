@@ -35,11 +35,12 @@ Há projetos para Android, iOS e web, com opções Firebase para essas plataform
 
 ## Configuração e execução
 
-1. Instale um Flutter SDK compatível com o requisito de Dart do projeto.
+1. Selecione Flutter 3.44.0 e Dart 3.12.0, conforme [o guia de desenvolvimento](docs/DEVELOPMENT.md).
 2. Na raiz do repositório, instale as dependências:
 
    ```sh
-   flutter pub get
+   dart tool/check_sdk.dart
+   flutter pub get --enforce-lockfile
    ```
 
 3. Configure um ambiente Firebase de desenvolvimento com Authentication por e-mail/senha e Firestore. O repositório já possui configuração de um projeto Firebase; confirme o ambiente antes de usá-la. Para apontar para outro projeto, use o FlutterFire CLI:
