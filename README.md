@@ -8,7 +8,9 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 
 | Arquivo | Conteúdo |
 | --- | --- |
-| [BACKLOG.md](BACKLOG.md) | Fonte central de tarefas, prioridades, dependências e critérios de conclusão. |
+| [Issues do GitHub](https://github.com/RodolfoGama0101/bookself-app/issues) | Fonte única de tarefas, prioridades, critérios, dependências e andamento. |
+| [docs/GITHUB.md](docs/GITHUB.md) | Fluxo, roadmap, convenções e correspondência de IDs. |
+| [BACKLOG.md](BACKLOG.md) | Índice de acesso às tarefas e aos snapshots históricos. |
 | [AGENTS.md](AGENTS.md) | Orientações para trabalhar neste repositório. |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
@@ -87,4 +89,4 @@ docs/                   Documentação técnica e de produto
 android/ ios/ web/       Projetos e configuração por plataforma
 ```
 
-Consulte o [backlog](BACKLOG.md) antes de iniciar uma melhoria. A expansão deve preservar contas, livros e progresso bíblico existentes.
+Consulte as [issues do GitHub](https://github.com/RodolfoGama0101/bookself-app/issues) e o [fluxo de trabalho](AGENTS.md#gestão-de-tarefas-no-github) antes de iniciar uma melhoria. A expansão deve preservar contas, livros e progresso bíblico existentes.
