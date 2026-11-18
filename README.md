@@ -49,7 +49,7 @@ Há projetos para Android, iOS e web, com opções Firebase para essas plataform
    flutterfire configure
    ```
 
-   O Firebase é necessário ao fluxo atual. O tratamento de falha na inicialização não oferece um modo funcional sem Firebase. Regras do Firestore não estão versionadas; autorização e emuladores são tarefas do backlog.
+   O Firebase é necessário ao fluxo atual. O tratamento de falha na inicialização não oferece um modo funcional sem Firebase. Há também um [ambiente demo local](docs/DEVELOPMENT.md#firebase-local-de-ensaio) para dados fictícios. As regras desse ambiente são permissivas e não substituem regras de produção nem validam autorização.
 
 4. Para busca de livros, configure e restrinja a chave do Google Books conforme o ambiente. Atualmente ela está embutida em `lib/services/book_service.dart`; a configuração externa está pendente. O cadastro manual permite registrar livros quando a busca está indisponível.
 5. Com um emulador ou dispositivo disponível:

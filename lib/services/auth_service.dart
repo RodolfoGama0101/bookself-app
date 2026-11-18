@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_environment.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../data/models/user_model.dart';
 
 class AuthService extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseEnvironment.auth;
+  final FirebaseFirestore _firestore = FirebaseEnvironment.firestore;
 
   StreamSubscription<DocumentSnapshot>? _currentUserSubscription;
   StreamSubscription<DocumentSnapshot>? _partnerSubscription;

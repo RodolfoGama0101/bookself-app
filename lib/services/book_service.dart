@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_environment.dart';
 import 'package:http/http.dart' as http;
 import '../data/models/book_model.dart';
 
 class BookService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseEnvironment.firestore;
 
   static const String _googleBooksApiKey =
       'AIzaSyBOwkyhx8GhZeByri7DSF7KRePM9L_XPI4';

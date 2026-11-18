@@ -17,4 +17,28 @@ O verificador compara versão, canal e revisão do Flutter acessível pelo PATH.
 
 O workflow `.github/workflows/ci.yml`, adaptado da develop, executa em push, pull request, merge queue e acionamento manual. O job **Flutter — análise e testes** instala a revisão fixada do SDK, confere o lockfile e executa análise e testes sem credenciais de produção. Falhas retornam erro no job. A execução no GitHub e a configuração efetiva que impede integração com checks falhando precisam ser verificadas separadamente; a existência do workflow não comprova proteção de branch.
 
-Esta branch ainda não contém os emuladores nem o job de regras da develop. Execução limpa independente, testes de Auth/Firestore e proteção de branch continuam acompanhados pela [MAIN-01](https://github.com/RodolfoGama0101/bookself-app/issues/90) e pela [QA-05](https://github.com/RodolfoGama0101/bookself-app/issues/75).
+O job de regras da develop ainda não foi integrado. Execução limpa independente, testes de Auth/Firestore e proteção de branch continuam acompanhados pela [MAIN-01](https://github.com/RodolfoGama0101/bookself-app/issues/90) e pela [QA-05](https://github.com/RodolfoGama0101/bookself-app/issues/75).
+
+## Firebase local de ensaio
+
+O modo demo é opt-in e usa o projeto fictício `demo-bookself`, sem carregar a configuração distribuída do Firebase. Ele requer Node da versão indicada em `.node-version` e Java compatível com o Firebase Emulator Suite. Em um terminal, na raiz:
+
+```sh
+cd tool/firebase
+npm ci
+npm run emulators
+```
+
+Em outro terminal, execute o aplicativo:
+
+```sh
+flutter run -d chrome --dart-define=USE_FIREBASE_EMULATORS=true
+```
+
+O host padrão é `127.0.0.1`, com Auth na porta 9099 e Firestore na 8080. Para o emulador Android use também `--dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2`; no simulador iOS use o padrão. As portas podem ser alteradas por `FIREBASE_AUTH_EMULATOR_PORT` e `FIRESTORE_EMULATOR_PORT`, devendo corresponder à configuração dos emuladores. Apenas hosts locais e portas válidas são aceitos. A inicialização com erro interrompe a abertura dos serviços, sem recorrer ao projeto distribuído.
+
+`firebase.emulators.json` aponta para `tool/firebase/demo.rules`: estas regras de ensaio permitem acesso de qualquer usuário autenticado a todos os documentos. **Não são regras de segurança e não devem ser implantadas**. Use apenas contas e dados fictícios; o ambiente não comprova isolamento, acesso do parceiro ou segurança de produção. Não há persistência do Firestore no modo demo; reiniciar os emuladores sem exportação descarta seus dados.
+
+Para o teste isolado de Auth/Firestore, com os emuladores parados, execute `npm test` em `tool/firebase`; `npm run test:web-bootstrap` verifica a ordem de configuração web sem rede. `BOOKSELF_TEST_AUTH_PORT` e `BOOKSELF_TEST_FIRESTORE_PORT` permitem portas alternativas para o teste, não alteram o aplicativo. A validação no navegador e nos dispositivos deve ser registrada separadamente dos testes automatizados.
+
+Em 18/11/2026, no Windows, a análise ficou limpa, oito testes Flutter e seis testes simulados do bootstrap passaram; o build web demo também passou. O teste integrado iniciou o projeto demo, mas foi interrompido enquanto aguardava o download do emulador Firestore, sem executar a jornada. Cadastro, login e recarga no navegador, assim como Android e iOS, continuam sem validação nesta branch.

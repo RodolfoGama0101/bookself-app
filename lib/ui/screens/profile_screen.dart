@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/firebase_environment.dart';
 import '../../services/auth_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -75,7 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () async {
                 final newName = nameController.text.trim();
                 if (newName.isNotEmpty) {
-                  await FirebaseFirestore.instance
+                  await FirebaseEnvironment.firestore
                       .collection('users')
                       .doc(uid)
                       .update({'name': newName});
@@ -182,7 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final dataUri = 'data:image/jpeg;base64,$base64String';
 
       // Atualiza o campo da foto no Firestore
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      await FirebaseEnvironment.firestore.collection('users').doc(uid).update({
         'photoUrl': dataUri,
       });
 
@@ -221,7 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _isPhotoLoading = true;
     });
     try {
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      await FirebaseEnvironment.firestore.collection('users').doc(uid).update({
         'photoUrl': null,
       });
 
