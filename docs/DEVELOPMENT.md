@@ -15,7 +15,7 @@ O verificador compara versão, canal e revisão do Flutter acessível pelo PATH.
 
 ## Integração contínua
 
-O workflow `.github/workflows/ci.yml`, adaptado da develop, executa em push, pull request, merge queue e acionamento manual. O job **Flutter — análise e testes** instala a revisão fixada do SDK, confere o lockfile e executa análise e testes sem credenciais de produção. Falhas retornam erro no job. A execução no GitHub e a configuração efetiva que impede integração com checks falhando precisam ser verificadas separadamente; a existência do workflow não comprova proteção de branch.
+O workflow `.github/workflows/ci.yml`, adaptado da develop, executa em push, pull request, merge queue e acionamento manual. O job **Flutter — análise e testes** instala a revisão fixada do SDK, confere o lockfile e executa análise, testes, build web demo e testes simulados do bootstrap sem credenciais de produção. Falhas retornam erro no job. A execução no GitHub e a configuração efetiva que impede integração com checks falhando precisam ser verificadas separadamente; a existência do workflow não comprova proteção de branch.
 
 O job de regras da develop ainda não foi integrado. Execução limpa independente, testes de Auth/Firestore e proteção de branch continuam acompanhados pela [MAIN-01](https://github.com/RodolfoGama0101/bookself-app/issues/90) e pela [QA-05](https://github.com/RodolfoGama0101/bookself-app/issues/75).
 
