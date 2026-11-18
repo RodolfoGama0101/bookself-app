@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flutter:
+    name: Flutter — análise e testes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Ler a versão fixada do SDK
+        run: |
+          python3 - <<'PY'
+          import json, os
+          with open('tool/flutter-sdk.json', encoding='utf-8') as source:
+              sdk = json.load(source)
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as target:
+              target.write(f"FLUTTER_VERSION={sdk['flutterVersion']}\n")
+              target.write(f"FLUTTER_REVISION={sdk['frameworkRevision']}\n")
+          PY
+      - name: Instalar Flutter do repositório oficial
+        run: |
+          git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = "$FLUTTER_REVISION"
+          git -C "$RUNNER_TEMP/flutter" checkout -B stable "$FLUTTER_REVISION"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - name: Verificar SDK e instalar dependências fixadas
+        run: |
+          dart tool/check_sdk.dart
+          flutter pub get --enforce-lockfile
+      - name: Análise estática
+        run: flutter analyze --no-pub
+      - name: Testes Dart e widgets
+        run: flutter test --no-pub
