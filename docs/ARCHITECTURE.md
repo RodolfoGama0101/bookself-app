@@ -27,6 +27,8 @@ Erros de inicialização Firebase são capturados, mas o app continua criando se
 
 Login e cadastro enviam a senha exatamente como digitada, inclusive espaços. Ambos exigem pelo menos seis caracteres na validação local; a política remota de autenticação é independente.
 
+`AuthService` encerra ouvintes de autenticação, perfil e parceiro no descarte e limpa o estado anterior quando a sessão ou o vínculo muda. Isso não revoga acessos no servidor.
+
 ## Dados no Firestore
 
 | Coleção e ID | Campos principais | Uso |
@@ -49,7 +51,6 @@ A estante do parceiro aparece sem controles de edição. Não é possível concl
 
 ## Limitações observadas
 
-- A assinatura de `authStateChanges` não é guardada nem encerrada em `dispose` de `AuthService`.
 - Algumas operações assíncronas podem chamar `setState` depois do fechamento da tela.
 - Marcação bíblica não aguarda persistência antes de anunciar sucesso/finalizar a interação.
 - Falhas de busca recebem mensagem genérica de cota/indisponibilidade.

@@ -6,11 +6,17 @@ import 'package:flutter/material.dart';
 import '../data/models/user_model.dart';
 
 class AuthService extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseEnvironment.auth;
-  final FirebaseFirestore _firestore = FirebaseEnvironment.firestore;
+  final FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
 
+  StreamSubscription<User?>? _authSubscription;
   StreamSubscription<DocumentSnapshot>? _currentUserSubscription;
   StreamSubscription<DocumentSnapshot>? _partnerSubscription;
+  String? _currentUid;
+  String? _partnerUid;
+  int _profileRevision = 0;
+  int _partnerRevision = 0;
+  bool _disposed = false;
 
   UserModel? _currentUserModel;
   UserModel? get currentUserModel => _currentUserModel;
@@ -21,67 +27,108 @@ class AuthService extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  AuthService() {
+  AuthService({FirebaseAuth? auth, FirebaseFirestore? firestore})
+    : _auth = auth ?? FirebaseEnvironment.auth,
+      _firestore = firestore ?? FirebaseEnvironment.firestore {
     // Monitora o estado de autenticação do Firebase
-    _auth.authStateChanges().listen((User? user) async {
-      if (user == null) {
+    _authSubscription = _auth.authStateChanges().listen(
+      (User? user) {
+        if (_disposed) return;
         _cancelSubscriptions();
+        _currentUid = user?.uid;
         _currentUserModel = null;
-        _partnerUserModel = null;
+        final revision = _profileRevision;
         notifyListeners();
-      } else {
-        // Escuta em tempo real o documento do usuário logado no Firestore
-        _listenToCurrentUser(user.uid);
-      }
-    });
+        if (!_disposed && user != null && revision == _profileRevision) {
+          _listenToCurrentUser(user.uid);
+        }
+      },
+      onError: (Object error) {
+        if (_disposed) return;
+        _cancelSubscriptions();
+        _currentUid = null;
+        _currentUserModel = null;
+        notifyListeners();
+      },
+    );
   }
 
   void _cancelSubscriptions() {
+    _profileRevision++;
     _currentUserSubscription?.cancel();
     _currentUserSubscription = null;
+    _cancelPartner();
+  }
+
+  void _cancelPartner() {
+    _partnerRevision++;
     _partnerSubscription?.cancel();
     _partnerSubscription = null;
+    _partnerUid = null;
+    _partnerUserModel = null;
   }
 
   // Escuta o usuário atual e se houver alteração de parceiro, escuta o parceiro também
   void _listenToCurrentUser(String uid) {
-    _currentUserSubscription?.cancel();
-    _currentUserSubscription = _firestore
+    final revision = ++_profileRevision;
+    final subscription = _firestore
         .collection('users')
         .doc(uid)
         .snapshots()
         .listen(
           (docSnapshot) {
+            if (_disposed ||
+                _currentUid != uid ||
+                revision != _profileRevision) {
+              return;
+            }
             if (docSnapshot.exists) {
               _currentUserModel = UserModel.fromFirestore(docSnapshot);
-              notifyListeners();
-
-              // Se houver um parceiro vinculado, escuta o parceiro
-              if (_currentUserModel?.partnerUid != null) {
-                _listenToPartner(_currentUserModel!.partnerUid!);
-              } else {
-                _partnerSubscription?.cancel();
-                _partnerSubscription = null;
-                _partnerUserModel = null;
-                notifyListeners();
+              final partnerUid = _currentUserModel!.partnerUid;
+              if (partnerUid != _partnerUid) {
+                _cancelPartner();
+                if (partnerUid != null) _listenToPartner(partnerUid);
               }
+            } else {
+              _currentUserModel = null;
+              _cancelPartner();
             }
+            notifyListeners();
           },
           onError: (error) {
+            if (_disposed ||
+                _currentUid != uid ||
+                revision != _profileRevision) {
+              return;
+            }
+            _currentUserModel = null;
+            _cancelPartner();
+            notifyListeners();
             debugPrint('Erro ao escutar usuário atual.');
           },
         );
+    if (_disposed || _currentUid != uid || revision != _profileRevision) {
+      subscription.cancel();
+    } else {
+      _currentUserSubscription = subscription;
+    }
   }
 
   // Escuta o parceiro em tempo real
   void _listenToPartner(String partnerUid) {
-    _partnerSubscription?.cancel();
-    _partnerSubscription = _firestore
+    _partnerUid = partnerUid;
+    final revision = ++_partnerRevision;
+    final subscription = _firestore
         .collection('users')
         .doc(partnerUid)
         .snapshots()
         .listen(
           (docSnapshot) {
+            if (_disposed ||
+                _partnerUid != partnerUid ||
+                revision != _partnerRevision) {
+              return;
+            }
             if (docSnapshot.exists) {
               _partnerUserModel = UserModel.fromFirestore(docSnapshot);
               notifyListeners();
@@ -91,9 +138,39 @@ class AuthService extends ChangeNotifier {
             }
           },
           onError: (error) {
+            if (_disposed ||
+                _partnerUid != partnerUid ||
+                revision != _partnerRevision) {
+              return;
+            }
+            _partnerUserModel = null;
+            notifyListeners();
             debugPrint('Erro ao escutar parceiro.');
           },
         );
+    if (_disposed ||
+        _partnerUid != partnerUid ||
+        revision != _partnerRevision) {
+      subscription.cancel();
+    } else {
+      _partnerSubscription = subscription;
+    }
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _authSubscription?.cancel();
+    _authSubscription = null;
+    _currentUid = null;
+    _currentUserModel = null;
+    _cancelSubscriptions();
+    super.dispose();
   }
 
   // Login com E-mail e Senha
