@@ -25,6 +25,8 @@ Erros de inicialização Firebase são capturados, mas o app continua criando se
 
 `ProfileScreen` escreve nome/foto diretamente no Firestore. Fotos são reduzidas e armazenadas como data URI Base64 no perfil; o código atual não usa Firebase Storage.
 
+Login e cadastro enviam a senha exatamente como digitada, inclusive espaços. Ambos exigem pelo menos seis caracteres na validação local; a política remota de autenticação é independente.
+
 ## Dados no Firestore
 
 | Coleção e ID | Campos principais | Uso |
