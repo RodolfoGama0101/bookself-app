@@ -20,7 +20,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final _searchController = TextEditingController();
   final _bookService = BookService();
-  
+
   List<BookModel> _searchResults = [];
   bool _isLoading = false;
   bool _hasSearched = false;
@@ -105,16 +105,20 @@ class _SearchScreenState extends State<SearchScreen> {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Dropdown de seleção de Status
                   DropdownButtonFormField<String>(
-                    value: selectedStatus,
-                    decoration: const InputDecoration(labelText: 'Status de Leitura'),
+                    initialValue: selectedStatus,
+                    decoration: const InputDecoration(
+                      labelText: 'Status de Leitura',
+                    ),
                     items: ['Quero Ler', 'Lendo', 'Lido']
-                        .map((status) => DropdownMenuItem(
-                              value: status,
-                              child: Text(status),
-                            ))
+                        .map(
+                          (status) => DropdownMenuItem(
+                            value: status,
+                            child: Text(status),
+                          ),
+                        )
                         .toList(),
                     onChanged: (val) {
                       if (val != null) {
@@ -124,7 +128,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       }
                     },
                   ),
-                  
+
                   // Seletor de Data de Término se o status for "Lido"
                   if (selectedStatus == 'Lido') ...[
                     const SizedBox(height: 16),
@@ -134,7 +138,9 @@ class _SearchScreenState extends State<SearchScreen> {
                           context: context,
                           initialDate: selectedDate,
                           firstDate: DateTime(2000),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 365),
+                          ),
                           helpText: 'Data de Conclusão',
                         );
                         if (picked != null) {
@@ -144,12 +150,15 @@ class _SearchScreenState extends State<SearchScreen> {
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 14,
+                        ),
                         decoration: BoxDecoration(
                           color: theme.inputDecorationTheme.fillColor,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: theme.primaryColor.withOpacity(0.3),
+                            color: theme.primaryColor.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
@@ -159,7 +168,10 @@ class _SearchScreenState extends State<SearchScreen> {
                               'Concluído em: ${DateFormat('dd/MM/yyyy').format(selectedDate)}',
                               style: theme.textTheme.bodyMedium,
                             ),
-                            Icon(Icons.calendar_today, color: theme.primaryColor),
+                            Icon(
+                              Icons.calendar_today,
+                              color: theme.primaryColor,
+                            ),
                           ],
                         ),
                       ),
@@ -179,7 +191,9 @@ class _SearchScreenState extends State<SearchScreen> {
                       id: '', // Força gerar um novo ID no Firestore
                       userId: userId,
                       status: selectedStatus,
-                      finishedDate: selectedStatus == 'Lido' ? selectedDate : null,
+                      finishedDate: selectedStatus == 'Lido'
+                          ? selectedDate
+                          : null,
                       addedAt: DateTime.now(),
                     );
 
@@ -189,7 +203,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('"${book.title}" adicionado com sucesso!'),
+                            content: Text(
+                              '"${book.title}" adicionado com sucesso!',
+                            ),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -198,7 +214,9 @@ class _SearchScreenState extends State<SearchScreen> {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Não foi possível salvar o livro. ${ErrorHandler.getFriendlyErrorMessage(e)}'),
+                            content: Text(
+                              'Não foi possível salvar o livro. ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                            ),
                             backgroundColor: Colors.redAccent,
                           ),
                         );
@@ -207,7 +225,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   },
                   child: Text(
                     'Salvar',
-                    style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: theme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -249,14 +270,18 @@ class _SearchScreenState extends State<SearchScreen> {
                         controller: titleController,
                         label: 'Título do Livro',
                         hint: 'Ex: Dom Casmurro',
-                        validator: (val) => val == null || val.isEmpty ? 'Insira o título' : null,
+                        validator: (val) => val == null || val.isEmpty
+                            ? 'Insira o título'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       CustomTextField(
                         controller: authorController,
                         label: 'Autor(es)',
                         hint: 'Ex: Machado de Assis',
-                        validator: (val) => val == null || val.isEmpty ? 'Insira o autor' : null,
+                        validator: (val) => val == null || val.isEmpty
+                            ? 'Insira o autor'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       CustomTextField(
@@ -267,7 +292,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         validator: (val) {
                           if (val != null && val.trim().isNotEmpty) {
                             final uri = Uri.tryParse(val.trim());
-                            if (uri == null || !uri.hasAbsolutePath || !uri.scheme.startsWith('http')) {
+                            if (uri == null ||
+                                !uri.hasAbsolutePath ||
+                                !uri.scheme.startsWith('http')) {
                               return 'Insira uma URL válida (http/https) ou deixe vazio';
                             }
                           }
@@ -275,15 +302,19 @@ class _SearchScreenState extends State<SearchScreen> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      
+
                       DropdownButtonFormField<String>(
-                        value: selectedStatus,
-                        decoration: const InputDecoration(labelText: 'Status de Leitura'),
+                        initialValue: selectedStatus,
+                        decoration: const InputDecoration(
+                          labelText: 'Status de Leitura',
+                        ),
                         items: ['Quero Ler', 'Lendo', 'Lido']
-                            .map((status) => DropdownMenuItem(
-                                  value: status,
-                                  child: Text(status),
-                                ))
+                            .map(
+                              (status) => DropdownMenuItem(
+                                value: status,
+                                child: Text(status),
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) {
                           if (val != null) {
@@ -301,7 +332,9 @@ class _SearchScreenState extends State<SearchScreen> {
                               context: context,
                               initialDate: selectedDate,
                               firstDate: DateTime(2000),
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
+                              ),
                               helpText: 'Data de Conclusão',
                             );
                             if (picked != null) {
@@ -311,12 +344,17 @@ class _SearchScreenState extends State<SearchScreen> {
                             }
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
                             decoration: BoxDecoration(
                               color: theme.inputDecorationTheme.fillColor,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: theme.primaryColor.withOpacity(0.3),
+                                color: theme.primaryColor.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                             child: Row(
@@ -326,7 +364,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                   'Concluído: ${DateFormat('dd/MM/yyyy').format(selectedDate)}',
                                   style: theme.textTheme.bodyMedium,
                                 ),
-                                Icon(Icons.calendar_today, color: theme.primaryColor),
+                                Icon(
+                                  Icons.calendar_today,
+                                  color: theme.primaryColor,
+                                ),
                               ],
                             ),
                           ),
@@ -360,18 +401,22 @@ class _SearchScreenState extends State<SearchScreen> {
                       coverUrl: coverController.text.trim(),
                       status: selectedStatus,
                       publishedDate: 'Manual',
-                      finishedDate: selectedStatus == 'Lido' ? selectedDate : null,
+                      finishedDate: selectedStatus == 'Lido'
+                          ? selectedDate
+                          : null,
                       addedAt: DateTime.now(),
                     );
 
                     try {
                       await _bookService.saveBook(bookToSave);
-                      
+
                       if (context.mounted) {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('"${bookToSave.title}" cadastrado com sucesso!'),
+                            content: Text(
+                              '"${bookToSave.title}" cadastrado com sucesso!',
+                            ),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -385,7 +430,9 @@ class _SearchScreenState extends State<SearchScreen> {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Não foi possível cadastrar o livro. ${ErrorHandler.getFriendlyErrorMessage(e)}'),
+                            content: Text(
+                              'Não foi possível cadastrar o livro. ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                            ),
                             backgroundColor: Colors.redAccent,
                           ),
                         );
@@ -394,7 +441,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   },
                   child: Text(
                     'Cadastrar',
-                    style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: theme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -461,50 +511,58 @@ class _SearchScreenState extends State<SearchScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _searchResults.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _hasSearched 
-                                    ? Icons.search_off_rounded 
-                                    : Icons.library_books_rounded,
-                                size: 48,
-                                color: Colors.grey[600],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                _hasSearched
-                                    ? 'Nenhum resultado encontrado.\nTente buscar por outros termos ou adicione manualmente.'
-                                    : 'Pesquise pelo título ou autor para encontrar novos livros na API do Google.',
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
-                              ),
-                            ],
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _hasSearched
+                                ? Icons.search_off_rounded
+                                : Icons.library_books_rounded,
+                            size: 48,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _hasSearched
+                                ? 'Nenhum resultado encontrado.\nTente buscar por outros termos ou adicione manualmente.'
+                                : 'Pesquise pelo título ou autor para encontrar novos livros na API do Google.',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    itemCount: _searchResults.length,
+                    itemBuilder: (context, index) {
+                      final book = _searchResults[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: BookCard(
+                          book: book,
+                          onTap: () =>
+                              showBookDetailsSheet(context, book, false),
+                          trailing: IconButton(
+                            icon: Icon(
+                              Icons.add_box_rounded,
+                              color: theme.primaryColor,
+                              size: 28,
+                            ),
+                            tooltip: 'Adicionar à estante',
+                            onPressed: () =>
+                                _showAddBookDialog(context, book, user.uid),
                           ),
                         ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        itemCount: _searchResults.length,
-                        itemBuilder: (context, index) {
-                          final book = _searchResults[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                            child: BookCard(
-                              book: book,
-                              onTap: () => showBookDetailsSheet(context, book, false),
-                              trailing: IconButton(
-                                icon: Icon(Icons.add_box_rounded, color: theme.primaryColor, size: 28),
-                                tooltip: 'Adicionar à estante',
-                                onPressed: () => _showAddBookDialog(context, book, user.uid),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

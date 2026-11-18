@@ -11,14 +11,14 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
     // Inicialização do Firebase passando as opções geradas pelo FlutterFire CLI
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-  } catch (e) {
-    print('Aviso: Firebase não pôde ser inicializado. Certifique-se de configurar o Firebase no projeto. Erro: $e');
+  } catch (_) {
+    debugPrint('Aviso: Firebase não pôde ser inicializado.');
   }
 
   runApp(
@@ -47,11 +47,9 @@ class BookselfApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeService.themeMode,
-          
+
           // Fluxo de Rotas Inteligente (Apenas verifica se o usuário está logado)
-          home: user != null
-              ? const MainNavigation()
-              : const LoginScreen(),
+          home: user != null ? const MainNavigation() : const LoginScreen(),
         );
       },
     );

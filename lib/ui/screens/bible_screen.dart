@@ -13,7 +13,8 @@ class BibleScreen extends StatefulWidget {
   State<BibleScreen> createState() => _BibleScreenState();
 }
 
-class _BibleScreenState extends State<BibleScreen> with TickerProviderStateMixin {
+class _BibleScreenState extends State<BibleScreen>
+    with TickerProviderStateMixin {
   late TabController _testamentTabController;
   final BibleService _bibleService = BibleService();
 
@@ -36,9 +37,7 @@ class _BibleScreenState extends State<BibleScreen> with TickerProviderStateMixin
     final partner = authService.partnerUserModel;
 
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     // Filtra livros do Antigo e Novo Testamento
@@ -78,8 +77,8 @@ class _BibleScreenState extends State<BibleScreen> with TickerProviderStateMixin
           final userProgress = userProgressSnapshot.data ?? {};
 
           return StreamBuilder<Map<String, BibleProgressModel>>(
-            stream: partner != null 
-                ? _bibleService.streamAllProgress(partner.uid) 
+            stream: partner != null
+                ? _bibleService.streamAllProgress(partner.uid)
                 : Stream.value({}),
             builder: (context, partnerProgressSnapshot) {
               if (partnerProgressSnapshot.hasError) {
@@ -100,8 +99,22 @@ class _BibleScreenState extends State<BibleScreen> with TickerProviderStateMixin
               return TabBarView(
                 controller: _testamentTabController,
                 children: [
-                  _buildBookList(otBooks, user.uid, partner?.uid, userProgress, partnerProgress, partner?.name),
-                  _buildBookList(ntBooks, user.uid, partner?.uid, userProgress, partnerProgress, partner?.name),
+                  _buildBookList(
+                    otBooks,
+                    user.uid,
+                    partner?.uid,
+                    userProgress,
+                    partnerProgress,
+                    partner?.name,
+                  ),
+                  _buildBookList(
+                    ntBooks,
+                    user.uid,
+                    partner?.uid,
+                    userProgress,
+                    partnerProgress,
+                    partner?.name,
+                  ),
                 ],
               );
             },
@@ -125,7 +138,7 @@ class _BibleScreenState extends State<BibleScreen> with TickerProviderStateMixin
       itemCount: books.length,
       itemBuilder: (context, index) {
         final book = books[index];
-        
+
         // Calcula o progresso do Usuário Atual
         final uProg = userProgress[book.name];
         final uReadCount = uProg?.readChapters.length ?? 0;
@@ -171,7 +184,9 @@ class _BibleScreenState extends State<BibleScreen> with TickerProviderStateMixin
                       ),
                       Text(
                         '${book.chapters} cap.',
-                        style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[500],
+                        ),
                       ),
                     ],
                   ),
@@ -185,8 +200,12 @@ class _BibleScreenState extends State<BibleScreen> with TickerProviderStateMixin
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Você', style: theme.textTheme.bodySmall),
-                          Text('${(uPercent * 100).toInt()}% ($uReadCount/${book.chapters})',
-                              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
+                          Text(
+                            '${(uPercent * 100).toInt()}% ($uReadCount/${book.chapters})',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -194,8 +213,12 @@ class _BibleScreenState extends State<BibleScreen> with TickerProviderStateMixin
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: uPercent,
-                          backgroundColor: theme.primaryColor.withOpacity(0.15),
-                          valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
+                          backgroundColor: theme.primaryColor.withValues(
+                            alpha: 0.15,
+                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            theme.primaryColor,
+                          ),
                           minHeight: 6,
                         ),
                       ),
@@ -211,11 +234,17 @@ class _BibleScreenState extends State<BibleScreen> with TickerProviderStateMixin
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(partnerName ?? 'Parceiro', style: theme.textTheme.bodySmall),
-                            Text('${(pPercent * 100).toInt()}% ($pReadCount/${book.chapters})',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: theme.colorScheme.secondary)),
+                            Text(
+                              partnerName ?? 'Parceiro',
+                              style: theme.textTheme.bodySmall,
+                            ),
+                            Text(
+                              '${(pPercent * 100).toInt()}% ($pReadCount/${book.chapters})',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.secondary,
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -223,8 +252,11 @@ class _BibleScreenState extends State<BibleScreen> with TickerProviderStateMixin
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: pPercent,
-                            backgroundColor: theme.colorScheme.secondary.withOpacity(0.15),
-                            valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.secondary),
+                            backgroundColor: theme.colorScheme.secondary
+                                .withValues(alpha: 0.15),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              theme.colorScheme.secondary,
+                            ),
                             minHeight: 6,
                           ),
                         ),
@@ -274,8 +306,8 @@ class BibleBookChaptersScreen extends StatelessWidget {
           final userProgress = userSnapshot.data?.readChapters ?? [];
 
           return StreamBuilder<BibleProgressModel?>(
-            stream: partnerId != null 
-                ? bibleService.streamBookProgress(partnerId!, book.name) 
+            stream: partnerId != null
+                ? bibleService.streamBookProgress(partnerId!, book.name)
                 : Stream.value(null),
             builder: (context, partnerSnapshot) {
               final partnerProgress = partnerSnapshot.data?.readChapters ?? [];
@@ -286,21 +318,30 @@ class BibleBookChaptersScreen extends StatelessWidget {
                 children: [
                   // Barra Superior de Controle (Marcar/Desmarcar Todos)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    color: theme.cardTheme.color?.withOpacity(0.4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    color: theme.cardTheme.color?.withValues(alpha: 0.4),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           'Capítulos lidos: ${userProgress.length} / ${book.chapters}',
-                          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         TextButton.icon(
                           icon: Icon(
-                            isAllRead ? Icons.bookmark_remove_rounded : Icons.bookmark_added_rounded,
+                            isAllRead
+                                ? Icons.bookmark_remove_rounded
+                                : Icons.bookmark_added_rounded,
                             size: 18,
                           ),
-                          label: Text(isAllRead ? 'Desmarcar todos' : 'Marcar todos'),
+                          label: Text(
+                            isAllRead ? 'Desmarcar todos' : 'Marcar todos',
+                          ),
                           onPressed: () {
                             bibleService.markAllChapters(
                               userId,
@@ -323,21 +364,24 @@ class BibleBookChaptersScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   // Grade de Capítulos
                   Expanded(
                     child: GridView.builder(
                       padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 5, // 5 botões por linha
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 5, // 5 botões por linha
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
                       itemCount: book.chapters,
                       itemBuilder: (context, index) {
                         final chapterNum = index + 1;
                         final isReadByMe = userProgress.contains(chapterNum);
-                        final isReadByPartner = partnerProgress.contains(chapterNum);
+                        final isReadByPartner = partnerProgress.contains(
+                          chapterNum,
+                        );
 
                         return Material(
                           color: Colors.transparent,
@@ -353,14 +397,16 @@ class BibleBookChaptersScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: isReadByMe 
-                                    ? theme.primaryColor.withOpacity(0.2) 
+                                color: isReadByMe
+                                    ? theme.primaryColor.withValues(alpha: 0.2)
                                     : theme.inputDecorationTheme.fillColor,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: isReadByMe 
-                                      ? theme.primaryColor 
-                                      : theme.primaryColor.withOpacity(0.15),
+                                  color: isReadByMe
+                                      ? theme.primaryColor
+                                      : theme.primaryColor.withValues(
+                                          alpha: 0.15,
+                                        ),
                                   width: isReadByMe ? 1.5 : 1,
                                 ),
                               ),
@@ -370,14 +416,18 @@ class BibleBookChaptersScreen extends StatelessWidget {
                                   // Número do Capítulo
                                   Text(
                                     '$chapterNum',
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: isReadByMe 
-                                          ? theme.primaryColor 
-                                          : theme.textTheme.bodyMedium?.color,
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: isReadByMe
+                                              ? theme.primaryColor
+                                              : theme
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.color,
+                                        ),
                                   ),
-                                  
+
                                   // Indicador de Leitura do Parceiro (Pequeno coração/círculo no canto)
                                   if (isReadByPartner)
                                     Positioned(
@@ -397,7 +447,7 @@ class BibleBookChaptersScreen extends StatelessWidget {
                       },
                     ),
                   ),
-                  
+
                   // Legenda das cores no rodapé
                   if (partnerId != null)
                     Padding(
@@ -405,13 +455,26 @@ class BibleBookChaptersScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.crop_square_rounded, color: theme.primaryColor),
+                          Icon(
+                            Icons.crop_square_rounded,
+                            color: theme.primaryColor,
+                          ),
                           const SizedBox(width: 4),
-                          Text('Lido por você', style: theme.textTheme.bodySmall),
+                          Text(
+                            'Lido por você',
+                            style: theme.textTheme.bodySmall,
+                          ),
                           const SizedBox(width: 16),
-                          Icon(Icons.favorite_rounded, color: theme.colorScheme.secondary, size: 14),
+                          Icon(
+                            Icons.favorite_rounded,
+                            color: theme.colorScheme.secondary,
+                            size: 14,
+                          ),
                           const SizedBox(width: 4),
-                          Text('Lido por ${partnerName ?? 'Amor'}', style: theme.textTheme.bodySmall),
+                          Text(
+                            'Lido por ${partnerName ?? 'Amor'}',
+                            style: theme.textTheme.bodySmall,
+                          ),
                         ],
                       ),
                     ),

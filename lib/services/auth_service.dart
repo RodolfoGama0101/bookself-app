@@ -45,46 +45,54 @@ class AuthService extends ChangeNotifier {
   // Escuta o usuário atual e se houver alteração de parceiro, escuta o parceiro também
   void _listenToCurrentUser(String uid) {
     _currentUserSubscription?.cancel();
-    _currentUserSubscription = _firestore.collection('users').doc(uid).snapshots().listen(
-      (docSnapshot) {
-        if (docSnapshot.exists) {
-          _currentUserModel = UserModel.fromFirestore(docSnapshot);
-          notifyListeners();
+    _currentUserSubscription = _firestore
+        .collection('users')
+        .doc(uid)
+        .snapshots()
+        .listen(
+          (docSnapshot) {
+            if (docSnapshot.exists) {
+              _currentUserModel = UserModel.fromFirestore(docSnapshot);
+              notifyListeners();
 
-          // Se houver um parceiro vinculado, escuta o parceiro
-          if (_currentUserModel?.partnerUid != null) {
-            _listenToPartner(_currentUserModel!.partnerUid!);
-          } else {
-            _partnerSubscription?.cancel();
-            _partnerSubscription = null;
-            _partnerUserModel = null;
-            notifyListeners();
-          }
-        }
-      },
-      onError: (error) {
-        print('Erro ao escutar usuário atual: $error');
-      },
-    );
+              // Se houver um parceiro vinculado, escuta o parceiro
+              if (_currentUserModel?.partnerUid != null) {
+                _listenToPartner(_currentUserModel!.partnerUid!);
+              } else {
+                _partnerSubscription?.cancel();
+                _partnerSubscription = null;
+                _partnerUserModel = null;
+                notifyListeners();
+              }
+            }
+          },
+          onError: (error) {
+            debugPrint('Erro ao escutar usuário atual.');
+          },
+        );
   }
 
   // Escuta o parceiro em tempo real
   void _listenToPartner(String partnerUid) {
     _partnerSubscription?.cancel();
-    _partnerSubscription = _firestore.collection('users').doc(partnerUid).snapshots().listen(
-      (docSnapshot) {
-        if (docSnapshot.exists) {
-          _partnerUserModel = UserModel.fromFirestore(docSnapshot);
-          notifyListeners();
-        } else {
-          _partnerUserModel = null;
-          notifyListeners();
-        }
-      },
-      onError: (error) {
-        print('Erro ao escutar parceiro: $error');
-      },
-    );
+    _partnerSubscription = _firestore
+        .collection('users')
+        .doc(partnerUid)
+        .snapshots()
+        .listen(
+          (docSnapshot) {
+            if (docSnapshot.exists) {
+              _partnerUserModel = UserModel.fromFirestore(docSnapshot);
+              notifyListeners();
+            } else {
+              _partnerUserModel = null;
+              notifyListeners();
+            }
+          },
+          onError: (error) {
+            debugPrint('Erro ao escutar parceiro.');
+          },
+        );
   }
 
   // Login com E-mail e Senha
@@ -107,7 +115,11 @@ class AuthService extends ChangeNotifier {
   }
 
   // Registro com E-mail, Senha e Nome
-  Future<String?> signUpWithEmail(String name, String email, String password) async {
+  Future<String?> signUpWithEmail(
+    String name,
+    String email,
+    String password,
+  ) async {
     _isLoading = true;
     notifyListeners();
     try {
@@ -125,7 +137,10 @@ class AuthService extends ChangeNotifier {
           createdAt: DateTime.now(),
         );
 
-        await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap());
+        await _firestore
+            .collection('users')
+            .doc(newUser.uid)
+            .set(newUser.toMap());
       }
       _isLoading = false;
       notifyListeners();
@@ -157,8 +172,10 @@ class AuthService extends ChangeNotifier {
 
     try {
       // 1. Verifica se o parceiro existe no Firestore
-      DocumentSnapshot partnerDoc =
-          await _firestore.collection('users').doc(partnerCode.trim()).get();
+      DocumentSnapshot partnerDoc = await _firestore
+          .collection('users')
+          .doc(partnerCode.trim())
+          .get();
 
       if (!partnerDoc.exists) {
         _isLoading = false;
@@ -169,7 +186,8 @@ class AuthService extends ChangeNotifier {
       UserModel partner = UserModel.fromFirestore(partnerDoc);
 
       // 2. Verifica se o parceiro já tem outro vínculo
-      if (partner.partnerUid != null && partner.partnerUid != _currentUserModel?.uid) {
+      if (partner.partnerUid != null &&
+          partner.partnerUid != _currentUserModel?.uid) {
         _isLoading = false;
         notifyListeners();
         return 'Este usuário já está vinculado a outra pessoa.';
@@ -177,9 +195,13 @@ class AuthService extends ChangeNotifier {
 
       // 3. Atualiza os dois documentos no Firestore (Relação bidirecional)
       WriteBatch batch = _firestore.batch();
-      
-      DocumentReference myRef = _firestore.collection('users').doc(_currentUserModel!.uid);
-      DocumentReference partnerRef = _firestore.collection('users').doc(partner.uid);
+
+      DocumentReference myRef = _firestore
+          .collection('users')
+          .doc(_currentUserModel!.uid);
+      DocumentReference partnerRef = _firestore
+          .collection('users')
+          .doc(partner.uid);
 
       batch.update(myRef, {'partnerUid': partner.uid});
       batch.update(partnerRef, {'partnerUid': _currentUserModel!.uid});
@@ -209,8 +231,12 @@ class AuthService extends ChangeNotifier {
       String partnerUid = _currentUserModel!.partnerUid!;
       WriteBatch batch = _firestore.batch();
 
-      DocumentReference myRef = _firestore.collection('users').doc(_currentUserModel!.uid);
-      DocumentReference partnerRef = _firestore.collection('users').doc(partnerUid);
+      DocumentReference myRef = _firestore
+          .collection('users')
+          .doc(_currentUserModel!.uid);
+      DocumentReference partnerRef = _firestore
+          .collection('users')
+          .doc(partnerUid);
 
       batch.update(myRef, {'partnerUid': null});
       batch.update(partnerRef, {'partnerUid': null});
