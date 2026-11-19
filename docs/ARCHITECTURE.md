@@ -8,7 +8,7 @@ Revisão: 02/10/2026. As seções iniciais descrevem o código atual; a evoluç�
 
 `MainNavigation` usa `IndexedStack` com Início, Estante, Bíblia e Perfil. Busca é acessada pela estante. Serviços de livros e Bíblia são instanciados nas telas; não há backend próprio versionado.
 
-Erros de inicialização Firebase são capturados, mas o app continua criando serviços dependentes de Firebase. Não há estado explícito de inicialização/falha ou modo local completo. A sessão autenticada depende também da chegada do documento de usuário no Firestore.
+Em caso de falha na inicialização Firebase, o aplicativo exibe uma mensagem e não cria serviços dependentes. O modo demo usa um projeto fictício e emuladores locais; não há modo funcional sem Firebase. A sessão autenticada depende também da chegada do documento de usuário no Firestore.
 
 ## Responsabilidades
 
