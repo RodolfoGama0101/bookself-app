@@ -9,7 +9,7 @@ const source = fs.readFileSync(
 const options = { projectId: 'demo-bookself', apiKey: 'demo-key' };
 const origin = 'http://127.0.0.1:9099';
 
-function fixture() {
+function fixture(expectedOrigin = origin) {
   const context = vm.createContext({ URL });
   const imports = [];
   const events = [];
@@ -31,8 +31,10 @@ function fixture() {
       return instance;
     },
     connectAuthEmulator: (value, target) => {
-      assert.equal(target, origin);
-      value.emulatorConfig = { host: '127.0.0.1', port: 9099, protocol: 'http' };
+      assert.equal(target, expectedOrigin);
+      const targetUrl = new URL(target);
+      value.emulatorConfig = { host: targetUrl.hostname,
+        port: Number(targetUrl.port || 80), protocol: 'http' };
       events.push('connect');
     },
   };
@@ -70,13 +72,22 @@ test('destinos remotos, protocolos e URLs com extras são rejeitados', async () 
   const { prepare, imports } = fixture();
   for (const target of [
     'http://example.com:9099', 'https://127.0.0.1:9099',
-    'http://127.0.0.1', 'http://user:secret@127.0.0.1:9099',
+    'http://127.0.0.1', 'http://127.0.0.1:0', 'http://user:secret@127.0.0.1:9099',
     'http://127.0.0.1:9099/path', 'http://127.0.0.1:9099/?x=1',
     'http://127.0.0.1:9099/#x',
   ]) {
     await assert.rejects(prepare('12.13.0', options, target));
   }
   assert.equal(imports.length, 0);
+});
+
+test('porta HTTP 80 explícita funciona e pode ser reutilizada', async () => {
+  const target = 'http://127.0.0.1:80';
+  const { prepare, events } = fixture(target);
+  await prepare('12.13.0', options, target);
+  await prepare('12.13.0', options, target);
+  assert.equal(events.filter(event => event === 'connect').length, 1);
+  assert.ok(!events.includes('restore-remote'));
 });
 
 test('override incompatível não mistura versões dos SDKs', async () => {
