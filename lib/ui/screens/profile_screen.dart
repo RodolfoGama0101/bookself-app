@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/firebase_environment.dart';
 import '../../services/auth_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -38,7 +38,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // Diálogo para editar o nome do usuário
-  void _showEditNameDialog(BuildContext context, String currentName, String uid) {
+  void _showEditNameDialog(
+    BuildContext context,
+    String currentName,
+    String uid,
+  ) {
     final nameController = TextEditingController(text: currentName);
     final theme = Theme.of(context);
 
@@ -71,11 +75,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () async {
                 final newName = nameController.text.trim();
                 if (newName.isNotEmpty) {
-                  await FirebaseFirestore.instance
+                  await FirebaseEnvironment.firestore
                       .collection('users')
                       .doc(uid)
                       .update({'name': newName});
-                  
+
                   if (context.mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -92,7 +96,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
               child: Text(
                 'Salvar',
-                style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: theme.primaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -124,18 +131,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Navigator.pop(context);
                   if (error != null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+                      SnackBar(
+                        content: Text(error),
+                        backgroundColor: Colors.redAccent,
+                      ),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Vínculo desfeito.'), backgroundColor: Colors.orange),
+                      const SnackBar(
+                        content: Text('Vínculo desfeito.'),
+                        backgroundColor: Colors.orange,
+                      ),
                     );
                   }
                 }
               },
               child: const Text(
                 'Desvincular',
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -166,10 +182,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final dataUri = 'data:image/jpeg;base64,$base64String';
 
       // Atualiza o campo da foto no Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .update({'photoUrl': dataUri});
+      await FirebaseEnvironment.firestore.collection('users').doc(uid).update({
+        'photoUrl': dataUri,
+      });
 
       setState(() {
         _isPhotoLoading = false;
@@ -190,7 +205,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao atualizar foto: ${ErrorHandler.getFriendlyErrorMessage(e)}'),
+            content: Text(
+              'Erro ao atualizar foto: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+            ),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -204,10 +221,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _isPhotoLoading = true;
     });
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .update({'photoUrl': null});
+      await FirebaseEnvironment.firestore.collection('users').doc(uid).update({
+        'photoUrl': null,
+      });
 
       setState(() {
         _isPhotoLoading = false;
@@ -228,7 +244,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao remover foto: ${ErrorHandler.getFriendlyErrorMessage(e)}'),
+            content: Text(
+              'Erro ao remover foto: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+            ),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -237,7 +255,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // Abre diálogo/bottomsheet com opções de câmera, galeria ou exclusão de foto
-  void _showAvatarSelectionSheet(BuildContext context, String uid, bool hasPhoto) {
+  void _showAvatarSelectionSheet(
+    BuildContext context,
+    String uid,
+    bool hasPhoto,
+  ) {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
@@ -258,7 +280,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[600]?.withOpacity(0.5),
+                    color: Colors.grey[600]?.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -273,7 +295,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 20),
               ListTile(
-                leading: Icon(Icons.photo_library_rounded, color: theme.primaryColor),
+                leading: Icon(
+                  Icons.photo_library_rounded,
+                  color: theme.primaryColor,
+                ),
                 title: const Text('Escolher da Galeria'),
                 onTap: () {
                   Navigator.pop(context);
@@ -281,7 +306,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.camera_alt_rounded, color: theme.primaryColor),
+                leading: Icon(
+                  Icons.camera_alt_rounded,
+                  color: theme.primaryColor,
+                ),
                 title: const Text('Tirar Foto'),
                 onTap: () {
                   Navigator.pop(context);
@@ -291,8 +319,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (hasPhoto) ...[
                 const Divider(),
                 ListTile(
-                  leading: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-                  title: const Text('Remover Foto', style: TextStyle(color: Colors.redAccent)),
+                  leading: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.redAccent,
+                  ),
+                  title: const Text(
+                    'Remover Foto',
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     _removePhoto(uid);
@@ -307,7 +341,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // Envia e-mail de redefinição de senha
-  void _sendPasswordResetEmail(BuildContext context, AuthService authService, String email) async {
+  void _sendPasswordResetEmail(
+    BuildContext context,
+    AuthService authService,
+    String email,
+  ) async {
     final error = await authService.sendPasswordReset(email);
     if (context.mounted) {
       if (error != null) {
@@ -335,10 +373,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final error = await authService.linkPartner(code);
     if (error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-          backgroundColor: Colors.redAccent,
-        ),
+        SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
       );
     } else if (mounted) {
       _partnerCodeController.clear();
@@ -361,9 +396,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final theme = Theme.of(context);
 
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -375,9 +408,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             icon: Icon(
-              themeService.isDarkMode 
-                  ? Icons.light_mode_rounded 
-                  : Icons.dark_mode_rounded
+              themeService.isDarkMode
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
             ),
             tooltip: 'Alterar Tema',
             onPressed: () => themeService.toggleTheme(),
@@ -396,20 +429,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 46,
-                      backgroundColor: theme.primaryColor.withOpacity(0.15),
+                      backgroundColor: theme.primaryColor.withValues(
+                        alpha: 0.15,
+                      ),
                       backgroundImage: _getAvatarImage(user.photoUrl),
                       child: _isPhotoLoading
                           ? const CircularProgressIndicator()
                           : (user.photoUrl == null || user.photoUrl!.isEmpty
-                              ? Text(
-                                  user.name.isNotEmpty ? user.name.substring(0, 1).toUpperCase() : '?',
-                                  style: TextStyle(
-                                    color: theme.primaryColor,
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              : null),
+                                ? Text(
+                                    user.name.isNotEmpty
+                                        ? user.name
+                                              .substring(0, 1)
+                                              .toUpperCase()
+                                        : '?',
+                                    style: TextStyle(
+                                      color: theme.primaryColor,
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                : null),
                     ),
                     Positioned(
                       bottom: 0,
@@ -426,7 +465,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Icon(
                             Icons.camera_alt_rounded,
                             size: 16,
-                            color: theme.brightness == Brightness.dark ? Colors.black : Colors.white,
+                            color: theme.brightness == Brightness.dark
+                                ? Colors.black
+                                : Colors.white,
                           ),
                         ),
                       ),
@@ -456,14 +497,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             constraints: const BoxConstraints(),
                             padding: const EdgeInsets.all(4),
                             tooltip: 'Editar Nome',
-                            onPressed: () => _showEditNameDialog(context, user.name, user.uid),
+                            onPressed: () => _showEditNameDialog(
+                              context,
+                              user.name,
+                              user.uid,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         user.email,
-                        style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[500],
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -492,7 +539,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (partner != null) ...[
                       Row(
                         children: [
-                          Icon(Icons.favorite_rounded, color: theme.colorScheme.secondary),
+                          Icon(
+                            Icons.favorite_rounded,
+                            color: theme.colorScheme.secondary,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -504,11 +554,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 Text(
                                   partner.name,
-                                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 Text(
                                   partner.email,
-                                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey[500],
+                                  ),
                                 ),
                               ],
                             ),
@@ -518,14 +572,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 16),
                       CustomButton(
                         text: 'Desvincular Casal',
-                        backgroundColor: Colors.redAccent.withOpacity(0.1),
+                        backgroundColor: Colors.redAccent.withValues(
+                          alpha: 0.1,
+                        ),
                         foregroundColor: Colors.redAccent,
                         onPressed: () => _confirmUnlink(context, authService),
                       ),
                     ] else ...[
                       Row(
                         children: [
-                          const Icon(Icons.favorite_border_rounded, color: Colors.grey),
+                          const Icon(
+                            Icons.favorite_border_rounded,
+                            color: Colors.grey,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -550,7 +609,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 16),
                       Text(
                         'Compartilhe suas estantes e progresso da Bíblia! Insira o código do seu parceiro abaixo para se conectar:',
-                        style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[400]),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[400],
+                        ),
                       ),
                       const SizedBox(height: 12),
                       CustomTextField(
@@ -596,7 +657,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Expanded(
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               color: theme.scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(8),
@@ -646,21 +710,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Card(
               child: ListTile(
                 leading: Icon(
-                  themeService.isDarkMode 
-                      ? Icons.dark_mode_rounded 
+                  themeService.isDarkMode
+                      ? Icons.dark_mode_rounded
                       : Icons.light_mode_rounded,
                   color: theme.primaryColor,
                 ),
                 title: const Text('Tema Escuro'),
                 subtitle: Text(
-                  themeService.isDarkMode 
-                      ? 'Ativado' 
-                      : 'Desativado',
+                  themeService.isDarkMode ? 'Ativado' : 'Desativado',
                   style: theme.textTheme.bodySmall,
                 ),
                 trailing: Switch(
                   value: themeService.isDarkMode,
-                  activeColor: theme.primaryColor,
+                  activeThumbColor: theme.primaryColor,
                   onChanged: (value) => themeService.toggleTheme(),
                 ),
               ),
@@ -678,11 +740,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 8),
             Card(
               child: ListTile(
-                leading: Icon(Icons.lock_reset_rounded, color: theme.primaryColor),
+                leading: Icon(
+                  Icons.lock_reset_rounded,
+                  color: theme.primaryColor,
+                ),
                 title: const Text('Redefinir Senha'),
-                subtitle: const Text('Enviar link de alteração para o seu e-mail'),
+                subtitle: const Text(
+                  'Enviar link de alteração para o seu e-mail',
+                ),
                 trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => _sendPasswordResetEmail(context, authService, user.email),
+                onTap: () =>
+                    _sendPasswordResetEmail(context, authService, user.email),
               ),
             ),
             const SizedBox(height: 32),
@@ -690,11 +758,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Botão de Logout
             CustomButton(
               text: 'Sair da Conta',
-              backgroundColor: theme.brightness == Brightness.dark 
-                  ? Colors.white.withOpacity(0.05) 
+              backgroundColor: theme.brightness == Brightness.dark
+                  ? Colors.white.withValues(alpha: 0.05)
                   : Colors.grey[200],
-              foregroundColor: theme.brightness == Brightness.dark 
-                  ? Colors.white 
+              foregroundColor: theme.brightness == Brightness.dark
+                  ? Colors.white
                   : Colors.black87,
               onPressed: () => authService.signOut(),
             ),

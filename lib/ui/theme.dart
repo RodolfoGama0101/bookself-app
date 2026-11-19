@@ -29,7 +29,6 @@ class AppTheme {
         primary: darkPrimary,
         secondary: darkAccent,
         surface: darkBgSecondary,
-        background: darkBg,
         error: Colors.redAccent,
       ),
       scaffoldBackgroundColor: darkBg,
@@ -63,14 +62,8 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: darkTextPrimary,
         ),
-        bodyLarge: GoogleFonts.outfit(
-          fontSize: 16,
-          color: darkTextPrimary,
-        ),
-        bodyMedium: GoogleFonts.outfit(
-          fontSize: 14,
-          color: darkTextSecondary,
-        ),
+        bodyLarge: GoogleFonts.outfit(fontSize: 16, color: darkTextPrimary),
+        bodyMedium: GoogleFonts.outfit(fontSize: 14, color: darkTextSecondary),
         labelLarge: GoogleFonts.outfit(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -94,7 +87,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -143,7 +139,6 @@ class AppTheme {
         primary: lightPrimary,
         secondary: lightAccent,
         surface: lightCard,
-        background: lightBg,
         error: Colors.red,
       ),
       scaffoldBackgroundColor: lightBg,
@@ -177,14 +172,8 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: lightTextPrimary,
         ),
-        bodyLarge: GoogleFonts.outfit(
-          fontSize: 16,
-          color: lightTextPrimary,
-        ),
-        bodyMedium: GoogleFonts.outfit(
-          fontSize: 14,
-          color: lightTextSecondary,
-        ),
+        bodyLarge: GoogleFonts.outfit(fontSize: 16, color: lightTextPrimary),
+        bodyMedium: GoogleFonts.outfit(fontSize: 14, color: lightTextSecondary),
         labelLarge: GoogleFonts.outfit(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -208,7 +197,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.red, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

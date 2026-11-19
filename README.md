@@ -35,11 +35,12 @@ Há projetos para Android, iOS e web, com opções Firebase para essas plataform
 
 ## Configuração e execução
 
-1. Instale um Flutter SDK compatível com o requisito de Dart do projeto.
+1. Selecione Flutter 3.44.0 e Dart 3.12.0, conforme [o guia de desenvolvimento](docs/DEVELOPMENT.md).
 2. Na raiz do repositório, instale as dependências:
 
    ```sh
-   flutter pub get
+   dart tool/check_sdk.dart
+   flutter pub get --enforce-lockfile
    ```
 
 3. Configure um ambiente Firebase de desenvolvimento com Authentication por e-mail/senha e Firestore. O repositório já possui configuração de um projeto Firebase; confirme o ambiente antes de usá-la. Para apontar para outro projeto, use o FlutterFire CLI:
@@ -48,7 +49,7 @@ Há projetos para Android, iOS e web, com opções Firebase para essas plataform
    flutterfire configure
    ```
 
-   O Firebase é necessário ao fluxo atual. O tratamento de falha na inicialização não oferece um modo funcional sem Firebase. Regras do Firestore não estão versionadas; autorização e emuladores são tarefas do backlog.
+   O Firebase é necessário ao fluxo atual. O tratamento de falha na inicialização não oferece um modo funcional sem Firebase. Há também um [ambiente demo local](docs/DEVELOPMENT.md#firebase-local-de-ensaio) para dados fictícios. As regras desse ambiente são permissivas e não substituem regras de produção nem validam autorização.
 
 4. Para busca de livros, configure e restrinja a chave do Google Books conforme o ambiente. Atualmente ela está embutida em `lib/services/book_service.dart`; a configuração externa está pendente. O cadastro manual permite registrar livros quando a busca está indisponível.
 5. Com um emulador ou dispositivo disponível:
@@ -71,6 +72,8 @@ flutter test --no-pub
 ```
 
 Na análise de **02/10/2026**, os quatro testes existentes passaram. Eles verificam apenas a lista de livros e alguns totais de capítulos bíblicos. A análise estática encontrou 47 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos.
+
+Na preparação da MAIN-01 em **18/11/2026**, a análise local terminou sem apontamentos e oito testes Flutter passaram, cobrindo dados bíblicos e configuração demo. A jornada web demo também foi exercitada; detalhes e limites estão no [guia de desenvolvimento](docs/DEVELOPMENT.md).
 
 Não foram validados: login real, regras do banco remoto, telas em dispositivo e builds de distribuição. Há um `build.log` local com falha anterior de compilação Android, cuja causa precisa ser reproduzida com a configuração atual. A configuração Android de release ainda usa assinatura de debug.
 

@@ -75,7 +75,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Não foi possível atualizar o status: ${ErrorHandler.getFriendlyErrorMessage(e)}'),
+            content: Text(
+              'Não foi possível atualizar o status: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+            ),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -112,7 +114,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   if (mounted) {
                     ScaffoldMessenger.of(this.context).showSnackBar(
                       SnackBar(
-                        content: Text('"${_currentBook.title}" removido com sucesso.'),
+                        content: Text(
+                          '"${_currentBook.title}" removido com sucesso.',
+                        ),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -121,7 +125,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   if (mounted) {
                     ScaffoldMessenger.of(this.context).showSnackBar(
                       SnackBar(
-                        content: Text('Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e)}'),
+                        content: Text(
+                          'Erro ao remover o livro: ${ErrorHandler.getFriendlyErrorMessage(e)}',
+                        ),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
@@ -130,7 +136,10 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
               },
               child: const Text(
                 'Remover',
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -142,14 +151,18 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasCover = _currentBook.coverUrl.isNotEmpty &&
-        (_currentBook.coverUrl.startsWith('http://') || _currentBook.coverUrl.startsWith('https://')) &&
+    final hasCover =
+        _currentBook.coverUrl.isNotEmpty &&
+        (_currentBook.coverUrl.startsWith('http://') ||
+            _currentBook.coverUrl.startsWith('https://')) &&
         Uri.tryParse(_currentBook.coverUrl)?.hasAbsolutePath == true;
 
     String dateStr = DateFormat('dd/MM/yyyy').format(_currentBook.addedAt);
     String? finishedDateStr;
     if (_currentBook.status == 'Lido' && _currentBook.finishedDate != null) {
-      finishedDateStr = DateFormat('dd/MM/yyyy').format(_currentBook.finishedDate!);
+      finishedDateStr = DateFormat(
+        'dd/MM/yyyy',
+      ).format(_currentBook.finishedDate!);
     }
 
     return Container(
@@ -158,10 +171,10 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             spreadRadius: 2,
-          )
+          ),
         ],
       ),
       padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 24),
@@ -176,7 +189,7 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[600]?.withOpacity(0.5),
+                  color: Colors.grey[600]?.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -190,10 +203,10 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
+                      color: Colors.black.withValues(alpha: 0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
-                    )
+                    ),
                   ],
                 ),
                 child: ClipRRect(
@@ -203,10 +216,11 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                     height: 195,
                     child: hasCover
                         ? Image.network(
-                            kIsWeb ? 'https://wsrv.nl/?url=${Uri.encodeComponent(_currentBook.coverUrl)}' : _currentBook.coverUrl,
+                            kIsWeb
+                                ? 'https://wsrv.nl/?url=${Uri.encodeComponent(_currentBook.coverUrl)}'
+                                : _currentBook.coverUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              print('Error loading details image ${_currentBook.coverUrl}: $error');
                               return _buildCoverPlaceholder(theme);
                             },
                           )
@@ -232,7 +246,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
               _currentBook.authors.join(', '),
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.textTheme.titleMedium?.color?.withOpacity(0.7),
+                color: theme.textTheme.titleMedium?.color?.withValues(
+                  alpha: 0.7,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -263,7 +279,10 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                         _getStatusIcon(_currentBook.status),
                         'Status',
                         _currentBook.status,
-                        textColor: _getStatusColor(context, _currentBook.status),
+                        textColor: _getStatusColor(
+                          context,
+                          _currentBook.status,
+                        ),
                       ),
                       if (finishedDateStr != null)
                         _buildInfoColumn(
@@ -335,7 +354,10 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
                   ),
                 ),
                 icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                label: const Text('Excluir da Estante', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text(
+                  'Excluir da Estante',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 onPressed: _confirmDelete,
               ),
             ],
@@ -351,8 +373,8 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            theme.primaryColor.withOpacity(0.3),
-            theme.colorScheme.secondary.withOpacity(0.2),
+            theme.primaryColor.withValues(alpha: 0.3),
+            theme.colorScheme.secondary.withValues(alpha: 0.2),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -364,13 +386,22 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     );
   }
 
-  Widget _buildInfoColumn(BuildContext context, IconData icon, String label, String value, {Color? textColor}) {
+  Widget _buildInfoColumn(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value, {
+    Color? textColor,
+  }) {
     final theme = Theme.of(context);
     return Column(
       children: [
         Icon(icon, size: 20, color: textColor ?? theme.primaryColor),
         const SizedBox(height: 6),
-        Text(label, style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500])),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+        ),
         const SizedBox(height: 2),
         Text(
           value,
@@ -383,19 +414,31 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
     );
   }
 
-  Widget _buildStatusActionButton(BuildContext context, String status, bool isActive) {
+  Widget _buildStatusActionButton(
+    BuildContext context,
+    String status,
+    bool isActive,
+  ) {
     if (isActive) {
       return ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: _getStatusColor(context, status).withOpacity(0.15),
+          backgroundColor: _getStatusColor(
+            context,
+            status,
+          ).withValues(alpha: 0.15),
           foregroundColor: _getStatusColor(context, status),
           elevation: 0,
           side: BorderSide(color: _getStatusColor(context, status), width: 1.5),
           padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
         onPressed: null, // Desabilita se já for o status atual
-        child: Text(status, style: const TextStyle(fontWeight: FontWeight.bold)),
+        child: Text(
+          status,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       );
     } else {
       return OutlinedButton(
@@ -403,7 +446,9 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
           foregroundColor: Colors.grey[400],
           side: BorderSide(color: Colors.grey[700] ?? Colors.grey),
           padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
         onPressed: () => _updateStatus(status),
         child: Text(status),
@@ -435,7 +480,11 @@ class _BookDetailsSheetState extends State<BookDetailsSheet> {
   }
 }
 
-void showBookDetailsSheet(BuildContext context, BookModel book, bool isEditable) {
+void showBookDetailsSheet(
+  BuildContext context,
+  BookModel book,
+  bool isEditable,
+) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,

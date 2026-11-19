@@ -1,22 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_environment.dart';
 import '../data/models/bible_progress_model.dart';
 
 class BibleService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseEnvironment.firestore;
 
   // Stream do progresso de um livro bíblico específico de um usuário
-  Stream<BibleProgressModel?> streamBookProgress(String userId, String bookName) {
+  Stream<BibleProgressModel?> streamBookProgress(
+    String userId,
+    String bookName,
+  ) {
     final docId = '${userId}_${bookName.replaceAll(' ', '_').toLowerCase()}';
-    return _firestore
-        .collection('bible_progress')
-        .doc(docId)
-        .snapshots()
-        .map((docSnapshot) {
-          if (docSnapshot.exists) {
-            return BibleProgressModel.fromFirestore(docSnapshot);
-          }
-          return null;
-        });
+    return _firestore.collection('bible_progress').doc(docId).snapshots().map((
+      docSnapshot,
+    ) {
+      if (docSnapshot.exists) {
+        return BibleProgressModel.fromFirestore(docSnapshot);
+      }
+      return null;
+    });
   }
 
   // Stream de todo o progresso da Bíblia de um usuário específico
@@ -37,7 +39,12 @@ class BibleService {
   }
 
   // Marca ou desmarca um capítulo como lido
-  Future<void> toggleChapter(String userId, String bookName, int chapter, bool isRead) async {
+  Future<void> toggleChapter(
+    String userId,
+    String bookName,
+    int chapter,
+    bool isRead,
+  ) async {
     final docId = '${userId}_${bookName.replaceAll(' ', '_').toLowerCase()}';
     final docRef = _firestore.collection('bible_progress').doc(docId);
 
@@ -57,7 +64,7 @@ class BibleService {
       } else {
         readChapters.remove(chapter);
       }
-      
+
       // Ordena os capítulos para consistência no banco
       readChapters.sort();
 
@@ -71,7 +78,12 @@ class BibleService {
   }
 
   // Marca todos os capítulos de um livro como lidos ou não lidos (marcação em lote)
-  Future<void> markAllChapters(String userId, String bookName, int totalChapters, bool isRead) async {
+  Future<void> markAllChapters(
+    String userId,
+    String bookName,
+    int totalChapters,
+    bool isRead,
+  ) async {
     final docId = '${userId}_${bookName.replaceAll(' ', '_').toLowerCase()}';
     final docRef = _firestore.collection('bible_progress').doc(docId);
 

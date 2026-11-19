@@ -1,0 +1,10 @@
+// SOMENTE para o emulador demo: não oferece isolamento entre usuários.
+// Não implante estas regras nem use dados reais neste ambiente.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
