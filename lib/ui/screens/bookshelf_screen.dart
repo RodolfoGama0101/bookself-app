@@ -223,7 +223,9 @@ class _BookshelfScreenState extends State<BookshelfScreen>
               onPressed: () async {
                 Navigator.pop(context);
                 try {
-                  await _bookService.saveBook(book.copyWith(status: 'Lendo'));
+                  await _bookService.saveBook(
+                    book.copyWith(status: 'Lendo', finishedDate: null),
+                  );
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

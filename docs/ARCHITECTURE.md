@@ -25,6 +25,10 @@ Em caso de falha na inicialização Firebase, o aplicativo exibe uma mensagem e 
 
 `ProfileScreen` escreve nome/foto diretamente no Firestore. Fotos são reduzidas e armazenadas como data URI Base64 no perfil; o código atual não usa Firebase Storage.
 
+Login e cadastro enviam a senha exatamente como digitada, inclusive espaços. Ambos exigem pelo menos seis caracteres na validação local; a política remota de autenticação é independente.
+
+`AuthService` encerra ouvintes de autenticação, perfil e parceiro no descarte e limpa o estado anterior quando a sessão ou o vínculo muda. Isso não revoga acessos no servidor.
+
 ## Dados no Firestore
 
 | Coleção e ID | Campos principais | Uso |
@@ -37,6 +41,8 @@ Inclusão pela busca e formulário manual força um ID vazio para criar document
 
 O feed consulta livros de uma ou duas pessoas, ordenados por `addedAt` no cliente. Alterações de status também atualizam esse campo: ele representa inclusão e última atividade. Não há histórico separado de eventos. Estatísticas mensais/anuais usam o estado atual `Lido` e `finishedDate`.
 
+`copyWith` preserva `finishedDate`, `partnerUid` e `photoUrl` quando omitidos e os limpa quando recebe `null` explícito. Ao mudar um livro de `Lido` para outro estado, a conclusão é removida; documentos existentes não foram migrados.
+
 ## Vínculo e autorização atuais
 
 O código de vínculo é o UID da outra conta. `linkPartner` consulta o perfil, verifica o vínculo do destinatário e atualiza ambos os perfis com batch. Não existe convite pendente, aceite ou validação transacional das duas contas para evitar vínculos concorrentes. Desvinculação também escreve nos dois perfis.
@@ -45,8 +51,6 @@ A estante do parceiro aparece sem controles de edição. Não é possível concl
 
 ## Limitações observadas
 
-- `BookModel.copyWith` usa `??`, impossibilitando limpar `finishedDate` com `null`.
-- A assinatura de `authStateChanges` não é guardada nem encerrada em `dispose` de `AuthService`.
 - Algumas operações assíncronas podem chamar `setState` depois do fechamento da tela.
 - Marcação bíblica não aguarda persistência antes de anunciar sucesso/finalizar a interação.
 - Falhas de busca recebem mensagem genérica de cota/indisponibilidade.
