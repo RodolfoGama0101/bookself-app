@@ -43,6 +43,8 @@ O feed consulta livros de uma ou duas pessoas, ordenados por `addedAt` no client
 
 `copyWith` preserva `finishedDate`, `partnerUid` e `photoUrl` quando omitidos e os limpa quando recebe `null` explícito. Ao mudar um livro de `Lido` para outro estado, a conclusão é removida; documentos existentes não foram migrados.
 
+A tela bíblica aguarda confirmação das escritas e bloqueia ações simultâneas no livro. Em seguida, consulta o servidor e reinicia a observação sem reapresentar cache anterior; se a atualização falhar, informa que a escrita foi salva e exige nova leitura antes de permitir outra ação. Troca de conta invalida a rota aberta e mudanças de parceiro renovam a observação. Streams ignoram escritas locais pendentes por documento; regras remotas e concorrência real ainda precisam de validação em emuladores.
+
 ## Vínculo e autorização atuais
 
 O código de vínculo é o UID da outra conta. `linkPartner` consulta o perfil, verifica o vínculo do destinatário e atualiza ambos os perfis com batch. Não existe convite pendente, aceite ou validação transacional das duas contas para evitar vínculos concorrentes. Desvinculação também escreve nos dois perfis.
@@ -52,7 +54,6 @@ A estante do parceiro aparece sem controles de edição. Não é possível concl
 ## Limitações observadas
 
 - Algumas operações assíncronas podem chamar `setState` depois do fechamento da tela.
-- Marcação bíblica não aguarda persistência antes de anunciar sucesso/finalizar a interação.
 - Falhas de busca recebem mensagem genérica de cota/indisponibilidade.
 - Estante/feed não têm paginação; ordenação e estatísticas ocorrem em memória.
 - Tema não persiste. Imagens e serviços externos requerem avaliação de uso sem rede.
