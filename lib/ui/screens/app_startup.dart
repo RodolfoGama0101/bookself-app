@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
@@ -23,6 +21,10 @@ class AppStartup extends StatefulWidget {
 
 enum _StartupStatus { loading, ready, failed }
 
+class _StartupWaitExpired implements Exception {
+  const _StartupWaitExpired();
+}
+
 class _AppStartupState extends State<AppStartup> {
   _StartupStatus _status = _StartupStatus.loading;
   Future<void>? _pending;
@@ -39,8 +41,11 @@ class _AppStartupState extends State<AppStartup> {
     var status = _StartupStatus.ready;
     var timedOut = false;
     try {
-      await _beginOrAwait().timeout(widget.timeout);
-    } on TimeoutException {
+      await _beginOrAwait().timeout(
+        widget.timeout,
+        onTimeout: () => throw const _StartupWaitExpired(),
+      );
+    } on _StartupWaitExpired {
       status = _StartupStatus.failed;
       timedOut = true;
     } catch (_) {

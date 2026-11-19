@@ -10,6 +10,27 @@ void main() {
     return const MaterialApp(home: Scaffold(body: Text('Aplicativo pronto')));
   }
 
+  testWidgets('timeout do SDK é tratado como falha concluída', (tester) async {
+    var attempts = 0;
+    await tester.pumpWidget(
+      AppStartup(
+        initialize: () async {
+          attempts++;
+          if (attempts == 1) throw TimeoutException('falha do SDK');
+        },
+        readyBuilder: readyApp,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Tentar novamente'), findsOneWidget);
+    expect(find.textContaining('inicialização está demorando'), findsNothing);
+    expect(find.textContaining('Verifique sua conexão'), findsOneWidget);
+    await tester.tap(find.text('Tentar novamente'));
+    await tester.pumpAndSettle();
+    expect(find.text('Aplicativo pronto'), findsOneWidget);
+    expect(attempts, 2);
+  });
+
   testWidgets(
     'tempo esgotado permite aguardar sem iniciar tentativa concorrente',
     (tester) async {
