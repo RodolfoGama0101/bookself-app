@@ -73,7 +73,7 @@ flutter test --no-pub
 
 Na análise de **02/10/2026**, os quatro testes existentes passaram. Eles verificam apenas a lista de livros e alguns totais de capítulos bíblicos. A análise estática encontrou 47 apontamentos informativos, sem erros ou warnings; o comando encerrou com código 1 por esses apontamentos.
 
-Na preparação da MAIN-01 em **18/11/2026**, a análise local desta branch terminou sem apontamentos e os mesmos quatro testes passaram. Essa cobertura ainda não valida os fluxos do aplicativo.
+Na preparação da MAIN-01 em **18/11/2026**, a análise local terminou sem apontamentos e oito testes Flutter passaram, cobrindo dados bíblicos e configuração demo. A jornada web demo também foi exercitada; detalhes e limites estão no [guia de desenvolvimento](docs/DEVELOPMENT.md).
 
 Não foram validados: login real, regras do banco remoto, telas em dispositivo e builds de distribuição. Há um `build.log` local com falha anterior de compilação Android, cuja causa precisa ser reproduzida com a configuração atual. A configuração Android de release ainda usa assinatura de debug.
 
