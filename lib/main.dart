@@ -6,65 +6,56 @@ import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
 import 'services/firebase_environment.dart';
+import 'services/firebase_startup.dart';
 import 'services/firebase_web_emulator.dart';
 import 'ui/theme.dart';
 import 'ui/screens/login_screen.dart';
 import 'ui/screens/main_navigation.dart';
+import 'ui/screens/app_startup.dart';
 
 import 'firebase_options.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  try {
-    await initializeFirebase();
-  } catch (_) {
-    runApp(
-      const MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: Text(
-              'Não foi possível iniciar o aplicativo. Feche e tente novamente.',
-            ),
-          ),
-        ),
-      ),
-    );
-    return;
-  }
-
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
-        ChangeNotifierProvider(create: (_) => ThemeService()),
-      ],
-      child: const BookselfApp(),
+    AppStartup(
+      initialize: initializeFirebase,
+      readyBuilder: (_) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthService()),
+          ChangeNotifierProvider(create: (_) => ThemeService()),
+        ],
+        child: const BookselfApp(),
+      ),
     ),
   );
 }
 
-Future<void> initializeFirebase() async {
-  const environment = FirebaseEnvironment.fromDefines;
-  environment.validate();
-  final webAuthConfigured = await prepareWebEmulator(environment);
-  final app = await Firebase.initializeApp(
-    name: environment.useEmulators ? FirebaseEnvironment.demoProjectId : null,
-    options: environment.useEmulators
-        ? environment.demoOptions
+const _environment = FirebaseEnvironment.fromDefines;
+final _firebaseStartup = FirebaseStartupCoordinator<FirebaseApp>(
+  validate: _environment.validate,
+  useEmulators: _environment.useEmulators,
+  prepareWeb: () => prepareWebEmulator(_environment),
+  initializeApp: () => Firebase.initializeApp(
+    name: _environment.useEmulators ? FirebaseEnvironment.demoProjectId : null,
+    options: _environment.useEmulators
+        ? _environment.demoOptions
         : DefaultFirebaseOptions.currentPlatform,
-  );
-  if (environment.useEmulators) {
+  ),
+  configureFirestore: (app) async {
     final firestore = FirebaseFirestore.instanceFor(app: app);
     firestore.settings = const Settings(persistenceEnabled: false);
-    firestore.useFirestoreEmulator(environment.host, environment.firestorePort);
-    if (!webAuthConfigured) {
-      await FirebaseAuth.instanceFor(
-        app: app,
-      ).useAuthEmulator(environment.host, environment.authPort);
-    }
-  }
-}
+    firestore.useFirestoreEmulator(
+      _environment.host,
+      _environment.firestorePort,
+    );
+  },
+  configureAuth: (app) => FirebaseAuth.instanceFor(
+    app: app,
+  ).useAuthEmulator(_environment.host, _environment.authPort),
+);
+
+Future<void> initializeFirebase() => _firebaseStartup.initialize();
 
 class BookselfApp extends StatelessWidget {
   const BookselfApp({super.key});

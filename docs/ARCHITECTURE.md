@@ -4,11 +4,11 @@ Revisão: 02/10/2026. As seções iniciais descrevem o código atual; a evoluç�
 
 ## Inicialização e interface atuais
 
-`lib/main.dart` inicializa Firebase e registra `AuthService` e `ThemeService` em `MultiProvider`. `BookselfApp` observa esses serviços e mostra login ou `MainNavigation` conforme a existência de `currentUserModel`.
+`AppStartup` apresenta carregamento e permite nova tentativa em caso de falha. Após a inicialização Firebase e a configuração do ambiente concluírem, `lib/main.dart` registra `AuthService` e `ThemeService` em `MultiProvider`. `BookselfApp` observa esses serviços e mostra login ou `MainNavigation` conforme a existência de `currentUserModel`.
 
 `MainNavigation` usa `IndexedStack` com Início, Estante, Bíblia e Perfil. Busca é acessada pela estante. Serviços de livros e Bíblia são instanciados nas telas; não há backend próprio versionado.
 
-Erros de inicialização Firebase são capturados, mas o app continua criando serviços dependentes de Firebase. Não há estado explícito de inicialização/falha ou modo local completo. A sessão autenticada depende também da chegada do documento de usuário no Firestore.
+Falhas de inicialização mantêm os serviços dependentes fora da árvore. Após 15 segundos, a tela oferece nova tentativa; o limite não cancela a operação subjacente, e novas tentativas aguardam a mesma operação enquanto ela estiver pendente. A nova tentativa reutiliza as etapas já concluídas; o modo demo exige projeto fictício e não recorre ao ambiente distribuído. Os testes simulados não comprovam recuperação após efeito colateral interno do SDK nativo antes de uma etapa retornar. Isso não oferece um modo funcional sem Firebase. A sessão autenticada ainda depende da chegada do documento de usuário no Firestore; seus estados de carregamento, ausência e erro são tratados separadamente em CORE-02.
 
 ## Responsabilidades
 
