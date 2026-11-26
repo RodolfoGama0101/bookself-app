@@ -274,17 +274,12 @@ class _BookshelfScreenState extends State<BookshelfScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Estantes',
-          style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Estante'),
         bottom: TabBar(
           controller: _userTabController,
           tabs: [
-            const Tab(text: 'Minha Estante'),
-            Tab(
-              text: partner != null ? 'Estante de ${partner.name}' : 'Parceiro',
-            ),
+            const Tab(text: 'Minha estante'),
+            const Tab(text: 'Parceiro'),
           ],
         ),
       ),
@@ -306,15 +301,13 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                         Icon(
                           Icons.favorite_border_rounded,
                           size: 48,
-                          color: Colors.grey[600],
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Aguardando conexão com o seu amor.\nVincule a conta na aba de perfil!',
+                          'Vincule uma conta no Perfil para consultar a estante do parceiro.',
                           textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[500],
-                          ),
+                          style: theme.textTheme.bodyMedium,
                         ),
                       ],
                     ),
@@ -322,15 +315,20 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                 ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const SearchScreen()),
-          );
-        },
-        backgroundColor: theme.primaryColor,
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: Align(
+          heightFactor: 1,
+          alignment: Alignment.centerRight,
+          child: FilledButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SearchScreen()),
+            ),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Adicionar livro'),
+          ),
+        ),
       ),
     );
   }
@@ -349,7 +347,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
               child: SelectableText(
                 'Erro ao carregar estante: ${ErrorHandler.getFriendlyErrorMessage(snapshot.error)}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.redAccent),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
           );
@@ -371,7 +369,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           children: [
             Container(
               color: Theme.of(context).appBarTheme.backgroundColor,
-              child: TabBar(
+              child: TabBar.secondary(
                 controller: controller,
                 tabs: const [
                   Tab(text: 'Lendo'),
@@ -423,9 +421,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           child: Text(
             emptyMessage,
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[500],
-            ),
+            style: theme.textTheme.bodyMedium,
           ),
         ),
       );
@@ -466,9 +462,10 @@ class _BookshelfScreenState extends State<BookshelfScreen>
                         onPressed: () => _confirmAndStartReading(context, book),
                       ),
                       IconButton(
-                        icon: const Icon(
+                        tooltip: 'Excluir livro',
+                        icon: Icon(
                           Icons.delete_outline,
-                          color: Colors.redAccent,
+                          color: theme.colorScheme.error,
                         ),
                         onPressed: () => _confirmAndDeleteBook(context, book),
                       ),
@@ -492,9 +489,7 @@ class _BookshelfScreenState extends State<BookshelfScreen>
           padding: const EdgeInsets.all(24.0),
           child: Text(
             'Nenhuma leitura concluída ainda.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[500],
-            ),
+            style: theme.textTheme.bodyMedium,
           ),
         ),
       );
@@ -523,29 +518,21 @@ class _BookshelfScreenState extends State<BookshelfScreen>
               bottom: 8.0,
               right: 20.0,
             ),
-            child: Row(
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
                   '${_getMonthName(month)} / $year',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontFamily: GoogleFonts.playfairDisplay().fontFamily,
                     fontWeight: FontWeight.bold,
                     color: theme.primaryColor,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Divider(
-                    color: theme.primaryColor.withValues(alpha: 0.3),
-                    thickness: 1,
-                  ),
-                ),
-                const SizedBox(width: 8),
                 Text(
                   '${monthBooks.length} ${monthBooks.length == 1 ? 'lido' : 'lidos'}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[500],
-                  ),
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),
