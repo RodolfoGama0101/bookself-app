@@ -14,6 +14,7 @@ O produto está em fase de MVP. A evolução planejada inclui filmes, séries e 
 | [AGENTS.md](AGENTS.md) | Orientações para trabalhar neste repositório. |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura atual, limitações e proposta de evolução. |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Expansão, experiência do casal e nomes candidatos. |
+| [docs/DESIGN.md](docs/DESIGN.md) | Direção visual, comportamento responsivo e validação. |
 | [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integrações atuais e candidatas, com fontes oficiais. |
 
 ## Funcionalidades implementadas
